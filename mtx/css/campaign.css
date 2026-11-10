@@ -1,0 +1,13 @@
+/* Campaign window = Spotlight component (spotlight.css); this file keeps the Event card under Shop */
+/* Event card under Shop (Figma 388:146972): 360 × 160, art on the right fading into black, rotates through the campaign slides */
+.news-ev{position:relative;display:block;flex:none;box-sizing:border-box;padding:0;width:360px;height:160px!important;margin-top:10px;background:#020202 right center/62% auto no-repeat;cursor:pointer;text-decoration:none}
+.news-ev__shade{position:absolute;inset:0;background:linear-gradient(90deg,#020202 38%,transparent 75%)}
+.news-ev__tag{position:absolute;left:18px;top:12px;right:auto;bottom:auto}
+.news-ev__title{position:absolute;left:18px;top:56px;width:200px;font:700 22px/26px var(--font-ui)!important;text-transform:uppercase;color:#fff}
+.news-ev__title br{display:block}
+/* Q ● ● ● E pager: shown (and Q / E active) only while the card is selected or hovered, like the mode cards */
+.news-ev__pager{position:absolute;right:14px;bottom:12px;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .25s ease}
+.news-ev.is-focused .news-ev__pager,.news-ev:hover .news-ev__pager{opacity:1}
+.news-ev__pager i{width:9px;height:9px;border-radius:50%;background:rgb(255 255 255 / .3);cursor:pointer}
+.news-ev__pager i.is-on{background:#fff}
+.news-ev__pager .glyph{--g:22px;font-size:10px;cursor:pointer}

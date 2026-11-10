@@ -1,0 +1,71 @@
+/* =====================================================================
+   MTX design tokens
+   Pulled from the Figma export (mtx-figma-export). The Figma file has no
+   colour/text styles or variables, so every value below was collected from
+   raw layer fills and text properties. FIGMA_STRUCTURE_NOTES.md proposes
+   turning these into Figma Variables + Text Styles with the same names.
+   ===================================================================== */
+
+/* bundled files only, no local(): a locally installed copy (duplicate / per-user installs on Windows) can render garbled glyphs in Chrome */
+@font-face{font-family:"Industry";src:url(../fonts/Industry-Book.otf) format("opentype");font-weight:400}
+@font-face{font-family:"Industry";src:url(../fonts/Industry-Medium.otf) format("opentype");font-weight:500}
+@font-face{font-family:"Industry";src:url(../fonts/Industry-Demi.otf) format("opentype");font-weight:600}
+@font-face{font-family:"Industry";src:url(../fonts/Industry-Bold.otf) format("opentype");font-weight:700}
+@font-face{font-family:"Industry";src:url(../fonts/Industry-Black.otf) format("opentype");font-weight:900}
+@font-face{font-family:"Modi Thorson";src:url(../fonts/modithorson.ttf) format("truetype")}
+
+:root{
+  color-scheme:dark;
+
+  /* ---- fonts ---- */
+  --font-display:"Modi Thorson","Russo One","Arial Black",Impact,sans-serif;
+  --font-ui:"Industry","Saira Semi Condensed","Arial Narrow",system-ui,sans-serif;
+
+  /* ---- surfaces (dark → light) ---- */
+  --surface-void:#050505;
+  --surface-frame:#1a1a1a;      /* frame fill on every screen            */
+  --surface-card:#0b1018;       /* tiles, panels, quest rows             */
+  --surface-chip:#16181f;       /* level chip body, button glyph, pills  */
+  --surface-raised:#272727;     /* disabled card, rank mode              */
+  --surface-card-dark:#020202;  /* mode card default                     */
+  --surface-scrim:rgb(0 0 0 / .5);
+
+  /* ---- lines ---- */
+  --line-1:#373737;  --line-2:#4e4e4e;  --line-3:#454545;  --line-bright:#c1c1c1;
+
+  /* ---- text ---- */
+  --text-1:#f6f1eb;  --text-2:#e0deda;  --text-muted:#acacbb;  --text-subtle:#9da4a5;
+  --text-dim:#6c6c6c;  --text-off:#4e4e4e;  --text-ink:#16181f;  --text-ink-2:#27282d;  --text-cta:#1e1e1d;
+
+  /* ---- brand / status ---- */
+  --yellow:#f6df2f;  --yellow-2:#f2df57;  --yellow-3:#f4dd2f;  --amber:#f3ad3b;  --amber-2:#f7bb2b;
+  --red:#ff0027;  --red-2:#c8133f;  --red-3:#ed153f;  --red-dark:#680920;
+  --green:#00fd86;  --mint:#4dffd9;  --cream:#f5e5b5;  --bar:#fff7e1;  --link:#2568ef;
+
+  /* ---- selected Tactical style (set by app.js; default Phranakhon red) ---- */
+  --style-color:#e6003f;
+  --style-fg:#ffffff;
+
+  /* ---- progression tracks (R / E / S) ---- */
+  --track-r:#f5e5b5;  --track-e:#ff0027;  --track-s:#6100ff;
+  --track-r-dark:#6b603e;  --track-e-dark:#680920;  --track-s-dark:#3e0d8f;
+
+  /* ---- controller glyph colours ---- */
+  --glyph-a:#35d900;  --glyph-b:#e00000;  --glyph-x:#223bd6;  --glyph-y:#f5e414;  --glyph-stick:#acacbb;
+
+  /* ---- gradients ---- */
+  --grad-gold:linear-gradient(100deg,#f2df57 0%,#f3ad3b 82%,#f2df57 98%);
+  --grad-focus:linear-gradient(90deg,#f3eed0,#e4b996 25%,#766ab2 50%,#5a8dc2 75%,#8bcab2);
+  --grad-quest-gold:linear-gradient(90deg,#f4dd2f,#ff5900 50%,#f4dd2f);
+  --grad-quest-red:linear-gradient(90deg,#630a18,#ff0027 50%,#f23451);
+
+  /* ---- textures ---- */
+  --tex-scratch:url(../assets/img/tex-scratch.webp);
+  --tex-white:url(../assets/img/tex-scratch-white.webp);
+  --tex-band:url(../assets/img/tex-quest-band.webp);
+  --tex-tile:url(../assets/img/tex-tile.webp);
+
+  /* ---- radii / misc ---- */
+  --r-xs:1px;  --r-sm:2px;  --r-md:3px;  --r-tag:4px;  --r-pill:999px;
+  --focus-w:4px;
+}

@@ -1,0 +1,82 @@
+/* Login / Sign up (Figma 301:44395 · frames "Login" 301:43891 / "Sign up" 301:43964) */
+.login{position:absolute;inset:0;z-index:60;overflow:hidden}
+.login[hidden]{display:none}
+.login__bg{display:none}
+
+.login__panel{position:absolute;top:0;right:0;width:513px;height:1080px;box-sizing:border-box;padding:268px 62px 0 76px;
+  background:url(../assets/img/login/panel-texture.png) 10px 10px / 491px 1059px no-repeat,rgb(0 0 0 / .7)}
+.login__panel--signup{padding-top:257px}
+.login__title{margin:0 0 21px 6px;font:400 75px/75px var(--font-display);text-transform:uppercase;white-space:nowrap}
+.login__panel--signup .login__title{margin:0 0 9px 0;font-size:66px;line-height:86px}
+
+/* fields: 375 x 40, black 60%, cream label (Industry Medium 20) */
+.login__field{position:relative;display:block;width:375px;height:40px;margin-bottom:12px;background:rgb(0 0 0 / .6);cursor:text}
+.login__field input{all:unset;box-sizing:border-box;width:100%;height:100%;padding:0 19px;font:500 20px/40px var(--font-ui);color:#f4e4dd;text-transform:uppercase;caret-color:var(--yellow)}
+.login__field input::placeholder{color:#f4e4dd;opacity:.55;font-weight:400}   /* placeholder: Industry Book, lighter than typed text */
+.login__field input:not(:placeholder-shown){color:var(--text-1)}
+
+
+/* actions: primary CTA + Cancel as plain text with its key glyph (not a Secondary button) */
+.login__actions{display:flex;flex-direction:column;align-items:stretch;gap:14px;width:375px;margin:20px 0 0 0}   /* vertical stack, same width as the fields */
+.login__actions .btn-cta{width:100%;min-width:0;height:52px;justify-content:center;border-radius:0}
+.login__cancel{display:flex;justify-content:center;height:44px;box-sizing:border-box;background:rgb(0 0 0 / .35);align-items:center;gap:10px;font:500 18px/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:#81898b;cursor:pointer;padding:6px 4px;border-bottom:2px solid transparent}
+.login__cancel .glyph{opacity:.85}
+.login__cancel.is-focused,.login__cancel:hover{color:var(--text-1)}
+
+.login__links{display:flex;justify-content:space-between;align-items:center;width:369px;margin:20px 0 0 6px}
+.login__link{display:inline-flex;align-items:center;gap:8px;font:400 13px/1 var(--font-ui);color:#81898b;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.login__link .glyph{transform:scale(.85)}
+
+.login__or{display:flex;align-items:center;gap:20px;width:369px;margin:44px 0 0 6px;font:500 16px/39px var(--font-ui);color:var(--text-1);text-transform:uppercase}
+.login__or i{flex:1;height:1px;background:var(--text-1)}
+.login__panel--signup .login__or{margin:10px 0 40px 0}
+
+.login__platforms{display:flex;justify-content:space-between;align-items:center;width:375px;margin:22px 0 0 -2px}
+.login__platforms img{cursor:pointer;transition:opacity .15s}
+.login__platforms img:hover{opacity:.8}
+.login__platforms img[alt="Steam"]{width:187px;height:95px}
+.login__platforms img[alt^="Epic"]{width:129px;height:54px}
+.login__panel--signup .login__platforms{margin:0}
+
+.login__legal{position:absolute;left:63px;bottom:48px;width:406px;margin:0;font:400 11px/15px var(--font-ui);color:#5c5c5c;text-transform:uppercase}
+.login__hints{position:absolute;left:65px;bottom:41px}
+
+/* Intro (Figma 301:44036): replaces the old "Press any button" placeholder */
+#start.intro{display:block;background:none}
+#start.intro[hidden]{display:none}
+.intro__press{position:absolute;left:454px;top:722px;margin:0;font:600 24px/29px var(--font-ui);letter-spacing:6px;color:var(--text-1);text-transform:uppercase;white-space:pre;animation:pulse 1.6s ease-in-out infinite}
+.intro__hints{position:absolute;left:72px;bottom:47px}
+
+/* ---- shared title layer: one arena + one logo for Intro and Login, the logo moves between the two Figma positions ---- */
+#titleBg{position:absolute;inset:0;z-index:49;overflow:hidden;background:#05070b;transition:opacity .45s ease}
+#titleBg[hidden]{display:none}
+#titleBg.is-off{opacity:0;pointer-events:none}
+.tb__arena{position:absolute;left:-8px;top:-91px;width:2147px;height:1208px;background:url(../assets/img/login/arena.jpg) center/cover no-repeat}
+.tb__crowd{position:absolute;left:0;top:0;width:1920px;height:1027px;background:url(../assets/img/login/crowd.png) 0 0/100% 100% no-repeat;mix-blend-mode:screen}   /* Figma: crowd images blend SCREEN */
+.tb__logo{position:absolute;left:0;top:198px;width:1920px;height:510px;background:url(../assets/img/login/logo.png) 0 0/100% 100% no-repeat;
+  transform-origin:0 0;transition:transform .75s cubic-bezier(.65,0,.35,1)}
+#titleBg.is-login .tb__logo{transform:none}   /* Login keeps the Intro logo: same size, same place */
+
+@keyframes lgFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes lgPanelIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes lgRise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+#start.intro{transition:opacity .3s ease}
+#start.intro.is-leaving{opacity:0;pointer-events:none}
+.intro__press{animation:lgRise .6s .25s cubic-bezier(.16,1,.3,1) both,pulse 1.6s .9s ease-in-out infinite}
+.intro__hints{animation:lgFadeIn .4s .3s both}
+.login__panel{animation:lgPanelIn .6s .1s cubic-bezier(.16,1,.3,1) both;transition:transform .4s cubic-bezier(.7,0,.84,0)}
+.login__panel>*{animation:lgRise .45s cubic-bezier(.16,1,.3,1) both}
+.login__panel>:nth-child(1){animation-delay:.3s}.login__panel>:nth-child(2){animation-delay:.35s}.login__panel>:nth-child(3){animation-delay:.4s}
+.login__panel>:nth-child(4){animation-delay:.45s}.login__panel>:nth-child(5){animation-delay:.5s}.login__panel>:nth-child(n+6){animation-delay:.55s}
+.login__panel.is-switch{animation:none}
+.login__panel.is-switch>:nth-child(n){animation-delay:0s}
+.login__hints{animation:lgFadeIn .4s .35s both}
+.login{transition:opacity .4s ease}
+.login.is-leaving{opacity:0;pointer-events:none}
+.login.is-leaving .login__panel{transform:translateX(100%)}
+
+/* Login CTA: .btn-cta::after is the hold ring, so this non-hold button draws the shared focus ring (base.css) there */
+.login__actions .btn-cta.focus-ring::after{inset:0;padding:var(--focus-w);background:var(--grad-focus);z-index:3;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.login__actions .btn-cta.focus-ring.is-focused::after{opacity:1}

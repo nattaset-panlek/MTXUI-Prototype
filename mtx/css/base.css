@@ -1,0 +1,622 @@
+/* =====================================================================
+   Stage + screen skeleton
+   Every screen is built from the same four layers:
+
+     section.screen
+       .screen__bg      full-bleed art (fills the whole stage, also at 21:9)
+       .screen__safe    the 1920x1080 Figma frame; content placed in frame px
+       .screen__chrome  edge-anchored HUD: brand (top-left), player HUD
+                        (top-right), hint bar (bottom-left), social bar
+                        (bottom-right). At 21:9 these hug the stage edges.
+   ===================================================================== */
+
+html,body{height:100%;margin:0}
+body{background:var(--surface-void);overflow:hidden;font-family:var(--font-ui);color:var(--text-1);-webkit-font-smoothing:antialiased}
+img{display:block;user-select:none;-webkit-user-drag:none}
+button{font:inherit;color:inherit}
+
+#viewport{position:fixed;inset:0}
+#stage{--sw:1920px;--ox:0px;position:absolute;left:0;top:0;width:var(--sw);height:1080px;transform-origin:0 0;overflow:hidden;background:#000}
+
+.screen{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .18s ease,visibility 0s .18s;background:var(--surface-frame)}
+.screen.is-active{opacity:1;visibility:visible;transition:opacity .18s ease}
+/* screen motion (components/motion.js): the old screen stays on top while its parts slide out, then fades */
+.screen.is-leaving{visibility:visible;opacity:1;z-index:2;pointer-events:none;transition:none}
+.screen__bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.screen__bg > *{position:absolute}
+.screen__safe{position:absolute;top:0;left:var(--ox);width:1920px;height:1080px}
+.screen__chrome{position:absolute;inset:0;pointer-events:none}
+.screen__chrome > *{pointer-events:auto}
+
+/* full-bleed background helpers */
+.bg-cover{inset:0;width:100%;height:100%;object-fit:cover}
+.bg-scrim{inset:0}
+.bg-fade-bottom{left:0;right:0;bottom:0;height:351px;background:linear-gradient(180deg,rgb(22 24 31 / 0),#16181f)}
+.bg-texture{inset:0;background:var(--surface-card) var(--tex-scratch) center/cover;opacity:.3}
+
+/* place a child of .screen__safe by frame coordinates: style="--x:..;--y:.." */
+.at{position:absolute;left:calc(var(--x) * 1px);top:calc(var(--y) * 1px)}
+.at-c{position:absolute;left:calc(var(--x) * 1px);top:calc(var(--y) * 1px);transform:translate(-50%,-50%)}
+
+/* ---- Focus ring (Figma: gradient stroke, 3-4px, inside) ---- */
+[data-nav]{cursor:pointer}
+.focus-ring{position:relative}
+.focus-ring::after{content:"";position:absolute;inset:0;padding:var(--focus-w);border-radius:inherit;background:var(--grad-focus);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:0;transition:opacity .1s;pointer-events:none;z-index:3}
+.focus-ring.is-focused::after{opacity:1}
+.focus-ring--out::after{inset:calc(var(--focus-w) * -1)}
+.focus-ring--thin{--focus-w:2px}
+.focus-ring--3{--focus-w:3px}
+.is-pressed{transform:scale(.985)}
+
+/* ---- Textured display text (Figma: text fill = white + scratch image) ---- */
+.tex-text{background:linear-gradient(var(--text-1),var(--text-1)),var(--tex-white) center/cover;background-blend-mode:multiply;
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---- Overlays ---- */
+#start{position:absolute;inset:0;display:grid;place-items:center;background:rgb(0 0 0 / .72);z-index:50;cursor:pointer}
+#start[hidden]{display:none}
+#start .in{display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center}
+#start h1{margin:0;font:400 64px/1 var(--font-display);color:var(--yellow-2);text-transform:uppercase}
+#start p{margin:0;font-weight:600;font-size:26px;letter-spacing:.06em;text-transform:uppercase;animation:pulse 1.6s ease-in-out infinite}
+#start small{font-size:20px;color:var(--text-muted);max-width:900px;line-height:1.4}
+@keyframes pulse{50%{opacity:.4}}
+
+/* ---- Dev HUD (outside the stage) ---- */
+/* input status (inside #tools, styled like the dev panel) */
+#hud{display:flex;align-items:center;gap:10px;height:26px;padding:0 10px;box-sizing:border-box;border-radius:5px;background:rgba(36,36,36,.92);border:1px solid #383838;box-shadow:0 4px 12px rgba(0,0,0,.4);
+  font:500 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#b3b3b3;white-space:nowrap;pointer-events:none;transition:opacity .4s}
+#hud.idle{opacity:.55}
+.hud__item{display:inline-flex;align-items:center;gap:6px}
+.hud__dot{width:6px;height:6px;border-radius:50%;background:#6b6b6b}
+#hud:has(#padChip.on) .hud__dot{background:#14ae5c}
+#padChip.on{color:#fff}
+.hud__sep{width:1px;height:12px;background:#444}
+.hud__label{color:#8a8a8a}
+#lastIn{min-width:14px;padding:3px 6px;border-radius:3px;background:#383838;border:1px solid #484848;font:500 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;color:#fff;text-align:center}
+.chip{font:600 13px/1.2 var(--font-ui);letter-spacing:.04em;padding:5px 11px;border-radius:999px;background:rgb(20 20 20 / .88);border:1px solid #3a3a3a;color:var(--text-1);white-space:nowrap}
+.chip.on{border-color:#8bcab2}
+.chip b{color:var(--yellow-2)}
+#tools{position:fixed;right:10px;top:10px;z-index:100;display:flex;flex-direction:column;align-items:flex-end;gap:8px;transition:opacity .4s}
+#tools.idle{opacity:0}
+#tools .row{display:flex;gap:6px}
+#tools .row button{
+  font: 500 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;
+  letter-spacing: normal;
+  border-radius: 5px;
+  padding: 6px 10px;
+  background: rgba(36,36,36,0.92);
+  border: 1px solid #383838;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  transition: all .15s ease;
+  outline: none;
+}
+#tools .row button:hover{background:#383838;border-color:#484848}
+#tools .row button[aria-expanded="true"]{background:#2c2c2c;border-color:#0d99ff;color:#0d99ff;box-shadow:0 0 8px rgba(13,153,255,0.3)}
+body.ui-hidden #hud,body.ui-hidden #tools{display:none!important}
+#showUiBtn{position:fixed;right:10px;top:10px;z-index:100;cursor:pointer;transition:opacity .3s,transform .2s;opacity:.5}
+#showUiBtn:hover{opacity:1;transform:scale(1.04)}
+body:not(.ui-hidden) #showUiBtn{display:none!important}
+#logBtn b{color:var(--mint)}
+#logBtn[aria-expanded="true"]{border-color:#0d99ff}
+#logPanel{width:360px;max-height:min(60vh,520px);display:flex;flex-direction:column;background:#2c2c2c;border:1px solid #383838;border-radius:8px;overflow:hidden;font:500 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;box-shadow:0 12px 32px rgba(0,0,0,.6)}
+#logPanel[hidden]{display:none}
+#logPanel header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #383838;background:#242424}
+#logPanel h2{margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8e8e8e}
+#logList{list-style:none;margin:0;padding:4px 0;overflow:auto}
+.log__item{display:grid;grid-template-columns:62px 78px 1fr;gap:8px;padding:5px 12px;color:#fff}
+.log__item time{color:#8e8e8e;font-variant-numeric:tabular-nums}
+.log__screen{color:#8e8e8e;text-transform:uppercase;font-size:10px;font-weight:600;letter-spacing:.06em;padding-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log__item--input .log__msg{color:#b3b3b3}
+.log__item--nav .log__msg{color:#0d99ff}
+.log__item--result .log__msg{color:#ecd78f}
+
+/* Figma Dev Theme */
+#devBtn[aria-expanded="true"]{border-color:#0d99ff}
+#dev{
+  background: #2c2c2c;
+  border: 1px solid #383838;
+  border-radius: 8px;
+  padding: 0;
+  width: 290px;
+  max-width: calc(100vw - 24px);
+  max-height: min(85vh, 620px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  font: 500 12px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 36px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.05);
+  color: #fff;
+  box-sizing: border-box;
+}
+#dev[hidden]{display:none!important}
+#dev::-webkit-scrollbar{width:5px}
+#dev::-webkit-scrollbar-track{background:transparent}
+#dev::-webkit-scrollbar-thumb{background:#444;border-radius:3px}
+#dev::-webkit-scrollbar-thumb:hover{background:#555}
+
+#dev h2{margin:0;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8e8e8e}
+#dev label{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font: 500 11px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;
+  color: #d0d0d0;
+  cursor: pointer;
+  user-select: none;
+  min-height: 24px;
+  margin: 0;
+}
+#dev label:hover{color:#fff}
+#dev select{
+  font: 500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;
+  color: #fff;
+  background: #1e1e1e;
+  border: 1px solid #383838;
+  border-radius: 4px;
+  padding: 4px 6px;
+  cursor: pointer;
+  outline: none;
+  max-width: 155px;
+}
+#dev select:focus{border-color:#0d99ff}
+#dev input[type="checkbox"]{accent-color:#0d99ff;width:14px;height:14px;cursor:pointer;margin:0}
+#dev input[type=number]{
+  width: 54px;
+  font: 500 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;
+  color: #fff;
+  background: #1e1e1e;
+  border: 1px solid #383838;
+  border-radius: 4px;
+  padding: 4px 6px;
+  text-align: right;
+  outline: none;
+}
+#dev input[type=number]:focus{border-color:#0d99ff}
+
+/* Figma Tabs */
+.figma-tabs{
+  display: flex;
+  background: #1e1e1e;
+  border-bottom: 1px solid #383838;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+.figma-tab{
+  flex: 1;
+  padding: 9px 4px;
+  font: 600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif!important;
+  color: #8e8e8e!important;
+  text-align: center;
+  cursor: pointer;
+  border: none!important;
+  background: transparent!important;
+  border-bottom: 2px solid transparent!important;
+  border-radius: 0!important;
+  box-shadow: none!important;
+  transition: all .15s;
+}
+.figma-tab:hover{color:#fff!important;background:rgba(255,255,255,.04)!important}
+.figma-tab.is-active{color:#fff!important;border-bottom-color:#0d99ff!important;background:#2c2c2c!important}
+
+.figma-tab-content{
+  display: flex!important;
+  flex-direction: column!important;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.figma-tab-content[style*="display: none"],
+.figma-tab-content[style*="display:none"],
+.figma-tab-content[hidden]{
+  display: none!important;
+}
+
+/* Figma Buttons inside #dev */
+#dev button, #dev .chip{
+  font: 500 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif!important;
+  letter-spacing: normal!important;
+  text-transform: none!important;
+  border-radius: 4px!important;
+  padding: 6px 10px!important;
+  background: #383838!important;
+  border: 1px solid #484848!important;
+  color: #fff!important;
+  box-shadow: none!important;
+  cursor: pointer;
+  transition: all .15s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#dev button:hover, #dev .chip:hover{background:#444!important;border-color:#555!important}
+#dev button:disabled, #dev .chip:disabled{opacity:.35!important;cursor:not-allowed!important;pointer-events:none!important}
+#dev .chip--primary{background:#0d99ff!important;border-color:#0d99ff!important;color:#fff!important}
+#dev .chip--primary:hover{background:#0b87e3!important;border-color:#0b87e3!important}
+#dev .chip--danger{background:rgba(239,68,68,.12)!important;border-color:rgba(239,68,68,.4)!important;color:#ef4444!important}
+#dev .chip--danger:hover{background:rgba(239,68,68,.25)!important;border-color:#ef4444!important}
+
+/* Dev: show the Figma node each component maps to */
+body.show-map [data-figma]{outline:1px dashed rgba(13,153,255,.55);outline-offset:-1px}
+body.show-map [data-figma]:hover{outline:2px solid #0d99ff}
+#mapTip{position:fixed;z-index:120;background:#0d99ff;color:#fff;font:700 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;padding:5px 8px;border-radius:4px;pointer-events:none;white-space:pre;max-width:420px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+
+/* Dev: Drag & drop layout editor */
+body.layout-editing [data-figma],
+body.layout-editing .stat-card,
+body.layout-editing .sim-card,
+body.layout-editing .mode-card,
+body.layout-editing .reward-tile,
+body.layout-editing .style-panel,
+body.layout-editing .calendar,
+body.layout-editing .feed,
+body.layout-editing .brand,
+body.layout-editing .player-hud,
+body.layout-editing .hint-bar,
+body.layout-editing .social-bar,
+body.layout-editing .btn-cta,
+body.layout-editing .rank-bar,
+body.layout-editing .news-stack,
+body.layout-editing .news-item{outline:1px dashed #0d99ff!important;outline-offset:1px!important;cursor:move!important;user-select:none!important}
+body.layout-editing .is-selected-layout{outline:2px solid #0d99ff!important;outline-offset:2px!important;box-shadow:0 0 16px rgba(13,153,255,.4)!important;z-index:99!important}
+body.layout-editing .is-dragging-layout{outline:2px solid #00fd86!important;box-shadow:0 0 20px rgba(0,253,134,.45)!important;z-index:999!important}
+
+#layoutBadge{position:fixed;z-index:1000;padding:4px 9px;border-radius:4px;background:#1e1e1e;border:1px solid #0d99ff;color:#0d99ff;font:600 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;letter-spacing:.02em;pointer-events:none;display:none;box-shadow:0 4px 12px rgba(0,0,0,.5);white-space:nowrap}
+
+/* Figma Context Menu / Inspector */
+#layoutContextMenu{position:fixed;z-index:1001;min-width:270px;background:#2c2c2c;border:1px solid #383838;border-radius:8px;box-shadow:0 16px 36px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05);padding:12px 14px;color:#fff;font:500 12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif}
+#layoutContextMenu[hidden]{display:none!important}
+#layoutContextMenu header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #383838;padding-bottom:8px;margin-bottom:10px}
+#layoutContextMenu .ctx-title{font:700 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#0d99ff;text-transform:uppercase;letter-spacing:.05em;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#layoutContextMenu .ctx-close{background:none;border:none;color:#8e8e8e;font-size:18px;cursor:pointer;padding:0 4px;line-height:1}
+#layoutContextMenu .ctx-close:hover{color:#fff}
+#layoutContextMenu .ctx-body{display:flex;flex-direction:column;gap:8px}
+#layoutContextMenu .ctx-row{display:flex;align-items:center;gap:8px}
+#layoutContextMenu .ctx-row label{width:46px;font:700 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#8e8e8e;text-transform:uppercase}
+#layoutContextMenu .ctx-row input[type="number"]{width:68px;background:#1e1e1e;border:1px solid #383838;border-radius:4px;color:#fff;padding:5px 7px;font:600 13px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;outline:none;text-align:right}
+#layoutContextMenu .ctx-row input[type="number"]:focus{border-color:#0d99ff;box-shadow:0 0 6px rgba(13,153,255,.3)}
+#layoutContextMenu .ctx-nudges{display:flex;gap:3px}
+#layoutContextMenu .ctx-nudge-btn{background:#1e1e1e;border:1px solid #383838;border-radius:3px;color:#8e8e8e;font:600 10px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;padding:5px 6px;cursor:pointer;user-select:none}
+#layoutContextMenu .ctx-nudge-btn:hover{background:#383838;color:#0d99ff;border-color:#0d99ff}
+#layoutContextMenu .ctx-constraints{display:flex;flex-direction:column;gap:6px;border-top:1px solid #383838;border-bottom:1px solid #383838;padding:8px 0;margin:2px 0 6px}
+#layoutContextMenu .ctx-constraints-header{display:flex;justify-content:space-between;align-items:center}
+#layoutContextMenu .ctx-constraints-header .ctx-label{font:700 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#8e8e8e;text-transform:uppercase;letter-spacing:.05em}
+#layoutContextMenu .ctx-anchor-name{font:700 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#0d99ff;text-transform:uppercase}
+#layoutContextMenu .ctx-anchor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:120px;margin:2px auto 4px}
+#layoutContextMenu .ctx-anchor-btn{background:#1e1e1e;border:1px solid #383838;border-radius:4px;color:#8e8e8e;font:600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;padding:6px 0;cursor:pointer;text-align:center;transition:all .15s ease}
+#layoutContextMenu .ctx-anchor-btn:hover{background:#383838;color:#0d99ff;border-color:#0d99ff}
+#layoutContextMenu .ctx-anchor-btn.is-active{background:#0d99ff;color:#fff;border-color:#0d99ff;font-weight:700;box-shadow:0 0 8px rgba(13,153,255,.5)}
+#layoutContextMenu .ctx-select{flex:1;background:#1e1e1e;border:1px solid #383838;border-radius:4px;color:#fff;padding:5px 6px;font:600 11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;outline:none}
+#layoutContextMenu .ctx-select:focus{border-color:#0d99ff}
+#layoutContextMenu .ctx-actions{display:flex;gap:8px;margin-top:10px}
+#layoutContextMenu .ctx-actions .chip{flex:1;padding:6px 0;text-align:center;font-size:12px;font-weight:600;border-radius:5px;background:#383838;border:1px solid #484848;color:#fff;cursor:pointer}
+#layoutContextMenu .ctx-actions .chip:hover{background:#484848}
+#layoutContextMenu .ctx-actions .chip--primary{background:#0d99ff;color:#fff;border:none}
+#layoutContextMenu .ctx-actions .chip--primary:hover{background:#0b87e3}
+
+/* Marquee Selection Box */
+#marqueeBox{position:absolute;border:1.5px solid #0d99ff;background:rgba(13,153,255,.12);pointer-events:none;z-index:9999;border-radius:2px}
+
+/* Figma Groups */
+.mtx-layout-group{position:absolute;outline:1.5px dashed #0d99ff!important;pointer-events:auto;z-index:90}
+.mtx-layout-group::after{content:"Group";position:absolute;top:-18px;left:0;background:#0d99ff;color:#fff;font:700 9px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;padding:2px 5px;border-radius:2px;pointer-events:none}
+
+/* Responsive Constraints: clean dots without element/object labels */
+body.show-constraints [data-anchor]::before{content:"";position:absolute;z-index:105;width:10px;height:10px;border-radius:50%;background:#0d99ff;border:2px solid #fff;box-shadow:0 0 6px rgba(13,153,255,.8),0 2px 4px rgba(0,0,0,.5);pointer-events:none;box-sizing:border-box}
+body.show-constraints [data-anchor^="top"]::before{top:-5px}
+body.show-constraints [data-anchor^="bottom"]::before{bottom:-5px}
+body.show-constraints [data-anchor*="left"]::before{left:-5px}
+body.show-constraints [data-anchor*="right"]::before{right:-5px}
+body.show-constraints [data-anchor="center"]::before{left:50%;top:50%;transform:translate(-50%,-50%)}
+body.show-constraints [data-anchor="top-center"]::before{left:50%;top:-5px;transform:translateX(-50%)}
+body.show-constraints [data-anchor="bottom-center"]::before{left:50%;bottom:-5px;transform:translateX(-50%)}
+body.show-constraints [data-anchor="left-center"]::before{left:-5px;top:50%;transform:translateY(-50%)}
+body.show-constraints [data-anchor="right-center"]::before{right:-5px;top:50%;transform:translateY(-50%)}
+
+/* Prototype Wire System */
+#prototypeWiresOverlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:998;overflow:visible}
+.wire-path{fill:none;stroke:#0d99ff;stroke-width:2.5px;stroke-linecap:round;filter:drop-shadow(0 2px 6px rgba(13,153,255,.5));pointer-events:stroke;cursor:pointer;transition:stroke .15s,stroke-width .15s}
+.wire-path:hover{stroke:#ff4d6a;stroke-width:3.5px}
+.wire-path--active{stroke:#00fd86;stroke-dasharray:6 4;animation:wireDash .5s linear infinite}
+@keyframes wireDash{to{stroke-dashoffset:-10}}
+.wire-handle{position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;border:2px solid #0d99ff;box-shadow:0 0 6px rgba(13,153,255,.7);cursor:crosshair;z-index:1000;pointer-events:auto;transform:translate(-50%,-50%);transition:transform .12s,box-shadow .12s}
+.wire-handle:hover{transform:translate(-50%,-50%) scale(1.35);box-shadow:0 0 10px #0d99ff}
+.wire-handle--r{right:-6px;top:50%}
+.wire-handle--l{left:-6px;top:50%}
+.wire-handle--t{left:50%;top:-6px}
+.wire-handle--b{left:50%;bottom:-6px}
+.is-wire-target{outline:2.5px solid #0d99ff!important;box-shadow:0 0 20px rgba(13,153,255,.6)!important}
+.wire-pill{position:absolute;background:#2c2c2c;border:1px solid #0d99ff;border-radius:12px;color:#fff;font:600 10px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;padding:3px 7px;box-shadow:0 4px 10px rgba(0,0,0,.5);transform:translate(-50%,-50%);pointer-events:auto;cursor:pointer}
+.wire-pill:hover{background:#ff4d6a;border-color:#ff4d6a}
+
+/* Responsive Safe Area Fluid Mode */
+body.safe-fluid .screen__safe{width:var(--sw);left:0;transition:width .2s ease,left .2s ease}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Dev panel · Text editor */
+.dev-text{display:flex;flex-direction:column;gap:6px;margin:4px 0 6px;padding:8px;border:1px solid #383838;border-radius:6px;background:#242424}
+.dev-text__sel{margin:0;font:500 10px/1.4 ui-monospace,Consolas,monospace;color:#8e8e8e;word-break:break-all}
+.dev-text__form{display:flex;flex-direction:column;gap:6px}
+.dev-text__form[hidden]{display:none}
+#dev .dev-text textarea,#dev .dev-text input[list]{width:100%;box-sizing:border-box;font:500 11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif;color:#fff;background:#1e1e1e;border:1px solid #383838;border-radius:4px;padding:5px 6px;outline:none;resize:vertical}
+#dev .dev-text input[list]{width:155px}
+#dev .dev-text textarea:focus,#dev .dev-text input[list]:focus{border-color:#0d99ff}
+.dev-text__row{display:flex;gap:6px}
+.dev-text__row .chip{flex:1}
+body.dev-text-picking #stage *{cursor:text!important}
+.dev-text-hover{outline:1px dashed #0d99ff!important;outline-offset:2px}
+.dev-text-selected{outline:2px solid #0d99ff!important;outline-offset:2px}
+
+
+/* ---- Dev tools: fit the window, scroll inside, grouped sections ---- */
+/* the tool column never runs past the bottom of the window: its panels shrink and scroll instead */
+#tools { max-height: calc(100vh - 20px); max-width: calc(100vw - 20px) }
+#tools .row { flex-wrap: wrap; justify-content: flex-end }
+#hud { flex-shrink: 0 }
+#dev, #logPanel { min-height: 0; flex: 0 1 auto }
+#dev { width: 300px; max-height: none }
+#logPanel { max-height: none }
+#logList { min-height: 0; flex: 1 1 auto }
+
+/* tab bar stays visible while the panel scrolls */
+#dev .figma-tabs { position: sticky; top: 0; z-index: 2 }
+
+/* sections */
+.figma-tab-content { gap: 12px }
+.dev-sec { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid #383838 }
+.dev-sec:first-child { padding-top: 0; border-top: 0 }
+.dev-sec__title { margin: 0 0 2px; font: 700 10px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #8e8e8e }
+.dev-sec--danger .dev-sec__title { color: #ef4444 }
+.dev-sec > .chip, .dev-sec > button { width: 100% }
+.dev-row { display: flex; gap: 6px }
+.dev-row > * { flex: 1 1 0; min-width: 0 }
+#dev .dev-page { display: grid; grid-template-columns: 1fr auto 62px; gap: 8px; align-items: center; width: 100%; padding: 5px 8px; border: 0; border-radius: 4px; background: #1e1e1e; color: #e5e5e5; font: 500 11px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif; text-align: left; cursor: pointer }
+#dev .dev-page:hover { background: #2c2c2c }
+#dev .dev-page.is-current { background: #0d99ff !important; border-color: #0d99ff !important; color: #fff !important }
+#dev .dev-page code { color: inherit; opacity: .65; font-size: 10px }
+#dev .dev-page__figma { color: inherit; opacity: .5; font-size: 10px; text-align: right }
+
+/* five small number fields with their unit above */
+.dev-time { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px }
+#dev .dev-time__f { display: flex; flex-direction: column; align-items: stretch; gap: 3px; min-height: 0; font-size: 10px; color: #8e8e8e }
+#dev .dev-time__f input[type=number] { width: 100%; min-width: 0; box-sizing: border-box; text-align: center; padding: 4px 2px }
+#dev select { max-width: 160px; min-width: 0 }
+
+/* ---- Dev tools as one big modal with tabs (Design / Prototype / Inspect), one tab at a time ----
+   Centred over the game with a dim backdrop (box-shadow, so clicks still reach the screen for
+   layout editing / wires); header + tab bar stay on top while the content scrolls. */
+#dev {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(960px, calc(100vw - 40px));
+  max-width: none;
+  max-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  z-index: 1000;
+  box-shadow: 0 24px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06), 0 0 0 100vmax rgba(0,0,0,.45)
+}
+#dev[hidden] { display: none !important }
+
+.dev-modal__head {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 12px 18px;
+  background: #242424;
+  border-bottom: 1px solid #383838
+}
+.dev-modal__head h2 { margin: 0; font-size: 12px !important; color: #fff !important }
+.dev-modal__hint { color: #8e8e8e; font-size: 11px; margin-right: auto }
+#dev .dev-modal__close {
+  width: 28px; height: 28px; padding: 0 !important; font-size: 18px !important; line-height: 1 !important;
+  background: transparent !important; border-color: transparent !important; color: #b3b3b3 !important
+}
+#dev .dev-modal__close:hover { background: #383838 !important; color: #fff !important }
+
+/* tab bar under the header, left-aligned tabs */
+/* tabs read as tabs, not buttons: no box, grey label, active = white label + blue underline
+   (#dev button styles every button, so these need the same weight) */
+#dev .figma-tabs { position: sticky; top: 53px; z-index: 2; gap: 4px; padding: 0 12px; background: #242424; border-bottom: 1px solid #383838 }
+#dev .figma-tab {
+  flex: 0 0 auto;
+  margin-bottom: -1px;
+  padding: 12px 16px 11px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #8e8e8e !important
+}
+#dev .figma-tab:hover { background: transparent !important; color: #d0d0d0 !important }
+#dev .figma-tab.is-active { background: transparent !important; color: #fff !important; border-bottom-color: #0d99ff !important }
+
+/* tab content: roomy single column; Inspect lays its sections out as cards in a grid */
+#dev > .figma-tab-content { padding: 18px 22px 22px; gap: 12px }
+#tabContentLayout, #tabContentPrototype { max-width: 520px }
+#dev > #tabContentSystem:not([style*="display: none"]):not([style*="display:none"]) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-items: start;
+  gap: 14px
+}
+#tabContentSystem > .dev-sec {
+  padding: 12px 14px 14px;
+  border: 1px solid #383838;
+  border-radius: 6px;
+  background: #262626
+}
+#tabContentSystem > .dev-sec:first-child { padding-top: 12px; border-top: 1px solid #383838 }
+
+/* ---- Prototype: navigation edit mode ---- */
+.wire-path--default { stroke: rgba(255,255,255,.45); stroke-width: 1.5px; stroke-dasharray: 6 5; filter: none; pointer-events: none }
+#navEditBar {
+  position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 1001;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 40px);
+  padding: 8px 8px 8px 14px; border-radius: 8px; background: #2c2c2c; border: 1px solid #0d99ff;
+  box-shadow: 0 10px 28px rgba(0,0,0,.55); color: #d0d0d0;
+  font: 500 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif
+}
+#navEditBar[hidden] { display: none }
+#navEditBar b { color: #0d99ff; white-space: nowrap }
+#navEditBar span { color: #b3b3b3 }
+#navEditBar button {
+  flex: none; padding: 6px 12px; border-radius: 5px; border: 0; cursor: pointer;
+  background: #0d99ff; color: #fff; font: 600 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif
+}
+#navEditBar button:hover { background: #0b87e3 }
+.dev-note { margin: 0; font-size: 11px; line-height: 1.45; color: #8e8e8e }
+
+/* ================= Navigation graph (components/nav-graph.js): dev window, Figma-like like the rest of Dev Tools ================= */
+#navGraph{position:fixed;inset:0;z-index:10050;display:grid;grid-template:44px 1fr / 248px 1fr;background:#1e1e1e;color:#e6e6e6;
+  font:12px/1.4 Inter,"Segoe UI",system-ui,sans-serif;user-select:none}
+#navGraph[hidden]{display:none}
+#navGraph button{font:inherit;color:#e6e6e6;background:#2c2c2c;border:1px solid #3d3d3d;border-radius:5px;padding:5px 10px;cursor:pointer}
+#navGraph button:hover{background:#383838}
+#navGraph button.is-primary{background:#0d99ff;border-color:#0d99ff;color:#fff}
+#navGraph button.is-primary:disabled{background:#2c2c2c;border-color:#3d3d3d;color:#8e8e8e;cursor:default}
+#navGraph button.is-confirm{background:#f24822;border-color:#f24822;color:#fff}
+.ng-head{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2c2c2c;border-bottom:1px solid #3d3d3d}
+.ng-head__title{font-weight:600;color:#fff}
+.ng-head__page{color:#b3b3b3}
+.ng-head__tools{margin-left:auto;display:flex;align-items:center;gap:6px}
+.ng-check{display:flex;align-items:center;gap:5px;color:#b3b3b3;margin-right:6px}
+.ng-side{overflow:auto;background:#2c2c2c;border-right:1px solid #3d3d3d;padding:8px 8px 24px}
+.ng-side h4{margin:10px 4px 6px;font-size:11px;font-weight:600;color:#8e8e8e;text-transform:uppercase;letter-spacing:.06em}
+.ng-pages{display:grid;gap:2px}
+#navGraph .ng-pages button,#navGraph .ng-list button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;
+  background:none;border:0;border-radius:4px;padding:5px 8px}
+#navGraph .ng-pages button:hover,#navGraph .ng-list button:hover{background:#383838}
+#navGraph .ng-pages button.is-on,#navGraph .ng-list button.is-on{background:#0d99ff33;color:#fff;box-shadow:inset 2px 0 0 #0d99ff}
+.ng-pages small,.ng-list summary small{color:#8e8e8e}
+.ng-list details{margin-bottom:4px}
+.ng-list summary{cursor:pointer;padding:4px 6px;color:#b3b3b3;font-weight:600;border-radius:4px}
+.ng-list summary:hover{background:#383838}
+.ng-list button{padding-left:18px!important;font-family:ui-monospace,Consolas,monospace!important;font-size:11px!important}
+.ng-list button i{font-style:normal;font-size:10px;background:#f6df2f;color:#141415;border-radius:8px;padding:0 6px}
+.ng-canvas{position:relative;overflow:hidden;cursor:grab;
+  background:#1e1e1e radial-gradient(#3a3a3a 1px,transparent 1px) 0 0/24px 24px}
+.ng-canvas:active{cursor:grabbing}
+.ng-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.ng-edges{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.ng-edge{fill:none;stroke-width:2;pointer-events:none}
+.ng-edge--def{stroke:#8e8e8e;stroke-dasharray:6 5;opacity:.55}
+.ng-edge--pin{stroke:#e6e6e6;opacity:.8}
+.ng-edge--wire{stroke:#f6df2f;stroke-width:3;pointer-events:stroke;cursor:pointer}
+.ng-edge--wire:hover{stroke:#fff38a;stroke-width:5}
+.ng-edge--block{stroke:#f24822;stroke-width:3;pointer-events:stroke;cursor:pointer}
+.ng-edge--x{stroke:#f24822;stroke-width:3;fill:none}
+.ng-edge--draft{stroke:#0d99ff;stroke-width:3;stroke-dasharray:8 4}
+.ng-edge.is-dim,.ng-edge--x.is-dim{opacity:.12}
+.ng-edge.is-hot{opacity:1;stroke-width:3}
+.ng-edge--def.is-hot{stroke:#0d99ff}
+.ng-arrow--def{fill:#8e8e8e}.ng-arrow--pin{fill:#e6e6e6}.ng-arrow--wire{fill:#f6df2f}
+.ng-node{position:absolute;width:184px;height:148px;box-sizing:border-box;background:#2c2c2c;border:1px solid #4a4a4a;border-radius:8px;
+  cursor:move;box-shadow:0 4px 14px rgb(0 0 0 / .35)}
+.ng-node.is-sel{border-color:#0d99ff;box-shadow:0 0 0 2px #0d99ff}
+.ng-node.is-drop{border-color:#f6df2f;box-shadow:0 0 0 2px #f6df2f}
+.ng-node__thumb{margin:4px 4px 0;height:104px;border-radius:5px;overflow:hidden;background:#111;display:grid;place-items:center}
+.ng-node__thumb img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.ng-node__thumb span{padding:8px;color:#8e8e8e;text-align:center;font-size:11px;overflow:hidden;max-height:100%}
+.ng-node__label{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding:6px 8px 0;white-space:nowrap;overflow:hidden}
+.ng-node__label b{font:600 11px/1.2 ui-monospace,Consolas,monospace;color:#fff;overflow:hidden;text-overflow:ellipsis}
+.ng-node__label small{color:#8e8e8e;font-size:10px;overflow:hidden;text-overflow:ellipsis}
+.ng-port{position:absolute;width:12px;height:12px;border-radius:50%;background:#1e1e1e;border:2px solid #0d99ff;box-sizing:border-box;cursor:crosshair;z-index:1}
+.ng-port:hover{background:#0d99ff;transform:scale(1.3)}
+.ng-port--up{left:calc(50% - 6px);top:-6px}.ng-port--down{left:calc(50% - 6px);bottom:-6px}
+.ng-port--left{top:calc(50% - 6px);left:-6px}.ng-port--right{top:calc(50% - 6px);right:-6px}
+.ng-legend{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:16px;padding:8px 12px;background:#2c2c2cee;border-top:1px solid #3d3d3d;color:#b3b3b3;cursor:default}
+.ng-legend span{display:flex;align-items:center;gap:6px}
+.ng-legend em{margin-left:auto;font-style:normal;color:#8e8e8e}
+.ng-key{display:inline-block;width:22px;height:0;border-top:2px solid}
+.ng-key--def{border-top:2px dashed #8e8e8e}.ng-key--pin{border-color:#e6e6e6}.ng-key--wire{border-top-width:3px;border-color:#f6df2f}.ng-key--block{border-top-width:3px;border-color:#f24822;width:10px}
+/* lines: a wide invisible stroke takes the click; the picked line turns blue */
+.ng-e{cursor:pointer}
+.ng-hit{fill:none;stroke:transparent;stroke-width:14;pointer-events:stroke}
+.ng-e:hover .ng-edge{opacity:1;stroke-width:4}
+.ng-e.is-picked .ng-edge{stroke:#0d99ff!important;stroke-width:4;opacity:1;stroke-dasharray:none}
+.ng-edge--wire,.ng-edge--block{pointer-events:none}
+#navGraph button:disabled{opacity:.45;cursor:default}
+
+/* ---- Dev tools · Key Map (dev-keymap.js) ----
+   pad art + hotspots: yellow = shown to the player, blue = handled in code only, grey = free on this page, red = never used */
+.km-menu{display:flex;flex-wrap:wrap;gap:4px}
+.km-menu button{flex:0 0 auto;width:auto!important;padding:4px 8px;border:1px solid #444;border-radius:5px;background:#1e1e1e;color:#bbb;font:600 11px/1 -apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.km-menu button:hover{color:#fff;border-color:#666}
+.km-menu button.is-on{background:#0d99ff;border-color:#0d99ff;color:#fff}
+.km-pad{position:relative;width:100%}
+.km-sel{display:inline-flex!important;align-items:center;gap:6px;color:#aaa!important;font:600 11px/1 -apple-system,"Segoe UI",Roboto,sans-serif}
+.km-sel select{padding:5px 8px;border:1px solid #444;border-radius:5px;background:#1e1e1e;color:#fff;font:600 11px/1 -apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.km-key{position:absolute;box-sizing:border-box;display:grid;place-items:center;border-radius:5px;border:1.5px solid #555;background:#262626;cursor:help}
+.km-key span{font:700 10px/1 -apple-system,"Segoe UI",Roboto,sans-serif;color:#ddd;white-space:nowrap;pointer-events:none}
+.km-key.is-off{border-color:#333;background:#222;cursor:default}
+.km-key.is-off span{color:#555}
+.km-key.is-hint{border-color:#f6df2f;background:rgb(246 223 47 / .3)}
+.km-key.is-code{border-color:#0d99ff;background:rgb(13 153 255 / .25)}
+.km-key.is-free{border-color:#888;border-style:dashed}
+.km-key.is-never{border-color:#ef4444;border-style:dashed;background:rgb(239 68 68 / .18)}
+.km-pad img{position:absolute;left:0;width:100%;object-fit:contain;opacity:.5}
+.km-spot{position:absolute;box-sizing:border-box;border-radius:50%;border:2px solid #555;display:grid;place-items:center;cursor:help;transition:background .15s}
+.km-spot span{font:800 10px/1 -apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;text-shadow:0 1px 2px #000;pointer-events:none;white-space:nowrap}
+.km-spot--pill{border-radius:8px}
+.km-spot.is-hint{border-color:#f6df2f;background:rgb(246 223 47 / .35)}
+.km-spot.is-code{border-color:#0d99ff;background:rgb(13 153 255 / .28)}
+.km-spot.is-free{border-color:#666;border-style:dashed;background:rgb(255 255 255 / .04)}
+.km-spot.is-never{border-color:#ef4444;border-style:dashed;background:rgb(239 68 68 / .2)}
+.km-legend{display:flex;flex-wrap:wrap;gap:8px;font:600 10px/1 -apple-system,"Segoe UI",Roboto,sans-serif;color:#aaa}
+.km-legend span::before{content:"";display:inline-block;width:9px;height:9px;margin-right:4px;border-radius:50%;vertical-align:-1px;border:2px solid}
+.km-legend .is-hint::before{border-color:#f6df2f;background:rgb(246 223 47 / .35)}
+.km-legend .is-code::before{border-color:#0d99ff;background:rgb(13 153 255 / .28)}
+.km-legend .is-free::before{border-color:#666;border-style:dashed}
+.km-legend .is-never::before{border-color:#ef4444;border-style:dashed}
+.km-rows{width:100%;border-collapse:collapse;font:500 11px/1.3 -apple-system,"Segoe UI",Roboto,sans-serif}
+.km-rows th,.km-rows td{padding:3px 4px;border-bottom:1px solid #333;text-align:left;vertical-align:top}
+.km-rows th{width:84px;color:#ddd;font-weight:700;white-space:nowrap}
+.km-rows tr.is-free th,.km-rows tr.is-free td i{color:#666}
+.km-grp th{padding-top:9px;color:#0d99ff!important;font:700 10px/1 -apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid #444}
+.km-c{display:inline-block;margin:0 4px 2px 0;padding:2px 5px;border-radius:4px;background:rgb(246 223 47 / .16);color:#f6df2f}
+.km-c--code{background:rgb(13 153 255 / .14);color:#7cc4ff;font-style:italic}
+.km-big{position:fixed;inset:16px;z-index:100000;display:flex;flex-direction:column;background:#1e1e1e;border:1px solid #383838;border-radius:10px;box-shadow:0 24px 60px rgb(0 0 0 / .7);color:#fff;font:500 12px -apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+.km-big[hidden]{display:none}
+.km-big__bar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:10px 14px;border-bottom:1px solid #383838;background:#2c2c2c}
+.km-big__bar h2{margin:0 6px 0 0;font:700 13px/1 -apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.km-big__bar .dev-btn{padding:6px 10px;border:1px solid #0d99ff;border-radius:5px;background:#0d99ff;color:#fff;font:600 11px/1 -apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer}
+.km-status{color:#aaa;font-size:11px}
+.km-x{margin-left:auto;width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:#aaa;font-size:20px;cursor:pointer}
+.km-x:hover{background:#383838;color:#fff}
+.km-big__body{flex:1;display:grid;grid-template-columns:minmax(300px,420px) 1fr;min-height:0}
+.km-big__pad{display:flex;flex-direction:column;gap:10px;padding:14px;border-right:1px solid #383838;overflow:auto}
+.km-big__pad h3{margin:0;font:700 12px/1 -apple-system,"Segoe UI",Roboto,sans-serif;color:#f6df2f;text-transform:uppercase;letter-spacing:.06em}
+.km-big__grid{overflow:auto}
+.km-grid{border-collapse:separate;border-spacing:0;font:500 11px/1.3 -apple-system,"Segoe UI",Roboto,sans-serif}
+.km-grid th,.km-grid td{padding:4px 6px;border-bottom:1px solid #2f2f2f;border-right:1px solid #2a2a2a;vertical-align:top;min-width:96px;max-width:150px}
+.km-grid thead th{position:sticky;top:0;z-index:2;background:#2c2c2c;color:#ddd;font-weight:700;text-align:left;cursor:pointer;white-space:nowrap}
+.km-grid thead th.is-sel,.km-grid td.is-sel{background:rgb(13 153 255 / .12)}
+.km-grid tbody th{position:sticky;left:0;z-index:1;background:#1e1e1e;color:#ddd;text-align:left;white-space:nowrap;min-width:110px}
+.km-grid .km-n{min-width:56px;color:#aaa;text-align:center}
+.km-grid tr.is-never th,.km-grid tr.is-never .km-n b{color:#ef4444}
+.km-grid tr.km-grp th{position:sticky;left:0;background:#1e1e1e}
+.km-empty{padding:24px;color:#aaa}
+.km-tab__bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.km-tab__bar .km-open{width:auto!important;margin-left:auto}
+.km-tab__body{display:grid;grid-template-columns:minmax(0,440px) 1fr;gap:16px;align-items:start}
+.km-tab__pad{display:flex;flex-direction:column;gap:8px}

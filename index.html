@@ -1,0 +1,1725 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MTX Controller Flow</title>
+  <!--
+  MTX controller-flow prototype, rebuilt from the Figma structure export.
+  Structure:  mtx/css/tokens.css      design tokens (colours, fonts, gradients)
+              mtx/css/base.css        stage, screen skeleton, focus ring, dev HUD
+              mtx/css/components.css  shared components (HUD, glyphs, cards, buttons...)
+              mtx/css/screens.css     per-screen layout in Figma frame pixels
+              mtx/js/app.js           navigation, input (keyboard / mouse / gamepad), screen logic
+              mtx/assets/             images + icons built by tools/build_assets.py
+  Every component carries data-figma="<node id> <name>"; turn on "Show Figma map"
+  in the Dev panel (` key) to see which Figma node each part comes from.
+-->
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="mtx/css/tokens.css?v=401">
+  <link rel="stylesheet" href="mtx/css/base.css?v=pg3">
+  <link rel="stylesheet" href="mtx/css/components.css?v=fs11">
+  <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
+  <link rel="stylesheet" href="mtx/css/login.css?v=cta1">
+  <link rel="stylesheet" href="mtx/css/shader-preload.css?v=2">
+  <link rel="stylesheet" href="mtx/css/dialog.css?v=cta1">
+  <link rel="stylesheet" href="mtx/css/spotlight.css?v=bl1">
+  <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
+  <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
+  <link rel="stylesheet" href="mtx/css/no-brand.css?v=8">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=sb14vp">
+  <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
+  <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
+  <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
+</head>
+
+<body>
+
+  <!-- ============================ shared component templates ============================ -->
+  <template id="tpl-player-hud">
+    <div class="player-hud" data-figma="360:50597 Player HUD (level chips + Currency 236:4940)">
+      <div class="level-chip level-chip--e" data-pl="e" style="--p:50%"><span class="level-chip__badge">E</span>
+        <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+            class="level-chip__value">25</span><span class="level-chip__xp">2,512 / 5,000 XP</span><span
+            class="level-chip__bar"><i></i></span></div>
+      </div>
+      <div class="level-chip level-chip--s" data-pl="s" style="--p:50%"><span class="level-chip__badge">S</span>
+        <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+            class="level-chip__value">99</span><span class="level-chip__xp">2,512 / 5,000 XP</span><span
+            class="level-chip__bar"><i></i></span></div>
+      </div>
+      <div class="level-chip level-chip--r" data-pl="r" style="--p:50%"><span class="level-chip__badge">R</span>
+        <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+            class="level-chip__value">12</span><span class="level-chip__xp">2,512 / 5,000 XP</span><span
+            class="level-chip__bar"><i></i></span></div>
+      </div>
+      <div class="wallet">
+        <img class="wallet__badge" data-pl-rank src="mtx/assets/svg/rank-badge.svg" alt="">
+        <div class="wallet__cell"><span class="wallet__value wallet__value--gold" data-pl-l>89</span><img src="mtx/assets/svg/icon-credit.svg" width="15" height="15" alt="MTX Credit"></div>
+        <i class="wallet__divider"></i>
+        <div class="wallet__cell"><span class="wallet__value" data-pl-cash>19,523</span><img src="mtx/assets/svg/icon-money.svg" width="16" height="9" alt="Money"></div>
+        <i class="wallet__divider wallet__tickets"></i>
+        <div class="wallet__cell wallet__tickets"><span class="wallet__value" data-pl-tickets>3</span><img src="mtx/assets/svg/icon-ticket.svg" width="16" height="11" alt="Join tickets"></div>
+        <i class="wallet__divider wallet__rpoint"></i>
+        <div class="wallet__cell wallet__rpoint"><span class="wallet__value wallet__value--r" data-store-r>1,500</span><img src="mtx/assets/svg/icon-rpoint.svg" width="15" height="15" alt="R Point"></div>
+      </div>
+    </div>
+  </template>
+  <template id="tpl-social-bar">
+    <div class="social-bar" data-figma="1:2062 Social bar">
+      <span class="social-bar__btn social-bar__btn--friends" role="button" aria-label="Friends, 3 online"><img src="mtx/assets/svg/icon-friends.svg" width="25" height="25" alt="">3<span class="glyph" data-btn="view"></span></span>
+      <span class="social-bar__btn social-bar__btn--bell"><img src="mtx/assets/svg/icon-bell.svg" width="26" height="28"
+          alt="Notifications"></span>
+      <span class="social-bar__btn social-bar__btn--options"><img src="mtx/assets/svg/icon-settings.svg" width="22"
+          height="22" alt="">Options<span class="glyph" data-btn="menu"></span></span>
+    </div>
+  </template>
+
+  <div id="viewport">
+    <div id="stage">
+      <svg id="prototypeWiresOverlay">
+        <defs>
+          <marker id="wireArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6"
+            orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0d99ff" />
+          </marker>
+        </defs>
+      </svg>
+      <div id="marqueeBox" hidden></div>
+
+      <!-- ============================ Main Menus (Figma 1:6345) ============================ -->
+      <section class="screen" id="s-main" data-screen="main" data-first="ultimate" data-lt="fn:prevQuickMode"
+        data-rt="fn:nextQuickMode" data-figma="1:6345 Main Menus">
+        <div class="screen__bg">
+          <img class="bg-cover" src="mtx/assets/img/bg-lobby.webp" alt="">
+          <div class="bg-fade-bottom"></div>
+        </div>
+        <div class="screen__safe">
+          <div class="char3d" data-char3d aria-hidden="true"></div>
+          <img class="main__character" src="mtx/assets/img/char-lobby.webp" alt=""
+            data-figma="1:6349 Character-lobby-Light1 3">
+
+          <article class="profile-card main__profile" data-figma="1:6351 Profile card (loose layers)">
+            <header class="profile-card__head tile tex">
+              <h2 class="profile-card__name">SX.MTX</h2>
+              <p class="profile-card__tag"><img class="profile-card__flag" src="mtx/assets/svg/flag-th.svg" alt="Thailand"><span class="profile-card__aka">The Mighty</span></p>
+              <p class="profile-card__id">SXMTX#1111</p>
+            </header>
+            <div class="profile-card__stats">
+              <div class="stat tile tex"><span class="stat__label">Overall</span><span
+                  class="stat__value stat__value--big">88</span></div>
+              <div class="stat tile tex"><span class="stat__label">Win / Loss Record</span><span
+                  class="stat__value">20-15-12</span></div>
+              <div class="stat tile tex"><span class="stat__label">K.O. Rate</span><span class="stat__value">80%</span>
+              </div>
+            </div>
+            <div class="profile-card__levels">
+              <div class="level-chip level-chip--mini level-chip--e" data-pl="e"><span class="level-chip__badge">E</span>
+                <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+                    class="level-chip__value">25</span></div>
+              </div>
+              <div class="level-chip level-chip--mini level-chip--s" data-pl="s"><span class="level-chip__badge">S</span>
+                <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+                    class="level-chip__value">99</span></div>
+              </div>
+              <div class="level-chip level-chip--mini level-chip--r" data-pl="r"><span class="level-chip__badge">R</span>
+                <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+                    class="level-chip__value">12</span></div>
+              </div>
+            </div>
+          </article>
+
+          <aside class="news-stack news-stack--shop main__news" data-figma="1:6496 News stack">
+            <!-- News items closed: the news opens as the Campaign window on first entry; Shop (Figma 1:854 menu button) + the event card (388:146972) take their place -->
+            <a class="shop-btn tex focus-ring" data-nav data-id="up" data-go="store" data-figma="1:854 Shop button"><svg class="shop-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="shop-btn__label">Shop</span><svg class="shop-btn__go" viewBox="0 0 12 20" aria-hidden="true"><path d="M2 2l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <a class="news-ev tex focus-ring" data-nav data-id="ev" data-focus-hints='{"lt+rt":"Event"}' data-fn="openCampaign" data-figma="388:146972 Event card under Shop"></a>
+          </aside>
+
+          <nav class="card-row main__cards" data-figma="Mode card row (Component 1 / 8 + loose groups)">
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="quick" data-focus-hints='{"lt+rt":"Mode"}' data-fn="startQuickFight"
+              data-toast="Quick Fight · matchmaking starts here" data-figma="1:6599 Component 8 (Quick fight)">
+              <h3 class="mode-card__title">Quick
+                Fight</h3>
+              <p class="mode-card__sub">Prepare for your upcoming fight</p>
+              <span class="mode-card__fx"><img class="mode-card__fist" src="mtx/assets/img/fist.webp" alt=""></span>
+              <span class="mode-card__pager" aria-label="Mode pager (Q/E)"><i
+                  class="is-active" data-page="0" title="Quick Fight"></i><i data-page="1"
+                  title="Training Mode"></i></span>
+            </a>
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="ultimate" data-go="career"
+              data-figma="1:6696 Frame 1244833114 (Ultimate fight)">
+              <h3 class="mode-card__title">Ultimate
+                Fight</h3>
+              <p class="mode-card__sub">From street to the peak of the Muay Thai career.</p>
+              <span class="mode-card__fx"><img class="mode-card__fist" src="mtx/assets/img/fist.webp" alt=""></span>
+            </a>
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="setup"
+              data-fn="openTournament" data-figma="1:6608 Tournament (opens the Tournament overlay)">
+              <h3 class="mode-card__title">Tournament</h3>
+              <p class="mode-card__sub">Create your own tournament.</p>
+            </a>
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="lobby"
+              data-fn="openCustomLobby" data-figma="1:6630 Create Lobby">
+              <h3 class="mode-card__title">Create
+                Lobby</h3>
+              <p class="mode-card__sub">Lobby create and matchmaking</p>
+            </a>
+          </nav>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:6363 Layer_1 (logo)">
+          <div data-use="player-hud" data-variant="wallet"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Confirm","ls":"Move"}' data-figma="1:6527 Hint bar"></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Character Select (same layout as Main Menu, no mode cards) ============================ -->
+      <section class="screen" id="s-charselect" data-screen="charselect" data-first="pick" data-lt="fn:prevCharacter" data-rt="fn:nextCharacter">
+        <div class="screen__bg">
+          <img class="bg-cover" src="mtx/assets/img/bg-lobby.webp" alt="">
+          <div class="bg-fade-bottom"></div>
+        </div>
+        <div class="screen__safe">
+          <div class="char3d" data-char3d aria-hidden="true"></div>
+          <img class="main__character" src="mtx/assets/img/char-lobby.webp" alt="">
+
+          <article class="profile-card main__profile">
+            <header class="profile-card__head tile tex">
+              <h2 class="profile-card__name">SX.MTX</h2>
+              <p class="profile-card__tag"><img class="profile-card__flag" src="mtx/assets/svg/flag-th.svg" alt="Thailand"><span class="profile-card__aka">The Mighty</span></p>
+              <p class="profile-card__id">SXMTX#1111</p>
+            </header>
+            <div class="profile-card__stats">
+              <div class="stat tile tex"><span class="stat__label">Overall</span><span
+                  class="stat__value stat__value--big">88</span></div>
+              <div class="stat tile tex"><span class="stat__label">Win / Loss Record</span><span
+                  class="stat__value">20-15-12</span></div>
+              <div class="stat tile tex"><span class="stat__label">K.O. Rate</span><span class="stat__value">80%</span>
+              </div>
+            </div>
+            <div class="profile-card__levels">
+              <div class="level-chip level-chip--mini level-chip--e" data-pl="e"><span class="level-chip__badge">E</span>
+                <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+                    class="level-chip__value">25</span></div>
+              </div>
+              <div class="level-chip level-chip--mini level-chip--s" data-pl="s"><span class="level-chip__badge">S</span>
+                <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+                    class="level-chip__value">99</span></div>
+              </div>
+              <div class="level-chip level-chip--mini level-chip--r" data-pl="r"><span class="level-chip__badge">R</span>
+                <div class="level-chip__body"><span class="level-chip__label">Level</span><span
+                    class="level-chip__value">12</span></div>
+              </div>
+            </div>
+          </article>
+
+          <div class="charsel">
+            <div class="charsel__picker">
+              <button class="charsel__arrow" type="button" data-char-step="-1" aria-label="Previous character"><span class="glyph" data-btn="lt">Q</span></button>
+              <div class="charsel__info"><span class="charsel__name"></span><span class="charsel__dots"></span></div>
+              <button class="charsel__arrow" type="button" data-char-step="1" aria-label="Next character"><span class="glyph" data-btn="rt">E</span></button>
+            </div>
+            <a class="btn-cta btn-cta--key focus-ring focus-ring--out charsel__cta" data-nav data-id="pick" data-fn="confirmCharacter">
+              <span class="btn-cta__grad"></span>
+              <span class="btn-cta__tex"></span>
+              <span class="glyph glyph--lg" data-btn="a">A</span>
+              <span class="btn-cta__label">Select</span>
+            </a>
+          </div>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud" data-variant="wallet"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Select","lt+rt":"Character"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Career (Figma 1:1039) ============================ -->
+      <section class="screen" id="s-career" data-screen="career" data-first="next" data-y="fn:holdSimulateDay"
+        data-lt="fn:prevCareerMode" data-rt="fn:nextCareerMode"
+        data-figma="1:1039 Career">
+        <div class="screen__bg"><img class="bg-cover" src="mtx/assets/img/bg-locker.webp" alt=""></div>
+        <div class="screen__safe">
+          <div class="char3d" data-char3d aria-hidden="true"></div>
+          <img class="main__character" src="mtx/assets/img/char-lobby.webp" alt="">
+          <article class="profile-card career__profile" data-figma="1:1080 Profile card (loose layers)">
+            <header class="profile-card__head tile tex">
+              <h2 class="profile-card__name">SX.MTX</h2>
+              <p class="profile-card__tag"><img class="profile-card__flag" src="mtx/assets/svg/flag-th.svg" alt="Thailand"><span class="profile-card__aka">The Mighty</span></p>
+              <p class="profile-card__id">SXMTX#1111</p>
+            </header>
+            <div class="profile-card__stats">
+              <div class="stat tile tex"><span class="stat__label">Overall</span><span
+                  class="stat__value stat__value--big">88</span></div>
+              <div class="stat tile tex"><span class="stat__label">Win / Loss Record</span><span
+                  class="stat__value">20-15-12</span></div>
+              <div class="stat tile tex"><span class="stat__label">K.O. Rate</span><span class="stat__value">80%</span>
+              </div>
+            </div>
+            <div class="fitness" style="--v:.49" data-figma="1:1110 Fitness meter">
+              <span class="fitness__seg fitness__seg--1"></span><span class="fitness__seg fitness__seg--2"></span><span
+                class="fitness__seg fitness__seg--3"></span><span class="fitness__seg fitness__seg--4"></span>
+              <span class="fitness__dim"></span><span class="fitness__mark"></span>
+              <span class="fitness__label"><img src="mtx/assets/svg/icon-heart.svg" alt="">Fitness: <b
+                  data-bind="fitness">20</b></span>
+            </div>
+            <div class="mini-cal" data-figma="Calendar (moved from Management 2:645)">
+              <header class="mini-cal__head"><span data-bind="calMonth">August</span><span data-bind="calYear">2026</span></header>
+              <div class="mini-cal__days" data-bind="calDays"></div>
+            </div>
+            <a class="simulate-btn tex focus-ring focus-ring--thin" data-nav data-id="sim" data-fn="holdSimulateDay"
+              data-hold-action="simulate" data-figma="1:1104 Frame 1244833118 (Simulate day)">
+              <span class="simulate-btn__hold-bar"></span>
+              <span class="glyph" data-btn="y" style="--g:27px">Y</span>
+              <span class="simulate-btn__label">Hold to simulate day</span>
+            </a>
+          </article>
+
+          <aside class="news-stack news-stack--shop career__news" data-figma="1:1219 News stack">
+            <!-- News items closed: the news opens as the Campaign window on first entry; the Shop button (Figma 1:854 menu button) takes their place -->
+            <a class="shop-btn tex focus-ring" data-nav data-id="up" data-go="store" data-figma="1:854 Shop button"><svg class="shop-btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span class="shop-btn__label">Shop</span><svg class="shop-btn__go" viewBox="0 0 12 20" aria-hidden="true"><path d="M2 2l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+            <a class="news-ev tex focus-ring" data-nav data-id="ev" data-focus-hints='{"lt+rt":"Event"}' data-fn="openCampaign" data-figma="388:146972 Event card under Shop"></a>
+          </aside>
+
+          <nav class="card-row career__cards" data-figma="Career card row (Component 2 + 3 loose frames)">
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="next" data-focus-hints='{"lt+rt":"Mode"}' data-fn="startNextFight"
+              data-career-mode="rank" data-figma="1:1395 Component 2 (Next fight)">
+              <h3 class="mode-card__title">Rank
+Fight</h3>
+              <p class="mode-card__sub">Counts for progression: earns Level XP, quest progress and rank points</p>
+              <span class="mode-card__fx"><img class="mode-card__fist" src="mtx/assets/img/fist.webp" alt=""></span>
+              <span class="mode-card__pager" aria-label="Mode pager (Q/E)"><i
+                  class="is-active" data-page="0" title="Rank Mode"></i><i data-page="1" title="Casual Mode"></i></span>
+            </a>
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="tactical" data-go="mastery"
+              data-figma="1:1404 Frame 1244833088 (Tactical style)">
+              <h3 class="mode-card__title">Tactical
+                Style</h3>
+              <p class="mode-card__sub">View style info and level up.</p>
+              <span class="mode-card__fx"><img class="mode-card__fist" src="mtx/assets/img/fist.webp" alt=""></span>
+            </a>
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="manage" data-go="management"
+              data-figma="1:1400 Frame 1244833120 (Management)">
+              <h3 class="mode-card__title">Management</h3>
+              <p class="mode-card__sub">Personal manager, sponsor &amp; events.</p>
+              <span class="mode-card__fx"><img class="mode-card__fist" src="mtx/assets/img/fist.webp" alt=""></span>
+            </a>
+            <a class="mode-card tex focus-ring focus-ring--out" data-nav data-id="leaderboard" data-go="leaderboard"
+              data-figma="144:249 Leaderboard">
+              <h3 class="mode-card__title">Leader
+board</h3>
+              <p class="mode-card__sub">Season 3 rankings &amp; rewards.</p>
+              <span class="mode-card__fx"><img class="mode-card__fist" src="mtx/assets/img/fist.webp" alt=""></span>
+            </a>
+          </nav>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:1121 Layer_1 (logo)">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Confirm","y":"Hold to Simulate","ls":"Move"}' data-figma="1:1238 Hint bar">
+          </nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Mastery hub (Figma 1:1807) ============================ -->
+      <section class="screen" id="s-mastery" data-screen="mastery" data-first="attributes" data-y="go:tactical"
+        data-figma="1:1807 Mastery">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <div class="mastery__title" data-figma="1:1945 phranakhon + 1:1946 Layer_2 (style title)">
+            <img class="mastery__emblem" data-bind="emblem" src="mtx/assets/svg/style-phranakhon-sel.svg" alt="">
+            <h1 class="mastery__name" data-bind="styleName">Phranakhon</h1>
+          </div>
+          <nav class="mastery__cards" data-figma="Tab card row (was 3 cards x ~10 loose layers each)">
+            <a class="tab-card" data-nav data-id="attributes" data-go="attributes"
+              data-figma="NEW (Figma note 14:1337: missing Attributes slot, uses E value)">
+              <div class="tab-card__tab"><span class="tab-card__label">Attributes</span><img class="tab-card__check"
+                  src="mtx/assets/svg/icon-check.svg" alt=""></div>
+              <div class="tab-card__body tex">
+                <div class="tab-card__art"><img src="mtx/assets/img/style-hub/attributes.jpg?v=5" alt="">
+                </div>
+                <h2 class="tab-card__title tex-text" style="font-size:35px">Attributes</h2>
+              </div>
+            </a>
+            <a class="tab-card" data-nav data-id="mastery" data-go="skilltree"
+              data-figma="1:1812 + 1:1914 + 1:1926 + 1:1935 + 1:1944 (Mastery card)">
+              <div class="tab-card__tab"><span class="tab-card__label">Mastery</span><img class="tab-card__check"
+                  src="mtx/assets/svg/icon-check.svg" alt=""></div>
+              <div class="tab-card__body tex">
+                <div class="tab-card__art"><img src="mtx/assets/img/style-hub/mastery.jpg?v=5" alt="">
+                </div>
+                <h2 class="tab-card__title tex-text">Mastery</h2>
+              </div>
+            </a>
+            <a class="tab-card" data-nav data-id="reward" data-go="rewards"
+              data-figma="1:1811 + 1:1920 + 1:1928 + 1:1941 (Reward card)">
+              <div class="tab-card__tab"><span class="tab-card__label">Rewards</span><img class="tab-card__check" src="mtx/assets/svg/icon-check.svg"
+                  alt=""></div>
+              <div class="tab-card__body tex">
+                <div class="tab-card__art"><img src="mtx/assets/img/style-hub/rewards.jpg?v=5" alt="">
+                </div>
+                <h2 class="tab-card__title tex-text">Reward</h2>
+              </div>
+            </a>
+            <a class="tab-card" data-nav data-id="quest" data-go="quests"
+              data-figma="1:1810 + 1:1917 + 1:1927 + 1:1938 (Quest card)">
+              <div class="tab-card__tab"><span class="tab-card__label">Quest</span><img class="tab-card__check" src="mtx/assets/svg/icon-check.svg"
+                  alt=""></div>
+              <div class="tab-card__body tex">
+                <div class="tab-card__art"><img src="mtx/assets/img/style-hub/quest.jpg?v=5" alt="">
+                </div>
+                <h2 class="tab-card__title tex-text">Quest</h2>
+              </div>
+            </a>
+                      <!-- change the selected style (was the Y Style key hint): under the cards, right edge - same button and place as Management's Collection link (.col-link) -->
+            <span class="col-link mastery__style-btn" data-cl-btn="y" data-figma="Collection link style (Management)"><span class="glyph col-link__glyph" data-btn="y">Y</span><span class="col-link__label">Change Style</span></span>
+          </nav>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:1816 Layer_1 (logo)">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Confirm","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Tactical Style map (Figma 87:151) ============================ -->
+      <section class="screen" id="s-tactical" data-screen="tactical" data-first="phranakhon" data-y="back"
+        data-figma="87:151 Tactical Style">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+        </div>
+        <div class="screen__safe">
+          <p class="tactical__country" data-figma="87:153 THAILAND">Thailand</p>
+          <div class="tactical__world">
+          <img class="tactical__map" src="mtx/assets/img/map-thailand.webp" alt=""
+            data-figma="87:154 Thailand Map Refined 1">
+
+          <a class="style-marker" style="left:800px;top:134px" data-nav data-id="north" data-fn="pickStyle"
+            data-figma="North Thasao">
+            <span class="style-marker__beam"></span><span class="style-marker__icon"><img class="is-idle"
+                src="mtx/assets/svg/style-north-idle.svg" alt=""><img class="is-focus"
+                src="mtx/assets/svg/style-north-focus.svg" alt=""><img class="is-sel"
+                src="mtx/assets/svg/style-north-sel.svg" alt=""></span>
+            <span class="style-marker__dot" style="top:60px"></span></a>
+          <a class="style-marker style-marker--lg" style="left:870px;top:495px" data-nav data-id="west"
+            data-fn="pickStyle" data-figma="87:279 Group 1244834334 (West)">
+            <span class="style-marker__beam"></span><span class="style-marker__icon"><img class="is-idle"
+                src="mtx/assets/svg/style-west-idle.svg" alt=""><img class="is-focus"
+                src="mtx/assets/svg/style-west-focus.svg" alt=""><img class="is-sel"
+                src="mtx/assets/svg/style-west-sel.svg" alt=""></span>
+            <span class="style-marker__dot" style="top:56px"></span></a>
+          <a class="style-marker" style="left:779px;top:695px" data-nav data-id="phranakhon" data-fn="pickStyle"
+            data-figma="87:253 Group 1244834332 (Phranakhon)">
+            <span class="style-marker__beam"></span><span class="style-marker__icon"><img class="is-idle"
+                src="mtx/assets/svg/style-phranakhon-idle.svg" alt=""><img class="is-focus"
+                src="mtx/assets/svg/style-phranakhon-focus.svg" alt=""><img class="is-sel"
+                src="mtx/assets/svg/style-phranakhon-sel.svg" alt=""></span>
+            <span class="style-marker__dot" style="top:60px"></span></a>
+          <a class="style-marker" style="left:1008px;top:528px" data-nav data-id="isan" data-fn="pickStyle"
+            data-figma="87:296 Group 1244834335 (Isan Korat)">
+            <span class="style-marker__beam"></span><span class="style-marker__icon"><img class="is-idle"
+                src="mtx/assets/svg/style-isan-idle.svg" alt=""><img class="is-focus"
+                src="mtx/assets/svg/style-isan-focus.svg" alt=""><img class="is-sel"
+                src="mtx/assets/svg/style-isan-sel.svg" alt=""></span>
+            <span class="style-marker__dot" style="top:62px"></span></a>
+          <a class="style-marker" style="left:565px;top:1279px" data-nav data-id="south" data-fn="pickStyle"
+            data-figma="87:289 Group 1244834348 (South Chaiya)">
+            <span class="style-marker__beam"></span><span class="style-marker__icon"><img class="is-idle"
+                src="mtx/assets/svg/style-south-idle.svg" alt=""><img class="is-focus"
+                src="mtx/assets/svg/style-south-focus.svg" alt=""><img class="is-sel"
+                src="mtx/assets/svg/style-south-sel.svg" alt=""></span>
+            <span class="style-marker__dot" style="top:62px"></span></a>
+          </div>
+
+          <aside class="style-panel tex" data-figma="87:260 Group 1244834043 (style info panel)">
+            <div class="style-panel__art"><img src="mtx/assets/img/style-tactical-art.png" alt="">
+              <span class="style-panel__shade"></span><img class="style-panel__emblem" data-bind="panelEmblem" src="mtx/assets/svg/style-phranakhon-sel.svg" alt="">
+              <svg class="style-panel__slash" viewBox="0 0 463 73" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path class="style-panel__slash-wedge" d="M76.0131 6.16154C76.4197 6.14039 76.7837 6.14168 77.1014 6.16154L76.0131 6.16154C71.6358 6.38921 62.3176 9.21752 52.5692 19.4791C41.9151 30.6938 13.0839 59.6653 0 72.7491L3.9217e-06 27.8901L29.4387 6.16153L76.0131 6.16154Z" fill="currentColor" />
+                <path class="style-panel__slash-band" d="M49.1523 6.86356L462.929 6.86372L462.929 0.000160217L16.1682 -9.10124e-07L0.00177235 16.6765L0.00177002 43.3115L28.7899 14.5737C35.5305 7.84485 45.1734 6.62992 49.1523 6.86356Z" />
+              </svg>
+            </div>
+            <p class="style-panel__region" data-bind="region" hidden>Central style</p>
+            <h2 class="style-panel__name tex-text" data-bind="name">Phranakhon</h2>
+            <p class="style-panel__desc" data-bind="desc"></p>
+            <p class="style-panel__traits" data-bind="traits"></p>
+            <a class="btn-cta btn-cta--key focus-ring focus-ring--out" data-nav data-id="select" data-fn="confirmStyle"
+              data-bind="selectBtn" data-figma="87:266 Group 1244833676 (Select button)"><span class="btn-cta__grad"
+                data-figma="Scratch-White 2 (gold gradient)"></span><span class="btn-cta__tex"
+                data-figma="Scratch-White 1 (scratch image, linear burn)"></span>
+              <span class="glyph glyph--lg" data-btn="a">A</span><span class="btn-cta__label">Select</span><span
+                class="btn-cta__check" aria-hidden="true"><svg viewBox="0 0 25 25">
+                  <path fill-rule="evenodd" clip-rule="evenodd"
+                    d="M12.5 0C19.4036 0 25 5.59635 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59635 25 0 19.4036 0 12.5C0 5.59635 5.59635 0 12.5 0ZM6.64896 13.2422L10.2089 16.5115C10.7281 16.9896 11.5318 16.9641 12.0203 16.4604L18.3714 10.3797C18.888 9.88281 18.9036 9.06094 18.4068 8.54479C17.9099 8.02812 17.088 8.0125 16.5719 8.50937L11.0703 13.776L8.40781 11.3307C7.88021 10.8453 7.05833 10.8792 6.57292 11.4068C6.08698 11.9349 6.12135 12.7562 6.64896 13.2422Z"
+                    fill="currentColor" />
+                </svg></span></a>
+          </aside>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:3195 Layer_1 (logo)">
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Choose","ls":"Move"}' data-figma="8:154 Hint bar"></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Mastery skill tree ============================
+     Screen chrome: Figma 14:747 (Phranakon Skill Tree).
+     Tree layout + links: Skill-tree_v3 export (tools/skilltree/PhraNakorn_SkillTree.source.json)
+     -> tools/skilltree/export_to_prototype.py -> mtx/js/skilltree-data.js. Nodes are rendered by app.js. -->
+      <section class="screen" id="s-skilltree" data-screen="skilltree" data-nav-mode="rows" data-first="pn1_root"
+        data-lt="fn:prevGate" data-rt="fn:nextGate"
+        data-figma="14:747 Phranakon Skill Tree (tree from Skill-tree_v3 JSON)">
+        <div class="screen__bg" style="background:#0f0f0f">
+          <img class="skill__bg" src="mtx/assets/img/bg-grunge.webp" alt="">
+          <div class="skill__glow" style="position:absolute"></div>
+          <div class="skill__vignette"></div>
+        </div>
+        <div class="screen__safe">
+          <div class="tree" data-figma="Skill tree viewport (camera follows focus)">
+            <div class="tree__camera" data-bind="treeCamera">
+              <svg class="tree__frames" data-bind="treeFrames" aria-hidden="true"></svg>
+              <div data-bind="treeOrn"></div>
+              <svg class="tree__links" data-bind="treeLinks" aria-hidden="true"></svg>
+              <div class="tree__gates" data-bind="treeGates"></div>
+              <div class="tree__nodes" data-bind="treeNodes"></div>
+            </div>
+          </div>
+          <div class="tree__edge" aria-hidden="true"></div>
+
+          <!-- Skill detail panel (Figma 1:3697 "Group 1244834109", export mtx-figma-export_skillsDetailPanel).
+         Opens only when a node is confirmed (A). A = Unlock -> Equip, X = Unequip / Remove, B = close. -->
+          <aside class="skill-detail" data-bind="skillDetail" hidden
+            data-figma="1:3697 Group 1244834109 (skill detail panel)">
+            <p class="skill-detail__kind tex-text" data-bind="sdKind" data-figma="1:3709 decisive move">Decisive move
+            </p>
+            <div class="skill-detail__card tex" data-figma="1:3699 Group 1244833690 (card)">
+              <div class="skill-detail__art" data-figma="1:3702 image + 1:3703 slash">
+                <img src="mtx/assets/img/card-art.webp" alt="">
+                <div class="slash"><img class="slash__wedge" src="mtx/assets/svg/detail-slash.svg" alt=""
+                    style="width:94px;height:81px"><span class="slash__band" style="height:52px"></span></div>
+              </div>
+              <span class="skill-detail__score" data-figma="1:3714 score tag"><img src="mtx/assets/svg/icon-score.svg"
+                  alt="">Score: <b data-bind="sdScore">350</b></span>
+              <div class="skill-detail__title" data-figma="1:3710 Layer_1 icon + 1:3708 name">
+                <div>
+                  <h2 class="tex-text" data-bind="sdName">Ruesi Bod Ya</h2>
+                  <p class="skill-detail__sub" data-bind="sdSub"></p>
+                </div>
+              </div>
+              <div class="skill-detail__desc" data-figma="1:3706 description box">
+                <p data-bind="sdDesc">Deal 1000 damage to the enemy instantly.</p>
+                <dl class="skill-detail__stats" data-bind="sdStats"></dl>
+                <p class="skill-detail__req" data-bind="sdReq"></p>
+              </div>
+              <div class="skill-detail__actions">
+                <a class="btn-cta btn-cta--detail btn-cta--key" data-bind="sdPrimary"
+                  data-figma="1:3718 Group 1244833790 (Equip button)"><span class="btn-cta__grad"
+                    data-figma="Scratch-White 2 (gold gradient)"></span><span class="btn-cta__tex"
+                    data-figma="Scratch-White 1 (scratch image, linear burn)"></span><span
+                    class="btn-cta__hold-bar"></span><span class="glyph" data-btn="a">A</span><span
+                    class="btn-cta__label">Unlock</span><span class="btn-cta__check" aria-hidden="true"><svg
+                      viewBox="0 0 25 25">
+                      <path fill-rule="evenodd" clip-rule="evenodd"
+                        d="M12.5 0C19.4036 0 25 5.59635 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59635 25 0 19.4036 0 12.5C0 5.59635 5.59635 0 12.5 0ZM6.64896 13.2422L10.2089 16.5115C10.7281 16.9896 11.5318 16.9641 12.0203 16.4604L18.3714 10.3797C18.888 9.88281 18.9036 9.06094 18.4068 8.54479C17.9099 8.02812 17.088 8.0125 16.5719 8.50937L11.0703 13.776L8.40781 11.3307C7.88021 10.8453 7.05833 10.8792 6.57292 11.4068C6.08698 11.9349 6.12135 12.7562 6.64896 13.2422Z"
+                        fill="currentColor" />
+                    </svg></span></a>
+                <span class="hint-inline" data-bind="sdSecondary" data-figma="1:3727 unequip hint"><span class="glyph"
+                    data-btn="x">X</span><span>Remove</span></span>
+                <span class="hint-inline" data-figma="close hint"><span class="glyph"
+                    data-btn="b">B</span><span>Close</span></span>
+              </div>
+            </div>
+          </aside>
+
+          <header class="skill__header" data-figma="14:1287 mastery + 14:1288 30 days left">
+            <h1 class="skill__title tex-text">Mastery</h1>
+            <p class="skill__subtitle" data-bind="treeStyle">Phra Nakorn tree</p>
+            <span class="tag tag--timer" data-timer-seconds="2592000"><img src="mtx/assets/svg/icon-clock.svg" alt=""><b
+                class="timer-text">30 days left</b></span>
+          </header>
+
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="14:1065 Layer_1 (logo)">
+          <div data-use="player-hud"></div>
+          <div class="skill__points" style="top:230px" data-figma="14:1280 Frame 1244833186 (skill points)">
+            <span class="skill__points-gem"><img src="mtx/assets/svg/skill-points.svg" alt=""><b
+                data-bind="skillPts">2</b></span><span>Skill points</span>
+          </div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Details","lt+rt":"Level","ls":"Move"}'
+            data-figma="14:1296 Hint bar"></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Quests (Figma 1:5475) ============================ -->
+      <section class="screen" id="s-quests" data-screen="quests" data-first="q0" data-lt="fn:prevQuestLevel"
+        data-rt="fn:nextQuestLevel" data-x="fn:trackQuest" data-figma="123:100 Mastery Quest">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="page-title tex-text quests__title" data-figma="123:129 QUESTs">Quests</h1>
+
+          <div class="mq-progress" data-figma="123:105 Progression Milestone">
+            <div class="mq-progress__inner">
+              <img class="mq-progress__art" src="mtx/assets/img/quest-progression.webp" alt="">
+              <span class="mq-orn mq-orn--l"></span><span class="mq-orn mq-orn--r"></span>
+              <span class="mq-progress__sep"></span>
+              <div class="mq-emblem" data-bind="mqLevel" data-figma="123:122 Style Level Border">02</div>
+              <p class="mq-progress__word" data-bind="mqStyleName">Phranakhon</p>
+              <p class="mq-progress__sub" data-bind="mqSub">Earn Mastery Points from quests below to unlock higher style</p>
+              <span class="mq-progress__pts" data-bind="mqPts"><b>4,200</b> | 10,000</span>
+              <div class="mq-bar" data-figma="123:116 ProgressionBar">
+                <div class="mq-bar__track"><i class="mq-bar__fill" data-bind="mqBar"></i></div>
+              </div>
+            </div>
+          </div>
+
+          <span class="glyph mq-tabs__key mq-tabs__key--prev" data-btn="lt" aria-hidden="true">Q</span>
+          <nav class="mq-tabs" data-bind="mqTabs" role="tablist" aria-label="Mastery level" data-figma="123:293 Mastery level tabs"></nav>
+          <span class="glyph mq-tabs__key mq-tabs__key--next" data-btn="rt" aria-hidden="true">E</span>
+          <div class="mq-list" data-bind="mqList" data-figma="123:312 Quest List"></div>
+          <div class="scrollbar quests__scroll" data-figma="123:309 Scrollbar"><span class="scrollbar__thumb"
+              data-bind="questThumb" style="top:0"></span></div>
+
+          <div class="mq-watermark" aria-hidden="true"></div>
+          <img class="mq-art" src="mtx/assets/img/fighter-knee.webp" alt="">
+
+          <article class="mq-detail" data-figma="123:226 Quest Infomation">
+            <h2 class="mq-detail__title tex-text" data-bind="questTitle"></h2>
+            <span class="mq-detail__accent"></span>
+            <p class="mq-detail__desc" data-bind="questDesc"></p>
+            <hr class="divider">
+            <div class="mq-detail__cols">
+              <section>
+                <h3 class="mq-detail__label">Current objective</h3>
+                <div class="mq-objectives" data-bind="questObjectives"></div>
+              </section>
+              <section class="mq-rewards">
+                <h3 class="mq-detail__label">Rewards</h3>
+                <div class="quest-rewards" data-bind="questRewards"></div>
+              </section>
+            </div>
+          </article>
+
+          <a class="btn-cta mq-track" data-bind="trackBtn" data-figma="123:282 Track"><span class="btn-cta__grad"></span><span
+              class="btn-cta__tex"></span><span class="glyph glyph--lg" data-btn="a">A</span><span
+              class="btn-cta__label">Track</span></a>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:5478 Layer_1 (logo)">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Track","lt+rt":"Level","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Store (Figma 128:99, mtx-figma-export_Store) ============================
+           Figma frame is 1920x1376 with uneven cards (412/417 px, 20-25 px gaps). Here: fitted to 1920x1080, one 4-column
+           grid (410 px cards, 24 px gaps, featured = 2 columns), catalogue scrolls inside the viewport. Hold A to buy. -->
+      <section class="screen" id="s-store" data-screen="store" data-first="seux_shorts" data-figma="128:99 Store">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="page-title tex-text store__title" data-figma="128:321 features">Store</h1>
+          <div class="st-balance">
+            <span class="st-balance__owned">Owned <b data-store-owned>0</b></span>
+          </div>
+          <div class="rewards__scroll" data-figma="Rewards scroller">
+            <span class="rw-scroll__btn" data-scroll-dir="-1" role="button" aria-label="Previous group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="rw-scroll__track"></div>
+            <span class="rw-scroll__btn" data-scroll-dir="1" role="button" aria-label="Next group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 2L10 10L18 2" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="st-view"><div class="st-list" data-bind="storeList"></div></div>
+          <div class="char3d" data-char3d data-char3d-off aria-hidden="true"></div>
+          <img class="rewards__hero st-detail__hero" data-bind="storeHero" src="mtx/assets/img/store-seuxphen.webp" alt="">
+          <div class="rewards__info st-detail">
+            <h2 class="tex-text" data-bind="storeName"></h2>
+            <small class="st-detail__type" data-bind="storeType"></small>
+            <p data-bind="storeDesc"></p>
+            <div class="st-detail__price" data-bind="storePrice"></div>
+          </div>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud" data-variant="rpoint"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Buy","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Pack (Figma 128:437 "Pack collection", mtx-figma-export_PackCollection) ============================
+           Opened from a pack / bundle card in the Store. Tiles normalised to 216 px with 14 px gaps (Figma: 213-216 px, 10-14 px). -->
+      <section class="screen" id="s-pack" data-screen="pack" data-first="pk0" data-figma="128:437 Pack collection">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <div class="pk-left">
+            <h1 class="page-title tex-text pk-title" data-bind="packTitle" data-figma="128:591">Seux Phen
+Collection</h1>
+            <p class="pk-desc" data-bind="packDesc" data-figma="128:592"></p>
+            <div class="pk-tiles" data-bind="packItems" data-figma="128:537 / 128:702 / 128:696 tiles"></div>
+            <div class="pk-price" data-bind="packPrice"></div>
+            <div class="pk-actions">
+              <button type="button" class="btn-cta pk-buy" data-bind="packBuy" data-figma="128:688 Buy"><span
+                  class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph"
+                  data-btn="a">A</span><span class="btn-cta__label">Buy</span></button>
+              <span class="hint-inline pk-back" data-figma="128:540 Back"><span class="glyph" data-btn="b">B</span><span>Back</span></span>
+            </div>
+          </div>
+          <figure class="pk-preview" data-figma="128:724 preview">
+            <img data-bind="packPreview" src="mtx/assets/img/pack-seux-shorts.webp" alt="">
+            <figcaption data-bind="packPreviewName"></figcaption>
+          </figure>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Buy","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Rewards (Figma 1:4850) ============================ -->
+      <section class="screen" id="s-rewards" data-screen="rewards" data-first="r0_0"
+        data-figma="1:4850 Rewards">
+        <div class="screen__bg">
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="page-title tex-text rewards__title" data-figma="1:5113 rewards">Rewards</h1>
+          <div class="reward-grid" data-figma="Reward grid (was 5 loose tile groups + 10 price pill groups)"></div>
+          <div class="rewards__scroll" data-figma="Rewards scroller">
+            <span class="rw-scroll__btn" data-scroll-dir="-1" role="button" aria-label="Previous group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div class="rw-scroll__track"></div>
+            <span class="rw-scroll__btn" data-scroll-dir="1" role="button" aria-label="Next group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 2L10 10L18 2" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+
+          <div class="char3d" data-char3d data-char3d-off aria-hidden="true"></div>
+          <img class="rewards__hero" data-bind="rewardHero" src="mtx/assets/img/glove1-hero.webp" alt=""
+            data-figma="1:5001 glove1 (hero)">
+          <div class="rewards__info" data-figma="1:5002 title + 1:5003 description">
+            <h2 class="tex-text" data-bind="rewardTitle">MTX 2026 Collection</h2>
+            <p data-bind="rewardDesc">Deal 1000 damage to the enemy instantly.</p>
+            <div class="rewards__actions">
+              <a class="btn-cta btn-cta--key focus-ring focus-ring--out" data-nav data-id="claim" data-fn="claimReward"
+                data-bind="claimBtn" data-hold-action="claim" data-figma="1:5095 + 1:5096 + 1:5097 (Claim button)">
+                <span class="btn-cta__grad" data-figma="Scratch-White 2 (gold gradient)"></span>
+                <span class="btn-cta__tex" data-figma="Scratch-White 1 (scratch image, linear burn)"></span>
+                <span class="glyph glyph--lg" data-btn="a">A</span>
+                <span class="btn-cta__label">Claim</span>
+                <span class="btn-cta__hold-bar"></span>
+                <span class="btn-cta__check" aria-hidden="true"><svg viewBox="0 0 25 25">
+                    <path fill-rule="evenodd" clip-rule="evenodd"
+                      d="M12.5 0C19.4036 0 25 5.59635 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59635 25 0 19.4036 0 12.5C0 5.59635 5.59635 0 12.5 0ZM6.64896 13.2422L10.2089 16.5115C10.7281 16.9896 11.5318 16.9641 12.0203 16.4604L18.3714 10.3797C18.888 9.88281 18.9036 9.06094 18.4068 8.54479C17.9099 8.02812 17.088 8.0125 16.5719 8.50937L11.0703 13.776L8.40781 11.3307C7.88021 10.8453 7.05833 10.8792 6.57292 11.4068C6.08698 11.9349 6.12135 12.7562 6.64896 13.2422Z"
+                      fill="currentColor" />
+                  </svg></span>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:4852 Layer_1 (logo)">
+          <div data-use="player-hud" data-variant="rpoint"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Claim","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Attributes (Figma 51:180, named "Tactical Style") ============================ -->
+      <section class="screen" id="s-attributes" data-screen="attributes" data-first="a0"
+        data-lt="fn:prevTab" data-rt="fn:nextTab" data-figma="51:180 Tactical Style (Attributes)">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+          <div class="attr__tint"></div>
+          <div class="attr__scrim"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="attr__vtitle" data-bind="attrStyleName">Phranakhon</h1>
+          <img class="attr__fighter" src="mtx/assets/img/attr-fighter.webp" alt="" data-figma="51:185 Main character (PNG cut-out)">
+          <div class="attr__tabs" data-figma="51:358-51:372 Tab strip (LT, 4 tabs, RT)">
+            <span class="glyph" data-btn="lt">LT</span>
+            <a class="attr-tab" data-fn="pickTab" data-tab="attacking">Attack</a>
+            <a class="attr-tab" data-fn="pickTab" data-tab="defending">Defense</a>
+            <a class="attr-tab" data-fn="pickTab" data-tab="striking">Striking Arts</a>
+            <a class="attr-tab" data-fn="pickTab" data-tab="agility">Agility</a>
+            <a class="attr-tab" data-fn="pickTab" data-tab="endurance">Endurance</a>
+            <span class="glyph" data-btn="rt">RT</span>
+          </div>
+          <div class="attr__panel" data-figma="51:289 panel (Attributes x Mastery caps)">
+            <section class="attr-hero" data-bind="attrHead"></section>
+            <div class="attr__rows" data-bind="attrRows"></div>
+            <aside class="attr-side">
+              <div class="attr-overall-box">
+                <div class="attr-overall" data-bind="overallRing" style="--p:0">
+                  <i class="attr-overall__tick" aria-hidden="true"></i><i class="attr-overall__tick is-end" aria-hidden="true"></i>
+                  <span class="attr-overall__value" data-bind="overall">0</span>
+                </div>
+                <span class="attr-overall__label">Overall</span>
+              </div>
+              <div class="attr-points" data-bind="attrPointsBox" data-figma="14:1280 skill points gem (reused)">
+                <span class="attr-points__label" data-bind="attrPointsLabel">Attribute points</span>
+                <span class="skill__points-gem attr-points__gem"><svg viewBox="0 0 77 75" aria-hidden="true"><path class="attr-points__gem-body" d="M51.8725 13.2198L38.3523 0L24.832 13.2198C22.688 15.3162 21.4717 17.9762 21.1831 20.7121C18.3849 20.9942 15.6644 22.1835 13.5203 24.28L0 37.4998L13.5203 50.7196C15.6644 52.816 18.3849 54.0053 21.183 54.2874C21.4715 57.0235 22.6878 59.6837 24.832 61.7802L38.3523 75L51.8725 61.7802C54.0166 59.6838 55.2329 57.0238 55.5215 54.2879C58.3196 54.0058 61.0402 52.8165 63.1843 50.72L76.7045 37.5002L63.1843 24.2804C61.0402 22.184 58.3196 20.9947 55.5215 20.7126C55.233 17.9765 54.0167 15.3163 51.8725 13.2198Z"/><path class="attr-points__gem-line" d="M49.0654 17.4338C50.7006 19.069 51.6276 21.1414 51.8477 23.2747L51.9424 24.1946L52.8613 24.2893C54.9946 24.5093 57.067 25.4354 58.7021 27.0706L69.415 37.7844L58.7021 48.4983C57.067 50.1334 54.9946 51.0595 52.8613 51.2795L51.9424 51.3743L51.8477 52.2932C51.6276 54.4265 50.7006 56.4989 49.0654 58.134L38.3516 68.8469L27.6387 58.134C26.0035 56.4989 25.0764 54.4265 24.8564 52.2932L24.7617 51.3743L23.8428 51.2786C21.7095 51.0585 19.6371 50.1324 18.002 48.4973L7.28809 37.7834L18.002 27.0696C19.6371 25.4345 21.7095 24.5084 23.8428 24.2883L24.7617 24.1936L24.8564 23.2747C25.0765 21.1414 26.0035 19.069 27.6387 17.4338L38.3516 6.71997L49.0654 17.4338Z"/></svg><b
+                    data-bind="attrPoints">12</b></span>
+              </div>
+            </aside>
+          </div>
+          <a class="btn-cta btn-cta--key attr__confirm" data-bind="attrConfirm"
+            data-figma="51:306 + 51:316 (Confirm button)"><span class="btn-cta__grad"
+              data-figma="Scratch-White 2 (gold gradient)"></span><span class="btn-cta__tex"
+              data-figma="Scratch-White 1 (scratch image, linear burn)"></span><span class="glyph glyph--lg"
+              data-btn="a">A</span><span class="btn-cta__label">Confirm</span><span class="btn-cta__hold-bar"></span></a>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="51:191 Layer_1 (logo)">
+          <nav class="hint-bar" data-hints='{"b":"Back","lt+rt":"Attribute","dl+dr":"Adjust","ls":"Move"}' aria-label="Controls"></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Management (Figma 2:427) ============================ -->
+      <section class="screen" id="s-management" data-screen="management" data-first="mgr" data-y="go:collection"
+        data-figma="2:427 Management">
+        <div class="screen__bg">
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .75)"></div>
+          <div class="sim__fade" style="position:absolute"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="page-title tex-text management__title">Management</h1>
+          <div class="sim__cards" id="managementCards">
+            <div id="mgrCardSlot" style="display:contents"></div>
+            <div id="sponCardSlot" style="display:contents"></div>
+            <a class="sim-card focus-ring focus-ring--out" data-nav data-id="soc" data-go="media" data-focus-hints='{"a":"View Social"}'
+              data-figma="2:735 Social card">
+              <div class="sim-card__face sim-card__face--front tex">
+                <h3 class="sim-card__social-title tex-text">Social
+                  Media</h3>
+                <div class="stat-card stat-card--followers soc-followers"><img class="stat-card__icon"
+                    src="mtx/assets/svg/icon-followers.svg" alt=""><span class="stat-card__title">Followers</span><span class="stat-card__big" data-followers>125,420</span></div>
+                <div class="stat-card stat-card--rep soc-rep">
+                  <div class="soc-rep__lv" aria-label="Reputation level"><span>Level</span><b data-rlevel>12</b></div>
+                  <div class="soc-rep__main"><span class="stat-card__head">Reputation</span>
+                    <div class="stat-card__row"><span class="stat-card__k">RXP</span><span class="stat-card__v" data-rxp>2,512 / 2,728</span></div>
+                    <div class="stat-card__bar" data-rxp-bar style="--p:92%"><i></i></div>
+                  </div>
+                </div>
+                <div class="stat-card persona" data-personality></div>
+              </div>
+            </a>
+            <div id="colCardSlot" style="display:contents"></div>
+          </div>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="2:434 Layer_1 (logo)">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","y":"Collection","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Leaderboard (Figma 144:249, mtx-figma-exportLeaderborad) ============================ -->
+      <section class="screen" id="s-leaderboard" data-screen="leaderboard" data-first="lbYou" data-lt="fn:lbPrevTab"
+        data-rt="fn:lbNextTab" data-figma="144:249 Leaderboard">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <p class="lb-clock" aria-label="Season ends in"><img src="mtx/assets/svg/icon-clock-lb.svg" alt=""><b data-bind="lbClock">24:40:01</b></p>
+          <h1 class="page-title tex-text lb__title">Leaderboard</h1>
+          <p class="lb__season">Season 3</p>
+
+          <nav class="lb-tabs" role="tablist" aria-label="Leaderboard">
+            <span class="glyph" data-btn="lt">Q</span>
+            <span class="lb-tab is-active" data-lb-tab="personal" role="tab" aria-selected="true">Personal</span>
+            <span class="lb-tab" data-lb-tab="top" role="tab" aria-selected="false">Top Rank</span>
+            <span class="lb-tab" data-lb-tab="friends" role="tab" aria-selected="false">Friends</span>
+            <span class="glyph" data-btn="rt">E</span>
+          </nav>
+
+          <section class="lb-you" aria-label="Standing" aria-live="polite">
+            <h2 class="lb-head lb-you__head" data-bind="lbHead">Your standing</h2>
+            <img class="lb-you__badge" data-bind="lbBadge" src="mtx/assets/img/badges/ring-warrior-3.webp" alt="">
+            <p class="lb-you__k lb-you__k--tier">Rank tier</p>
+            <p class="lb-you__tier" data-bind="lbTier">Regional Tournament III</p>
+            <p class="lb-you__elo" data-bind="lbElo">612 RP</p>
+            <div class="lb-you__bar" data-bind="lbBar" style="--p:24%"><i></i></div>
+            <p class="lb-you__rp" data-bind="lbRp" aria-hidden="true">612</p>
+            <p class="lb-you__next" data-bind="lbNext">38 RP to Regional Tournament II</p>
+            <hr class="lb-you__rule lb-you__rule--1">
+            <p class="lb-you__k lb-you__k--season">Season rank</p>
+            <p class="lb-you__rank" data-bind="lbRank">#1,284</p>
+            <p class="lb-you__top"><span data-bind="lbTop">Top 8%</span><span data-bind="lbLocal">In Thailand</span></p>
+            <hr class="lb-you__rule lb-you__rule--2">
+            <div class="lb-you__stats">
+              <div class="lb-stat"><span>Record</span><b data-bind="lbRecord">24-6-1</b></div>
+              <div class="lb-stat"><span>KO wins</span><b data-bind="lbKo">17</b></div>
+              <div class="lb-stat lb-stat--win"><span>Win rate</span><b data-bind="lbWin">77%</b></div>
+            </div>
+          </section>
+
+          <section class="lb-table" aria-label="Rankings">
+            <div class="lb-head lb-table__head" aria-hidden="true">
+              <span class="lb-col lb-col--rank">Rank</span><span class="lb-col lb-col--fighter">Fighter</span><span class="lb-col lb-col--tier">Rank tier</span>
+              <span class="lb-col lb-col--record">Record</span><span class="lb-col lb-col--ko">KO</span><span class="lb-col lb-col--elo">RP</span>
+            </div>
+            <div class="lb-table__rows" data-bind="lbRows"></div>
+            <div class="scrollbar lb__scroll" data-bind="lbScroll" aria-hidden="true"><span class="scrollbar__thumb" data-bind="lbThumb"></span></div>
+            <div class="lb-table__pinned" data-bind="lbPinned"></div>
+          </section>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Profile","lt+rt":"Tabs","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Match Detail (Figma 217:6954 / 217:7375, opened from Match History) ============================ -->
+      <section class="screen" id="s-matchdetail" data-screen="matchdetail" data-lt="fn:mdPrevPage"
+        data-rt="fn:mdNextPage" data-figma="217:6954 Match Detail">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <div class="md-head">
+            <p class="md-result" data-bind="mdResult" data-result="win">WIN</p>
+            <p class="md-method" data-bind="mdMethod">KO · Round 2 · Total time 4:45</p>
+            <p class="md-meta" data-bind="mdMeta">Rank</p>
+            <p class="md-rp" data-bind="mdRp" data-result="win">+18 RP</p>
+            <p class="md-rewards" data-bind="mdRewards">+420 fans · +3,500</p>
+            <i class="md-rule"></i>
+          </div>
+          <nav class="md-pages" role="tablist" aria-label="Match detail">
+            <span class="glyph" data-btn="lt">Q</span>
+            <!-- Q / E switch the tab instantly (like the Leaderboard tabs): not focus stops -->
+            <span class="lb-tab md-page is-active" data-md-page="stats" role="tab" aria-selected="true">Statistics</span>
+            <span class="lb-tab md-page" data-md-page="loadout" role="tab" aria-selected="false">Loadout</span>
+            <span class="glyph" data-btn="rt">E</span>
+          </nav>
+          <nav class="md-rounds" data-bind="mdRounds" role="tablist" aria-label="Round"></nav>
+          <div class="md-fighter md-fighter--red">
+            <img src="mtx/assets/img/avatar.webp" alt=""><b>SX.MTX</b><small data-bind="mdYouSub">You</small><span class="md-corner">Red corner</span>
+          </div>
+          <div class="md-fighter md-fighter--blue">
+            <img src="mtx/assets/img/avatar.webp" alt=""><b data-bind="mdOppName">Opponent</b><small data-bind="mdOppSub">Opponent</small><span class="md-corner">Blue corner</span>
+          </div>
+          <div class="md-body" data-bind="mdBody" aria-live="polite"></div>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar md-hints" data-hints='{"b":"Back","lt+rt":"Page","zl+zr":"Round"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Match History (Figma 216:633, opened from Profile) ============================ -->
+      <section class="screen" id="s-history" data-screen="history" data-first="mh0" data-lt="fn:mhPrevTab"
+        data-rt="fn:mhNextTab" data-figma="216:633 Match History">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="page-title tex-text lb__title mh__title">Match History</h1>
+          <p class="lb__season">Season 3</p>
+
+          <nav class="lb-tabs" role="tablist" aria-label="Match history">
+            <span class="glyph" data-btn="lt">Q</span>
+            <span class="lb-tab is-active" data-mh-tab="all" role="tab" aria-selected="true">All</span>
+            <span class="lb-tab" data-mh-tab="rank" role="tab" aria-selected="false">Ranked</span>
+            <span class="lb-tab" data-mh-tab="casual" role="tab" aria-selected="false">Casual</span>
+            <span class="glyph" data-btn="rt">E</span>
+          </nav>
+
+          <!-- left: the focused match -->
+          <section class="lb-you mh-detail" aria-label="Match detail" aria-live="polite">
+            <h2 class="lb-head lb-you__head">Match detail</h2>
+            <img class="lb-you__badge" data-bind="mhBadge" src="mtx/assets/img/badges/ring-warrior-3.webp" alt="">
+            <p class="lb-you__k lb-you__k--tier" data-bind="mhStyle">Opponent</p>
+            <p class="lb-you__tier" data-bind="mhName">Opponent</p>
+            <p class="lb-you__elo mh-detail__tier" data-bind="mhTier">Tier</p>
+            <p class="lb-you__next" data-bind="mhHow">Won by KO · Round 2 of 5 · 1:45</p>
+            <hr class="lb-you__rule lb-you__rule--1">
+            <p class="lb-you__k lb-you__k--season">Result</p>
+            <p class="lb-you__rank mh-detail__result" data-bind="mhResult">WIN</p>
+            <p class="lb-you__top"><span data-bind="mhRp">+18 RP</span><span data-bind="mhWhen">14 Oct 2026 · Ranked</span></p>
+            <hr class="lb-you__rule lb-you__rule--2">
+            <div class="lb-you__stats">
+              <div class="lb-stat"><span>Score</span><b data-bind="mhScore">10–9</b></div>
+              <div class="lb-stat"><span>Strikes landed</span><b data-bind="mhStrikes">27/33</b></div>
+              <div class="lb-stat lb-stat--win"><span>Damage</span><b data-bind="mhDamage">503</b></div>
+            </div>
+          </section>
+
+          <section class="lb-table mh-table" aria-label="Matches">
+            <div class="lb-head lb-table__head" aria-hidden="true">
+              <span class="lb-col mh-col--result">Result</span><span class="lb-col mh-col--opp">Opponent</span><span class="lb-col mh-col--mode">Mode</span><span class="lb-col mh-col--method">Condition</span>
+              <span class="lb-col mh-col--score">Score</span><span class="lb-col mh-col--damage">Damage</span><span class="lb-col lb-col--elo">RP</span>
+            </div>
+            <div class="lb-table__rows" data-bind="mhRows"></div>
+            <div class="scrollbar lb__scroll" data-bind="mhScroll" aria-hidden="true"><span class="scrollbar__thumb" data-bind="mhThumb"></span></div>
+          </section>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Select","lt+rt":"Filter","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+      <!-- ============================ Collection: managers / sponsors unlocked so far ============================ -->
+      <section class="screen" id="s-collection" data-screen="collection" data-first="mgr0" data-y="fn:compareCard"
+        data-lt="fn:colPrevTab" data-rt="fn:colNextTab">
+        <div class="screen__bg">
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .8)"></div>
+        </div>
+        <div class="screen__safe">
+          <h1 class="page-title tex-text collection__title">Collection</h1>
+          <nav class="col-tabs" role="tablist" aria-label="Collection">
+            <span class="glyph" data-btn="lt">Q</span>
+            <span class="lb-tab is-active" data-col-tab="mgr" role="tab" aria-selected="true">Personal</span>
+            <span class="lb-tab" data-col-tab="spon" role="tab" aria-selected="false">Sponsor</span>
+            <span class="lb-tab" data-col-tab="evt" role="tab" aria-selected="false">Random Event</span>
+            <span class="glyph" data-btn="rt">E</span>
+          </nav>
+          <p class="col-count" id="colCount"></p>
+          <div class="collection__groups" id="collectionGroups"></div>
+          <div class="scrollbar col__scroll" id="colScroll" aria-hidden="true"><span class="scrollbar__thumb"></span></div>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <div data-use="player-hud"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Flip","y":"Compare","lt+rt":"Tabs","ls":"Move"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+        <!-- Compare: Y on an unlocked card that is not the hired manager / signed sponsor; A flips both cards -->
+        <div class="col-compare" id="colCompare" hidden role="dialog" aria-modal="true" aria-labelledby="colCompareTitle">
+          <h2 class="page-title tex-text col-compare__title" id="colCompareTitle">Compare</h2>
+          <p class="col-compare__sub" id="colCompareSub"></p>
+          <div class="col-compare__body" id="colCompareBody"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Flip","y":"Close"}'></nav>
+        </div>
+        <!-- Random Event scenario: A on an unlocked group shows its whole card set; A flips them all -->
+        <div class="col-compare col-set" id="colSet" hidden role="dialog" aria-modal="true" aria-labelledby="colSetTitle">
+          <h2 class="page-title tex-text col-compare__title" id="colSetTitle">Scenario</h2>
+          <p class="col-compare__sub" id="colSetSub"></p>
+          <div class="col-compare__body col-set__body" id="colSetBody"></div>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Flip"}'></nav>
+        </div>
+      </section>
+
+      <!-- ============================ Simulate Day Calendar Animation Overlay (Figma 105:151) ============================ -->
+      <div id="simulateDayOverlay" class="simulate-overlay" style="display:none">
+        <div class="simulate-overlay__bg">
+          <div class="simulate-overlay__gym"></div>
+          <div class="simulate-overlay__scratch"></div>
+          <div class="simulate-overlay__scrim"></div>
+        </div>
+        <img class="simulate-overlay__logo" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+        <div class="simulate-overlay__box">
+          <header class="simulate-overlay__header">
+            <h2 class="simulate-overlay__month" id="simAnimMonth">AUGUST</h2>
+            <div class="simulate-overlay__fitness" id="simAnimFitness" style="--v:.49">
+              <div class="simulate-overlay__fit-badge" id="simAnimFitBadge">
+                <img src="mtx/assets/svg/icon-heart.svg" alt="">
+                <span>FITNESS: <b id="simAnimFitnessVal">30</b></span>
+              </div>
+              <div class="simulate-overlay__fit-track">
+                <span class="fitness__seg fitness__seg--2"></span>
+                <span class="fitness__seg fitness__seg--3"></span>
+                <span class="fitness__seg fitness__seg--4"></span>
+                <span class="fitness__dim" id="simAnimFitDim"></span>
+                <span class="fitness__mark" id="simAnimFitMark"></span>
+              </div>
+            </div>
+          </header>
+          <div class="simulate-overlay__body">
+            <div class="simulate-overlay__vignette"></div>
+            <div class="simulate-overlay__viewport">
+              <div class="simulate-overlay__days" id="simAnimDays"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================ Character Customize overlay (Figma 129:728 ... 129:4533, mtx-figma-export_CharacterCustomize)
+           Opens over any screen with Tab / View. Rendered by screen-customize.js. -->
+      <div id="ccOverlay" class="cc" hidden role="dialog" aria-modal="true" aria-label="Character customization" data-figma="Character Customize overlay">
+        <div class="cc__bg cc__bg--gym"><img src="mtx/assets/img/cc-gym.webp" alt=""></div>
+        <div class="cc__bg cc__bg--profile"><img src="mtx/assets/img/cc-profile-bg.webp" alt=""></div>
+        <div class="cc__bg cc__bg--style"><img src="mtx/assets/img/cc-style-bg.webp" alt=""></div>
+        <div class="screen__safe">
+          <div class="cc__stickers" data-cc-stickers aria-hidden="true"></div>
+          <img class="cc__char" data-cc-char src="mtx/assets/img/cc-character.webp" alt="Fighter">
+          <div class="cc__shade"></div>
+          <nav class="cc-tabs" data-cc-tabs role="tablist" aria-label="Categories"></nav>
+          <section class="cc-panel" data-cc-panel><div class="cc-panel__list" data-cc-list></div></section>
+          <div class="cc-scroll"><i data-cc-thumb></i></div>
+          <div class="cc-page" data-cc-page></div>
+          <p class="cc-live" data-cc-live aria-live="polite"></p>
+        </div>
+        <!-- edge layer: at 21:9 the logo, page tabs, HUD and hints hug the stage edges like every screen -->
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+          <nav class="cc-hub" data-cc-hub role="tablist" aria-label="Customization pages"></nav>
+          <div class="cc__hud"><div data-use="player-hud"></div></div>
+          <nav class="cc-hints" data-cc-hints aria-label="Controls"></nav>
+        </div>
+      </div>
+
+      <!-- ============================ Modal: 2:880 Personal manager (mtx-figma-export_EventRandom) ============================ -->
+      <div id="modalPersonalManager" class="flow-modal ev-modal" style="display:none;--title-y:298px;--sub-y:435px;--cards-y:240px;--cta-y:838px" data-figma="2:880 Personal manager">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+        </div>
+        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+        <div data-use="player-hud"></div>
+        <span class="ev-modal__badge">Choose your</span>
+        <h1 class="page-title tex-text ev-modal__title">Personal
+Manager</h1>
+        <p class="ev-modal__sub">Your manager will help shape your career. Each manager has unique bonuses and specialties.</p>
+        <div class="ev-modal__cards" id="managerCardsContainer">
+          <div class="ev-card ev-card--mgr focus-ring is-focused" data-flow-id="mgr_justin" tabindex="0" style="--acc:var(--track-e);--acc-dark:var(--track-e-dark)">
+            <p class="ev-card__name">Justin Polsen</p>
+            <p class="ev-card__role">Business Planner</p>
+            <img class="ev-card__cutout" src="mtx/assets/img/manager-justin.webp" alt="Justin Polsen" style="left:62px;top:77px;width:260px;height:312px">
+            <hr class="ev-card__rule ev-card__rule--photo">
+            <p class="ev-card__desc">Turns opportunities into winning deals with sharp strategy and negotiation skills.</p>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+          <div class="ev-card ev-card--mgr focus-ring" data-flow-id="mgr_kamol" tabindex="0" style="--acc:var(--track-s);--acc-dark:var(--track-s-dark)">
+            <p class="ev-card__name">Kamol Intarak</p>
+            <p class="ev-card__role">Media Expert</p>
+            <img class="ev-card__cutout" src="mtx/assets/img/manager-nattapong.webp" alt="Kamol Intarak" style="left:84px;top:32px;width:208px;height:359px">
+            <hr class="ev-card__rule ev-card__rule--photo">
+            <p class="ev-card__desc">Turns attention into influence through media, engagement, and strong connections.</p>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+          <div class="ev-card ev-card--mgr focus-ring" data-flow-id="mgr_nattapong" tabindex="0" style="--acc:var(--track-r);--acc-dark:var(--track-r-dark)">
+            <p class="ev-card__name">Nattapong Sirisak</p>
+            <p class="ev-card__role">Fight Tactician</p>
+            <img class="ev-card__cutout" src="mtx/assets/img/manager-kamol.webp" alt="Nattapong Sirisak" style="left:77px;top:55px;width:235px;height:335px">
+            <hr class="ev-card__rule ev-card__rule--photo">
+            <p class="ev-card__desc">Builds stronger fighters through discipline, training, and relentless performance.</p>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+        </div>
+        <button type="button" class="btn-cta btn-cta--secondary btn-cta--key ev-modal__decline" id="btnDeclineManager"><span class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph" data-btn="x">X</span><span class="btn-cta__label">Decline</span></button>
+        <button type="button" class="btn-cta btn-cta--key ev-modal__cta" id="btnConfirmManager"><span
+            class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph"
+            data-btn="a">A</span><span class="btn-cta__label">Select</span></button>
+        <nav class="hint-bar" data-hints='{"b":"Back","x":"Decline","y":"Flip","ls":"Move"}'></nav>
+        <div data-use="social-bar"></div>
+      </div>
+
+      <!-- ============================ Modal: 2:1497 Sponsor (mtx-figma-export_EventRandom) ============================ -->
+      <div id="modalSponsorContract" class="flow-modal ev-modal" style="display:none;--title-y:312px;--sub-y:451px;--cards-y:301px;--cta-y:878px" data-figma="2:1497 Sponsor">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+        </div>
+        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+        <div data-use="player-hud"></div>
+        <h1 class="page-title tex-text ev-modal__title">Sponsor
+Contract</h1>
+        <p class="ev-modal__sub">Sign sponsor contracts to earn additional bonuses. Complete the requirements to maximize your benefits.</p>
+        <p class="ev-modal__note" id="sponsorReplaceNote" hidden></p>
+        <div class="ev-modal__cards" id="sponsorCardsContainer">
+          <div class="ev-card ev-card--spon focus-ring is-focused" data-flow-id="spon_beefy" tabindex="0" style="--acc:var(--track-e);--acc-dark:var(--track-e-dark)">
+            <span class="ev-card__days"><img src="mtx/assets/svg/icon-clock.svg" alt="">30 days</span>
+            <img class="ev-card__logo" src="mtx/assets/svg/sponsor-beefybuff.svg" alt="Beefy Buff" style="left:77px;top:69px;width:221px;height:163px">
+            <p class="ev-card__k">Bonus</p>
+            <p class="ev-card__perks"><span><b>+10%</b> Fight money</span><span><b>+5%</b> Sponsor income</span></p>
+            <hr class="ev-card__rule ev-card__rule--a">
+            <p class="ev-card__desc">Fuels fighters with high-protein meat snacks built for every challenge.</p>
+            <hr class="ev-card__rule ev-card__rule--b">
+            <div class="ev-card__foot"><span><b>Contract duration</b>30 days</span><span><b>Remaining</b>30 days</span></div>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+          <div class="ev-card ev-card--spon focus-ring" data-flow-id="spon_primehook" tabindex="0" style="--acc:var(--track-s);--acc-dark:var(--track-s-dark)">
+            <span class="ev-card__days"><img src="mtx/assets/svg/icon-clock.svg" alt="">30 days</span>
+            <img class="ev-card__logo" src="mtx/assets/svg/sponsor-primehook.svg" alt="Primehook" style="left:45px;top:105px;width:293px;height:94px">
+            <p class="ev-card__k">Bonus</p>
+            <p class="ev-card__perks"><span><b>+10%</b> Fight money</span><span><b>+5%</b> Sponsor income</span></p>
+            <hr class="ev-card__rule ev-card__rule--a">
+            <p class="ev-card__desc">Professional fight gear designed to protect, perform, and go the distance.</p>
+            <hr class="ev-card__rule ev-card__rule--b">
+            <div class="ev-card__foot"><span><b>Contract duration</b>30 days</span><span><b>Remaining</b>30 days</span></div>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+          <div class="ev-card ev-card--spon focus-ring" data-flow-id="spon_arken" tabindex="0" style="--acc:var(--track-r);--acc-dark:var(--track-r-dark)">
+            <span class="ev-card__days"><img src="mtx/assets/svg/icon-clock.svg" alt="">30 days</span>
+            <img class="ev-card__logo" src="mtx/assets/svg/sponsor-arken.svg" alt="Arken" style="left:89px;top:75px;width:205px;height:146px">
+            <p class="ev-card__k">Bonus</p>
+            <p class="ev-card__perks"><span><b>+20%</b> Reputation XP</span><span><b>+5%</b> Fan growth</span></p>
+            <hr class="ev-card__rule ev-card__rule--a">
+            <p class="ev-card__desc">High-performance gear built to support fighters and push every limit.</p>
+            <hr class="ev-card__rule ev-card__rule--b">
+            <div class="ev-card__foot"><span><b>Contract duration</b>30 days</span><span><b>Remaining</b>30 days</span></div>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+        </div>
+        <button type="button" class="btn-cta btn-cta--secondary btn-cta--key ev-modal__decline" id="btnDeclineSponsor"><span class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph" data-btn="x">X</span><span class="btn-cta__label">Decline</span></button>
+        <button type="button" class="btn-cta btn-cta--key ev-modal__cta" id="btnConfirmSponsor"><span
+            class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph"
+            data-btn="a">A</span><span class="btn-cta__label">Select</span></button>
+        <nav class="hint-bar" data-hints='{"b":"Back","x":"Decline","y":"Flip","ls":"Move"}'></nav>
+        <div data-use="social-bar"></div>
+      </div>
+
+      <!-- ============================ Modal: 2:2611 Interview (mtx-figma-export_EventRandom) ============================ -->
+      <div id="modalInterviewEvent" class="flow-modal ev-modal" style="display:none;--title-y:238px;--sub-y:345px;--cta-y:917px" data-figma="2:2611 Interview">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+        </div>
+        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+        <div data-use="player-hud"></div>
+        <h1 class="page-title tex-text ev-modal__title">Interview</h1>
+        <p class="ev-modal__sub">You've been invited for an interview.<br>Choose your response. Shape your image.</p>
+        <div class="stat-card stat-card--followers media__followers"><span class="stat-card__title">Followers</span><img
+            class="stat-card__icon" src="mtx/assets/svg/icon-followers.svg" alt=""><span class="stat-card__big" data-followers>125,420</span></div>
+        <div class="stat-card stat-card--rep media__rep"><span class="stat-card__head"><img src="mtx/assets/svg/icon-rep.svg"
+              alt="">Reputation level</span>
+          <div class="stat-card__row"><span class="stat-card__k">RXP</span><span class="stat-card__v" data-rxp>31,250 / 40,000</span></div>
+          <div class="stat-card__bar" data-rxp-bar style="--p:61%"><i></i></div>
+        </div>
+        <div class="iv-question" data-figma="2:2907 Interview questions">
+          <img class="iv-question__photo" src="mtx/assets/img/event-interview.webp" alt="Press conference">
+          <h2 class="iv-question__title">Interview questions</h2>
+          <img class="iv-question__icon" src="mtx/assets/svg/icon-chat.svg" alt="">
+          <hr class="iv-question__rule">
+          <p class="iv-question__q">Who would you like to face next?</p>
+          <p class="iv-question__desc">Tell us who you would like to challenge next.<br>It could be a familiar rival, a rising
+            contender,<br>or even a fighter you have always wanted to face.</p>
+        </div>
+        <div class="iv-choices" id="interviewChoicesContainer">
+          <div class="iv-choice focus-ring focus-ring--3 is-focused" data-flow-id="choice_challenge" tabindex="0" style="--acc:#ff0027">
+            <div class="iv-choice__head"><span class="iv-choice__tag">Challenge</span><span class="iv-choice__quote">“I'm coming for everyone in the division.”</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k">Rewards</b><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-r.svg" alt="R"><b>+10%</b> Fight money</span><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-r.svg" alt="R">Fans</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k" style="color:var(--red)">Risks</b><span class="iv-choice__fx">Creates rivalries</span></div>
+          </div>
+          <div class="iv-choice focus-ring focus-ring--3" data-flow-id="choice_humble" tabindex="0" style="--acc:#f3ad3b">
+            <div class="iv-choice__head"><span class="iv-choice__tag">Humble</span><span class="iv-choice__quote">“Every opponent deserves respect.”</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k">Rewards</b><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-s.svg" alt="S"><b>+10%</b> Fight money</span><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-s.svg" alt="S">Fans</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k" style="color:#03d0a4">Effect</b><span class="iv-choice__fx">Improve fan royalty</span></div>
+          </div>
+          <div class="iv-choice focus-ring focus-ring--3" data-flow-id="choice_boastful" tabindex="0" style="--acc:#c509ff">
+            <div class="iv-choice__head"><span class="iv-choice__tag">Boastful</span><span class="iv-choice__quote">“Nobody belongs in the same ring as me.”</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k">Rewards</b><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-e.svg" alt="E"><b>+10%</b> Fight money</span><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-e.svg" alt="E">Fans</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k" style="color:var(--red)">Risks</b><span class="iv-choice__fx">Creates rivalries</span></div>
+          </div>
+          <div class="iv-choice focus-ring focus-ring--3" data-flow-id="choice_focus" tabindex="0" style="--acc:#4190e3">
+            <div class="iv-choice__head"><span class="iv-choice__tag">Focus</span><span class="iv-choice__quote">“I'm focused on improving every day.”</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k">Rewards</b><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-e.svg" alt="E"><b>+10%</b> Fight money</span><span class="iv-choice__row"><img src="mtx/assets/svg/track-badge-e.svg" alt="E">Fans</span></div>
+            <div class="iv-choice__col"><b class="iv-choice__k" style="color:var(--red)">Risks</b><span class="iv-choice__fx">Creates rivalries</span></div>
+          </div>
+        </div>
+        <button type="button" class="btn-cta btn-cta--key ev-modal__cta" id="btnConfirmInterview"><span
+            class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph"
+            data-btn="a">A</span><span class="btn-cta__label">Select</span></button>
+        <nav class="hint-bar" data-hints='{"b":"Back","ls":"Move"}'></nav>
+        <div data-use="social-bar"></div>
+      </div>
+
+      <!-- ============================ Modal: Random Event (Figma 2:1201, mtx-figma-export_EventRandom) ============================ -->
+      <div id="modalSocialRandomEvent" class="flow-modal ev-modal" style="display:none;--title-y:312px;--sub-y:450px;--cards-y:240px;--cta-y:838px" data-figma="2:1201 Random Event">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+        </div>
+        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="2:1249 Layer_1 (logo)">
+        <div data-use="player-hud"></div>
+        <!-- the rolled scenario fills the badge / title / sub; its card set fills the cards row (sim-events.js) -->
+        <span class="ev-modal__badge" id="evScenarioBadge">Random event</span>
+        <h1 class="page-title tex-text ev-modal__title" id="evScenarioTitle" data-figma="2:1451 random event">Random
+Event</h1>
+        <p class="ev-modal__sub" id="evScenarioSub" data-figma="2:1452">Unforeseen events can change the course of your simulation. Respond
+          quickly and make the most of every opportunity.</p>
+        <div class="ev-modal__cards" id="socialEventCardsContainer">
+          <div class="ev-card focus-ring is-focused" data-flow-id="ev_mother" tabindex="0" style="--acc:var(--track-e);--acc-dark:var(--track-e-dark)">
+            <p class="ev-card__title">Lend money to your<br>mother-in-law</p>
+            <img class="ev-card__photo" src="mtx/assets/img/event-boxing-coach.webp" alt="Mother-in-law">
+            <p class="ev-card__k">Bonus</p>
+            <p class="ev-card__v">None</p>
+            <hr class="ev-card__rule">
+            <p class="ev-card__k">Requirements</p>
+            <p class="ev-card__v ev-card__v--req">- 500 credits<img class="ev-card__check" src="mtx/assets/svg/icon-check-light.svg" alt=""></p>
+            <hr class="ev-card__rule">
+            <div class="ev-card__foot"><span><b>Contract duration</b>30 days</span><span><b>Remaining</b>18 days</span></div>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+          <div class="ev-card focus-ring" data-flow-id="ev_coach" tabindex="0" style="--acc:var(--track-s);--acc-dark:var(--track-s-dark)">
+            <p class="ev-card__title">Work as a boxing coach</p>
+            <img class="ev-card__photo" src="mtx/assets/img/event-mother-in-law.webp" alt="Boxing Coach">
+            <p class="ev-card__k">Bonus</p>
+            <p class="ev-card__v">+2,500 credits</p>
+            <hr class="ev-card__rule">
+            <p class="ev-card__k">Requirements</p>
+            <p class="ev-card__v ev-card__v--req">None</p>
+            <hr class="ev-card__rule">
+            <div class="ev-card__foot"><span><b>Contract duration</b>30 days</span><span><b>Remaining</b>18 days</span></div>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+          <div class="ev-card focus-ring" data-flow-id="ev_corner" tabindex="0" style="--acc:var(--track-r);--acc-dark:var(--track-r-dark)">
+            <p class="ev-card__title">Pay the fighter's corner team</p>
+            <img class="ev-card__photo" src="mtx/assets/img/event-corner-team.webp" alt="Corner Team">
+            <p class="ev-card__k">Bonus</p>
+            <p class="ev-card__v">None</p>
+            <hr class="ev-card__rule">
+            <p class="ev-card__k">Requirements</p>
+            <p class="ev-card__v ev-card__v--req">- 500 credits<img class="ev-card__check" src="mtx/assets/svg/icon-check-light.svg" alt=""></p>
+            <hr class="ev-card__rule">
+            <div class="ev-card__foot"><span><b>Contract duration</b>30 days</span><span><b>Remaining</b>18 days</span></div>
+            <svg class="ev-card__corner" viewBox="0 0 383 61" preserveAspectRatio="none" aria-hidden="true">
+              <path class="ev-card__corner-dark" d="M319.9 55.85C319.56 55.87 319.26 55.87 319 55.85H319.9C323.52 55.66 331.23 53.29 339.29 44.68C348.1 35.27 371.95 10.97 382.77 0V37.63L358.42 55.85Z"/>
+              <path class="ev-card__corner-band" d="M0 57H330C346 57 360 49 383 25V61H0Z"/>
+            </svg>
+          </div>
+        </div>
+        <button type="button" class="btn-cta btn-cta--key ev-modal__cta" id="btnConfirmSocialEvent" data-figma="2:1240 Select"><span
+            class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph"
+            data-btn="a">A</span><span class="btn-cta__label">Select</span></button>
+        <nav class="hint-bar" data-hints='{"b":"Back","y":"Flip","ls":"Move"}' data-figma="2:1481 Hint bar"></nav>
+        <div data-use="social-bar"></div>
+      </div>
+
+      <!-- ============================ Modal: Social media mention (random event from Simulate day) ============================ -->
+      <div id="modalSocialPost" class="flow-modal ev-modal sp-modal" style="display:none;--title-y:298px;--sub-y:435px;--cta-y:917px"
+        data-figma="Social media mention">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+        </div>
+        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
+        <div data-use="player-hud"></div>
+        <span class="ev-modal__badge" data-bind="mentionTag">Mention</span>
+        <h1 class="page-title tex-text ev-modal__title">New
+Mention</h1>
+        <p class="ev-modal__sub">Someone is talking about you. Pick a reply. Your fans, rivals and sponsors are watching.</p>
+        <div class="sp-stats">
+          <span><b data-followers>125,420</b> Followers</span>
+          <span><b data-rxp>31,250 / 40,000</b> RXP</span>
+        </div>
+        <article class="sp-post" data-bind="mentionPost"></article>
+        <section class="sp-replies">
+          <p class="sp-replies__head">Reply as <b>@sx_mtx</b> · Replying to <em data-bind="mentionReplyTo">@user</em></p>
+          <div class="sp-replies__list" data-bind="mentionReplies"></div>
+        </section>
+        <button type="button" class="btn-cta btn-cta--key ev-modal__cta" id="btnConfirmSocialPost"><span
+            class="btn-cta__grad"></span><span class="btn-cta__tex"></span><span class="glyph"
+            data-btn="a">A</span><span class="btn-cta__label">Reply</span></button>
+        <nav class="hint-bar" data-hints='{"b":"Back","a":"Reply","ls":"Move"}'></nav>
+        <div data-use="social-bar"></div>
+      </div>
+
+      <!-- ============================ Media (Figma 2:2234) ============================ -->
+      <section class="screen" id="s-media" data-screen="media" data-figma="2:2234 Media (X-style feed)">
+        <div class="screen__bg">
+          <div class="bg-texture"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .75)"></div>
+        </div>
+        <div class="screen__safe">
+          <!-- left: player profile + nav -->
+          <aside class="xprofile" data-figma="Player profile (X-style)">
+            <div class="xprofile__banner"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
+            <span class="xp__avatar xprofile__avatar"><img src="mtx/assets/img/avatar.webp" alt=""></span>
+            <div class="xprofile__body">
+              <div class="xp__who xprofile__who"><b>SX.MTX</b><i class="xp__verified"></i></div>
+              <p class="xprofile__handle">@sx_mtx</p>
+              <p class="xprofile__bio">Nak Muay · Phranakhon style · Lumpinee rookie. Kru first, always. <em>#MTX</em></p>
+              <p class="xprofile__counts"><span><b data-post-count>214</b> Posts</span><span><b>312</b> Following</span><span><b data-followers>125,420</b> Followers</span></p>
+              <div class="xprofile__rep">
+                <div class="xprofile__rep-head"><span>Reputation</span><span data-rxp>31,250 / 40,000</span></div>
+                <div class="xprofile__rep-bar" data-rxp-bar style="--p:78%"><i></i></div>
+              </div>
+            </div>
+          </aside>
+
+          <!-- center: timeline -->
+          <section class="xfeed" data-figma="2:2546 Timeline">
+            <header class="xfeed__head"><b>Timeline</b><span>View only</span></header>
+            <div class="xfeed__view" data-bind="feedView"><div class="xfeed__list" data-bind="feed"></div></div>
+            <div class="scrollbar xfeed__scroll" data-bind="feedScroll" aria-hidden="true"><span class="scrollbar__thumb" data-bind="feedThumb"></span></div>
+          </section>
+
+          <!-- right: trends + who to follow -->
+          <aside class="xside" data-figma="Sidebar (trends + who to follow)">
+            <section class="xside__box"><h3>What's happening</h3><div data-bind="trends"></div></section>
+            <section class="xside__box"><h3>Who to follow</h3><div data-bind="whoToFollow"></div></section>
+          </aside>
+        </div>
+        <div class="screen__chrome">
+          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="2:2273 Layer_1 (logo)">
+          <nav class="hint-bar" data-hints='{"b":"Back","ls":"Scroll"}'></nav>
+          <div data-use="social-bar"></div>
+        </div>
+      </section>
+
+    </div><!-- #stage -->
+  </div><!-- #viewport -->
+
+  <div id="tools">
+    <div class="row">
+      <button id="logBtn" class="chip" type="button" aria-expanded="false" aria-controls="logPanel"
+        title="What happened (action log)">Log <b id="logCount">0</b></button>
+      <button id="devBtn" class="chip" type="button" aria-expanded="false" aria-controls="dev"
+        title="Dev panel (`)">Dev</button>
+      <button id="toggleUiBtn" class="chip" type="button" title="Hide HUD & Tools (H)">Hide UI</button>
+      <button id="fs" class="chip" type="button">Fullscreen</button>
+    </div>
+    <!-- input status: sits under the tool buttons, same Figma-style panel -->
+    <div id="hud" class="idle" role="status" aria-live="off">
+      <span class="hud__item"><i class="hud__dot" aria-hidden="true"></i><span id="padChip">No controller</span></span>
+      <span class="hud__sep" aria-hidden="true"></span>
+      <span class="hud__item"><span class="hud__label">Input</span><kbd id="lastIn">–</kbd></span>
+    </div>
+    <section id="logPanel" hidden aria-label="Action log">
+      <header>
+        <h2>Action log</h2><button id="logClear" class="chip" type="button">Clear</button>
+      </header>
+      <ol id="logList"></ol>
+    </section>
+    <div id="dev" hidden role="dialog" aria-modal="false" aria-label="Dev tools">
+      <header class="dev-modal__head">
+        <h2>Dev tools</h2>
+        <span class="dev-modal__hint">` to toggle</span>
+        <button type="button" id="devClose" class="dev-modal__close" title="Close (`)" aria-label="Close dev tools">×</button>
+      </header>
+      <div class="figma-tabs">
+        <button type="button" class="figma-tab is-active" data-tab="layout">Design</button>
+        <button type="button" class="figma-tab" data-tab="prototype">Prototype</button>
+        <button type="button" class="figma-tab" data-tab="system">Inspect</button>
+        <button type="button" class="figma-tab" data-tab="keys">Key Map</button>
+        <button type="button" class="figma-tab" data-tab="pages">Pages</button>
+        <button type="button" class="figma-tab" data-tab="char3d">3D</button>
+      </div>
+
+      <!-- TAB 1: Design / Layout -->
+      <div class="figma-tab-content" id="tabContentLayout">
+        <label>Ratio <select id="ratio">
+            <option value="16:9">16:9 · 1920×1080</option>
+            <option value="21:9">21:9 · 2520×1080</option>
+          </select></label>
+        <label>Edit layout (Drag &amp; Drop) <input type="checkbox" id="editLayout"></label>
+        <label>Show Constraint Pins <input type="checkbox" id="showConstraints"></label>
+        <label>Safe Area <select id="safeAreaMode">
+            <option value="fixed">Fixed 1920 (Center)</option>
+            <option value="fluid">Fluid (Screen)</option>
+          </select></label>
+
+        <!-- Multi-select / Group action toolbar -->
+        <div id="groupToolbar"
+          style="display:none;background:#1e1e1e;border:1px solid #383838;border-radius:6px;padding:6px 8px;gap:6px;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span id="selectedCount" style="font-size:11px;font-weight:600;color:#0d99ff">0 selected</span>
+            <div style="display:flex;gap:4px">
+              <button id="groupBtn" class="chip chip--primary" type="button" style="font-size:10px;padding:3px 8px"
+                title="Group (Ctrl+G)">Group (Ctrl+G)</button>
+              <button id="ungroupBtn" class="chip" type="button" style="font-size:10px;padding:3px 8px"
+                title="Ungroup (Ctrl+Shift+G)">Ungroup</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:6px;margin-top:2px">
+          <button id="exportLayoutBtn" class="chip chip--primary" type="button" style="flex:1"
+            title="Export layout adjustments as JSON">Export Layout</button>
+          <button id="resetLayoutBtn" class="chip" type="button" title="Reset layout overrides and selected manager / sponsor (Day 1)">Reset</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button id="resetAllDesignBtn" class="chip" type="button" style="flex:1"
+            title="Reset all layout overrides, groups and custom wires">Reset All Design</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: Prototype / Navigation Wires -->
+      <div class="figma-tab-content" id="tabContentPrototype" style="display:none">
+        <p class="dev-note">Navigation already works by position (the default). Edit it on the screen: the dashed
+          arrows are the defaults, blue arrows are your custom wires.</p>
+        <button id="navGraphBtn" class="chip chip--primary" type="button">Open navigation graph</button>
+        <p class="dev-note">Node blocks per page: drag a port onto a node to wire it, Save to apply.</p>
+        <button id="navEditBtn" class="chip" type="button">Edit navigation on screen</button>
+        <label>Show default links while editing <input type="checkbox" id="showDefaultLinks" checked></label>
+        <label>Show custom wires during play <input type="checkbox" id="showWires"></label>
+        <button id="clearWiresBtn" class="chip" type="button">Reset all to default</button>
+
+        <section class="dev-sec">
+          <h3 class="dev-sec__title">Lobby video</h3>
+          <label>Lobby videos (waiting room · Match starts in) <input type="checkbox" id="sbVideo"></label>
+          <label>Random standby values (new stats each match, count-up) <input type="checkbox" id="sbRandom"></label>
+          <div class="dev-time">
+            <label class="dev-time__f"><span>Scale %</span><input type="number" id="sbVidScale" min="10" max="400" step="1" placeholder="100" title="Video scale (%)"></label>
+            <label class="dev-time__f"><span>X px</span><input type="number" id="sbVidX" min="-1920" max="1920" step="5" placeholder="0" title="Move right (+) / left (-)"></label>
+            <label class="dev-time__f"><span>Y px</span><input type="number" id="sbVidY" min="-1080" max="1080" step="5" placeholder="0" title="Move down (+) / up (-)"></label>
+          </div>
+          <button id="sbVidReset" class="chip" type="button" title="Scale 100 %, X 0, Y 0">Reset video position</button>
+          <p class="dev-note">Applies to both lobby videos, live; saved in this browser</p>
+        </section>
+      </div>
+
+      <!-- TAB 4: Key Map (dev-keymap.js): which button does what on this page; "Compare all pages" opens the full map -->
+      <div class="figma-tab-content" id="tabContentKeys" style="display:none"></div>
+
+      <!-- TAB 5: Pages (dev-pages.js): the shared name of every page -->
+      <div class="figma-tab-content" id="tabContentPages" style="display:none"></div>
+
+      <!-- 3D character controls (dev-character3d.js) -->
+      <div class="figma-tab-content" id="tabContentChar3d" style="display:none"></div>
+
+      <!-- TAB 3: System / Inspect -->
+      <div class="figma-tab-content" id="tabContentSystem" style="display:none">
+        <section class="dev-sec">
+          <h3 class="dev-sec__title">Input</h3>
+          <label>Glyphs <select id="device">
+              <option value="auto">Auto (last input)</option>
+              <option value="xbox">Xbox</option>
+              <option value="ps5">PlayStation 5</option>
+              <option value="ps4">PlayStation 4</option>
+              <option value="kb">Keyboard</option>
+            </select></label>
+          <label>Show Figma map <input type="checkbox" id="showMap"></label>
+          <label>Edit text on screen <input type="checkbox" id="editText"></label>
+        </section>
+
+        <section class="dev-sec">
+          <h3 class="dev-sec__title">Skill tree</h3>
+          <label>Skill points (free / earned) <input type="text" id="skillTotal" readonly tabindex="-1"></label>
+          <label>Mastery unlock <select id="unlockInput">
+              <option value="hold">Hold</option>
+              <option value="confirm">Modal confirm</option>
+            </select></label>
+          <p class="dev-note">Earned with S levels: each S level up gives Skill points + MP</p>
+          <div class="dev-row">
+            <button class="chip" type="button" data-pl-lv="s">+1 S level</button>
+            <button class="chip" type="button" data-pl-lv="s" data-pl-n="5">+5 S levels</button>
+          </div>
+          <label>Unlock rule <select id="unlockRule">
+              <option value="any" selected>Any parent (standard)</option>
+              <option value="all">All parents (strict)</option>
+            </select></label>
+        </section>
+
+        <section class="dev-sec">
+          <h3 class="dev-sec__title">Attributes</h3>
+          <label>Attribute points <input type="number" id="attrPointsDev" readonly tabindex="-1"></label>
+          <p class="dev-note">Attribute points = E level x 5, minus what is invested</p>
+          <div class="dev-row">
+            <button class="chip" type="button" data-pl-lv="e">+1 E level</button>
+            <button class="chip" type="button" data-pl-lv="e" data-pl-n="5">+5 E levels</button>
+          </div>
+          <button id="resetAttrBtn" class="chip" type="button"
+            title="Attributes back to the sheet base values with all points back">Reset Attributes</button>
+        </section>
+
+        <section class="dev-sec">
+          <h3 class="dev-sec__title">Leaderboard · season ends in</h3>
+          <div class="dev-time">
+            <label class="dev-time__f"><span>D</span><input type="number" id="lbSeasonD" min="0" max="999" placeholder="0" title="Days"></label>
+            <label class="dev-time__f"><span>H</span><input type="number" id="lbSeasonH" min="0" max="999" placeholder="0" title="Hours"></label>
+            <label class="dev-time__f"><span>Min</span><input type="number" id="lbSeasonMin" min="0" max="999" placeholder="0" title="Minutes"></label>
+            <label class="dev-time__f"><span>S</span><input type="number" id="lbSeasonS" min="0" max="999" placeholder="0" title="Seconds"></label>
+          </div>
+          <button id="lbSeasonApply" class="chip" type="button" title="Restart the season countdown from now">Set season time</button>
+        </section>
+
+        <section class="dev-sec">
+          <h3 class="dev-sec__title">Career</h3>
+          <button id="resetCareerBtn" class="chip" type="button" title="Reset Career / Simulation back to Day 1">Reset Career (Day 1)</button>
+        </section>
+
+        <section class="dev-sec dev-sec--danger">
+          <h3 class="dev-sec__title">Danger zone</h3>
+          <button id="resetAllStorageBtn" class="chip chip--danger" type="button"
+            title="Clear all local storage and reload">Reset All Storage</button>
+        </section>
+      </div>
+    </div>
+  </div>
+  <button id="showUiBtn" class="chip" type="button" title="Show HUD & Tools (H)">Show UI (H)</button>
+  <div id="mapTip" hidden></div>
+  <div id="layoutContextMenu" hidden>
+    <header>
+      <span class="ctx-title" id="ctxTitle">Element</span>
+      <button type="button" class="ctx-close" id="ctxClose" title="Close">×</button>
+    </header>
+    <div class="ctx-body">
+      <div class="ctx-constraints">
+        <div class="ctx-constraints-header">
+          <span class="ctx-label">Constraint / Pin</span>
+          <span class="ctx-anchor-name" id="ctxAnchorName">Top-Left</span>
+        </div>
+        <div class="ctx-anchor-grid" id="ctxAnchorGrid">
+          <button type="button" class="ctx-anchor-btn is-active" data-anchor="top-left" title="Top-Left">↖</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="top-center" title="Top-Center">⬆</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="top-right" title="Top-Right">↗</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="left-center" title="Left-Center">⬅</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="center" title="Center">⏺</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="right-center" title="Right-Center">➡</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="bottom-left" title="Bottom-Left">↙</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="bottom-center" title="Bottom-Center">⬇</button>
+          <button type="button" class="ctx-anchor-btn" data-anchor="bottom-right" title="Bottom-Right">↘</button>
+        </div>
+        <div class="ctx-row" style="margin-top:2px">
+          <label for="ctxPinTarget" style="width:48px;font-size:11px;color:var(--text-subtle)">Target</label>
+          <select id="ctxPinTarget" class="ctx-select">
+            <option value="safe">Safe Area (1920×1080)</option>
+            <option value="screen">Screen / Stage (Fluid)</option>
+          </select>
+        </div>
+      </div>
+      <div class="ctx-row">
+        <label for="ctxX" id="ctxLabelX">X</label>
+        <input type="number" id="ctxX" step="1">
+        <div class="ctx-nudges">
+          <button type="button" class="ctx-nudge-btn" data-axis="x" data-delta="-10">-10</button>
+          <button type="button" class="ctx-nudge-btn" data-axis="x" data-delta="-1">-1</button>
+          <button type="button" class="ctx-nudge-btn" data-axis="x" data-delta="1">+1</button>
+          <button type="button" class="ctx-nudge-btn" data-axis="x" data-delta="10">+10</button>
+        </div>
+      </div>
+      <div class="ctx-row">
+        <label for="ctxY" id="ctxLabelY">Y</label>
+        <input type="number" id="ctxY" step="1">
+        <div class="ctx-nudges">
+          <button type="button" class="ctx-nudge-btn" data-axis="y" data-delta="-10">-10</button>
+          <button type="button" class="ctx-nudge-btn" data-axis="y" data-delta="-1">-1</button>
+          <button type="button" class="ctx-nudge-btn" data-axis="y" data-delta="1">+1</button>
+          <button type="button" class="ctx-nudge-btn" data-axis="y" data-delta="10">+10</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:2px">
+        <button type="button" class="chip" id="ctxGroupBtn" style="flex:1" title="Group (Ctrl+G)">Group
+          (Ctrl+G)</button>
+        <button type="button" class="chip" id="ctxUngroupBtn" style="flex:1"
+          title="Ungroup (Ctrl+Shift+G)">Ungroup</button>
+      </div>
+    </div>
+    <div class="ctx-actions">
+      <button type="button" class="chip chip--primary" id="ctxApply">Apply</button>
+      <button type="button" class="chip" id="ctxReset">Reset</button>
+    </div>
+  </div>
+
+  <script src="mtx/js/components/hold.js?v=400"></script>
+  <script src="mtx/js/components/visual-keyboard.js?v=400"></script>
+  <script src="mtx/js/components/motion.js?v=3"></script>
+  <script src="mtx/js/components/glyph.js?v=400"></script>
+  <script src="mtx/js/components/hint-bar.js?v=pin1"></script>
+  <script src="mtx/js/data/items.js?v=3"></script>
+  <script src="mtx/js/components/item-card.js?v=1"></script>
+  <script src="mtx/js/components/mode-card.js?v=8"></script>
+  <script src="mtx/js/components/loading.js?v=2"></script>
+  <script src="mtx/js/components/shader-preload.js?v=3"></script>
+  <script src="mtx/js/components/match-found.js?v=1"></script>
+  <script src="mtx/js/components/match-result.js?v=24"></script>
+  <script src="mtx/js/components/scrollbar.js?v=400"></script>
+  <script src="mtx/js/components/nav-graph.js?v=402"></script>
+  <script src="mtx/js/player-data.js?v=400"></script>
+  <script src="mtx/js/player.js?v=400"></script>
+  <script src="mtx/js/components/personality.js?v=400"></script>
+  <script src="mtx/js/skilltree-data.js?v=400"></script>
+  <script src="mtx/js/screens/screen-main.js?v=404"></script>
+  <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
+  <script src="mtx/js/screens/screen-career.js?v=402"></script>
+  <script src="mtx/js/screens/screen-tactical.js?v=400"></script>
+  <script src="mtx/js/screens/screen-skilltree.js?v=400"></script>
+  <script src="mtx/js/sim-data.js?v=400"></script>
+  <script src="mtx/js/sim-scenarios.js?v=400"></script>
+  <script src="mtx/js/sim-events.js?v=400"></script>
+  <script src="mtx/js/screens/screen-manager.js?v=400"></script>
+  <script src="mtx/js/screens/screen-quests.js?v=qi1"></script>
+  <script src="mtx/js/screens/screen-rewards.js?v=db1"></script>
+  <script src="mtx/js/attr-data.js?v=400"></script>
+  <script src="mtx/js/screens/screen-attributes.js?v=400"></script>
+  <script src="mtx/js/screens/screen-customize.js?v=hb2"></script>
+  <script src="mtx/js/screens/screen-store.js?v=db9"></script>
+  <script src="mtx/js/screens/screen-leaderboard.js?v=402"></script>
+  <script src="mtx/js/screens/screen-history.js?v=400"></script>
+  <script src="mtx/js/screens/screen-matchdetail.js?v=ic1"></script>
+  <script src="mtx/js/screens/screen-media.js?v=400"></script>
+  <script src="mtx/js/components/spotlight.js?v=hb1"></script>
+  <script src="mtx/js/components/dialog.js?v=db5"></script>
+  <script src="mtx/js/components/modal.js?v=hb3"></script>
+  <script src="mtx/js/screens/screen-settings.js?v=hb1"></script>
+  <script src="mtx/js/screens/screen-options.js?v=hb1"></script>
+  <script src="mtx/js/screens/screen-friends.js?v=hb1"></script>
+  <script src="mtx/js/screens/screen-tournament.js?v=hb3c"></script>
+  <script src="mtx/js/screens/screen-lobby.js?v=sb19v60"></script>
+  <script src="mtx/js/screens/screen-login.js?v=hb1"></script>
+  <script src="mtx/js/screens/screen-campaign.js?v=hb1"></script>
+  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsp"></script>
+  <script src="mtx/js/components/character3d.js?v=sb7"></script>
+  <script src="mtx/js/dev-text.js?v=400"></script>
+  <script src="mtx/js/dev-bake.js?v=400"></script>
+  <script src="mtx/js/dev-bake-1to1.js?v=400"></script>
+  <script src="mtx/js/dev-bake-struct.js?v=401"></script>
+  <script src="mtx/js/dev-keymap.js?v=404"></script>
+  <script src="mtx/js/dev-pages.js?v=3"></script>
+  <script src="mtx/js/hud-style.js?v=5"></script>
+  <script src="mtx/js/dev-character3d.js?v=db1"></script>
+</body>
+
+</html>

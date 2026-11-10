@@ -1,0 +1,88 @@
+/* Match Result (components/match-result.js · Figma 663:60039 Set E: R1-R3, L1-L4, Q1-Q4) */
+.mres { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; z-index: 8900; color: #fff7e1; font-family: var(--font-ui); animation: mtx-load-in .24s ease-out }
+.mres__bg { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(13 15 20 / .55), rgb(13 15 20 / .85)), url(../assets/img/result-arena.jpg) 0 0 / 1920px 1074px no-repeat, #1a1a1a }
+.mres .mres__title { position: absolute; left: 0; right: 0; top: 71px; z-index: 1; margin: 0; text-align: center; font-size: 55px; line-height: 44px; color: #fff7e1 }
+.mres__cta { position: absolute; left: 820px; top: 920px; width: 280px }
+.mres__hints { position: absolute; left: 60px; bottom: 48px }
+
+/* texture (MTX / Result FX) */
+.mres__fx { position: absolute; inset: 0; pointer-events: none }
+.mres__grunge { position: absolute; inset: 0; background: url(../assets/img/bg-grunge.webp) center / cover; mix-blend-mode: multiply; opacity: .3 }
+.mres__grunge::after { content: ""; position: absolute; inset: 0; background: url(../assets/img/tex-scratch-white.webp) center / cover; mix-blend-mode: overlay; opacity: .07 }
+.mres__tag { position: absolute; right: 70px; bottom: 120px; width: 300px; transform: rotate(-8deg); opacity: .07 }
+
+/* tabs under the title (MTX / Result Steps → MTX / Tab: Active yellow, Default dark) */
+.mres-tabs { position: absolute; left: 0; right: 0; top: 142px; display: flex; justify-content: center; gap: 12px }
+.mres-tab { cursor: pointer; width: 241px; height: 48px; display: grid; place-items: center; background: #0d0f14; font: 400 20px/1 "Modi Thorson", var(--font-ui); letter-spacing: 1.5px; text-transform: uppercase; color: #fff7e1; transition: width .3s, background .25s, color .25s }
+.mres-tab.is-on { width: 323px; background: #f6df2f; color: #0d0f14 }
+
+/* bars: before = colour, gained this fight = white, then the colour catches up */
+.mres-bar { position: relative; overflow: hidden; background: rgb(255 255 255 / .08) }
+.mres-bar i { position: absolute; top: 0; bottom: 0 }
+.mres-bar__old { left: 0; z-index: 1; background: #2fe38a; transition: width .6s cubic-bezier(.2,.8,.2,1) }
+.mres-bar__new { width: 0; background: #fff; transition: width .38s cubic-bezier(.2,.8,.2,1) }
+.mres-hero__bar .mres-bar__new { transition-duration: .7s }
+
+/* Rank page (MTX / Result Rank Hero: Count / Drain / Done) */
+.mres-hero { position: absolute; left: 0; top: 250px; width: 1920px; height: 560px }
+.mres-hero__emblem { position: absolute; left: 845px; top: 0; width: 230px; height: 230px }
+.mres-hero__label { position: absolute; left: 0; right: 0; top: 270px; margin: 0; text-align: center; font: 700 20px/1 var(--font-ui); letter-spacing: .2em; text-transform: uppercase; color: #9ea6b0 }
+.mres-hero__big { position: absolute; left: 0; right: 0; top: 290px; margin: 0; display: flex; justify-content: center; align-items: baseline; gap: 12px; transition: opacity .5s }
+.mres-hero__big b { font: 400 150px/1 "Modi Thorson", var(--font-ui); color: #2fe38a }
+.mres-hero__big small { font: 700 44px/1 var(--font-ui); color: #fff7e1 }
+.mres-hero.is-done .mres-hero__big { opacity: .35 }
+.mres-hero__bar { position: absolute; left: 560px; top: 500px; width: 800px; height: 14px }
+.mres-hero__ends { position: absolute; left: 560px; top: 542px; width: 800px; margin: 0; display: flex; justify-content: space-between; font: 600 16px/1 var(--font-ui); color: #9ea6b0 }
+
+/* Level page (MTX / Result Level Row: E / S / R × Open / Closed) */
+.mres-lvs { position: absolute; left: 560px; top: 280px; width: 800px }
+.mres-lv { --c: #fff; position: relative; display: grid; grid-template-columns: 70px 1fr 260px 120px; grid-template-rows: 95px; align-content: start; align-items: center; column-gap: 20px; height: 95px; overflow: hidden; border-bottom: 1px solid rgb(255 255 255 / .12); transition: height .5s cubic-bezier(.2,.8,.2,1) }
+.mres-lv[data-state="open"] { height: var(--open) }
+.mres-lv__k { font: 400 46px/1 "Modi Thorson", var(--font-ui); color: var(--c) }
+.mres-lv__name { font: 700 22px/1 var(--font-ui); text-transform: uppercase }
+.mres-lv__num { font-style: normal }
+.mres-lv__name em { font-style: normal; opacity: 0; transition: opacity .3s }
+.mres-lv.is-up .mres-lv__name em { opacity: 1 }
+.mres-lv__bar { height: 6px }
+.mres-lv__bar .mres-bar__old { background: var(--c) }
+.mres-lv__gain { text-align: right; font: 700 28px/1 var(--font-ui); color: #fff }
+.mres-lv__src { position: absolute; left: 90px; right: 0; top: 84px; margin: 0; padding: 0; list-style: none }
+.mres-lv__src li { position: relative; display: flex; justify-content: space-between; height: 28px; align-items: center; padding-left: 18px; font: 600 16px/1 var(--font-ui); letter-spacing: .04em; text-transform: uppercase; color: #c9ccd3; opacity: 0; transform: translateX(-10px); transition: opacity .25s, transform .3s cubic-bezier(.2,.8,.2,1) }
+.mres-lv__src li::before { content: ""; position: absolute; left: 0; top: 11px; width: 6px; height: 6px; background: var(--c) }
+.mres-lv__src li.is-in { opacity: 1; transform: none }
+.mres-lv__src b { color: #fff }
+.mres-lv[data-state="done"] .mres-lv__src, .mres-lv[data-state="wait"] .mres-lv__src { opacity: 0 }
+
+/* Quests page (MTX / Result Quest Row: Closed / Open / Done; done = yellow fill) */
+.mres-qs { position: absolute; left: 520px; top: 260px; width: 880px; display: flex; flex-direction: column; gap: 14px }
+.mres-q { position: relative; display: flex; height: 121px; overflow: hidden; border-bottom: 1px solid rgb(255 255 255 / .12); transition: height .5s cubic-bezier(.2,.8,.2,1), background .4s }
+.mres-q[data-state="open"] { --open: 1 }
+.mres-q__block { width: 120px; flex: none; display: grid; place-items: center }
+.mres-q__box { width: 28px; height: 28px; box-sizing: border-box; border: 2px solid #9ea6b0 }
+.mres-q__block img { display: none; width: 40px; height: 40px; filter: brightness(0) }
+.mres-q__body { flex: 1; padding: 22px 28px }
+.mres-q__top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; font: 700 22px/1 var(--font-ui); text-transform: uppercase }
+.mres-q__sum { font: 700 30px/1 var(--font-ui) }
+.mres-q__count { margin: 0; font: 600 15px/1 var(--font-ui); color: #9ea6b0 }
+.mres-q__list { display: none; margin: 0; padding: 0; list-style: none }
+.mres-q[data-state="open"] .mres-q__count, .mres-q.is-complete .mres-q__count { display: none }
+.mres-q[data-state="open"] .mres-q__list, .mres-q.is-complete .mres-q__list { display: block }
+.mres-q[data-state="open"] { height: 141px }
+.mres-q__list li { display: flex; justify-content: space-between; align-items: center; height: 26px; font: 600 16px/1 var(--font-ui); text-transform: uppercase; color: #c9ccd3 }
+.mres-q__list li span { display: flex; align-items: center; gap: 10px }
+.mres-q__list li i { width: 12px; height: 12px; box-sizing: border-box; border: 2px solid #9ea6b0; transition: background .25s, border-color .25s }
+.mres-q__list li.is-done i { background: #f2df57; border-color: #f2df57 }
+.mres-q__n { color: #fff }
+.mres-q.is-complete { background: #f2df57; color: #0d0f14; border-bottom-color: transparent }
+.mres-q.is-complete .mres-q__box { display: none }
+.mres-q.is-complete .mres-q__block img { display: block }
+.mres-q.is-complete .mres-q__list li, .mres-q.is-complete .mres-q__n { color: #0d0f14 }
+.mres-q.is-complete .mres-q__list li i { background: #0d0f14; border-color: #0d0f14 }
+
+/* page transitions: enter (title, tabs, body staggered), leave (content out), close (whole page out) */
+.mres.is-leaving > :not(.mres__bg) { opacity: 0 !important; transform: translateY(-16px) !important; transition: opacity .3s, transform .3s cubic-bezier(.2,.8,.2,1) !important }
+.mres.is-closing { opacity: 0; transition: opacity .4s ease-in }
+.mres.is-entering .mres__title { animation: mres-in .5s cubic-bezier(.2,.8,.2,1) both }
+.mres.is-entering .mres-tabs { animation: mres-in .5s .08s cubic-bezier(.2,.8,.2,1) both }
+.mres.is-entering .mres-hero, .mres.is-entering .mres-lvs, .mres.is-entering .mres-qs, .mres.is-entering .mres__cta, .mres.is-entering .mres__hints { animation: mres-in .5s .16s cubic-bezier(.2,.8,.2,1) both }
+@keyframes mres-in { from { opacity: 0; transform: translateY(24px) } }

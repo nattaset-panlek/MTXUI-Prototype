@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 93 92">
+  <!-- Skill node lock icon, drawn on the same 93x92 grid as node-shape/ring/figure.
+       Used as a CSS mask (colour comes from CSS), so every node size scales the same artwork.
+       Edit this one file to change the lock on every node. -->
+  <path fill="#fff" fill-rule="evenodd" d="M40.5 32h12v13h-12z M43.4 34.9h6.2v10.1h-6.2z"/>
+  <path fill="#fff" fill-rule="evenodd" d="M36.5 43h20v17.5h-20z M46.5 46.6a2.8 2.8 0 0 1 1.4 5.3l.9 4h-4.6l.9-4a2.8 2.8 0 0 1 1.4-5.3z"/>
+</svg>

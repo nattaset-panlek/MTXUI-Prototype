@@ -1,0 +1,81 @@
+/* No in-game logo: the MUAY THAI XTREME mark (top-left, 34-129px) is gone from every screen after login,
+   and the content it pushed down - everything starting in the 129-540px band, minus the top-right HUD / Shop -
+   moves up by the logo's height (95px), keeping its spacing. moved with margin-top, not translate: a transform can stop Chrome painting the textured (background-clip: text) titles. */
+.screen .brand { display: none }
+#s-mastery > .screen__safe > .mastery__title,
+#s-mastery > .screen__safe > .mastery__cards,
+#s-skilltree > .screen__safe > .skill__header,
+#s-quests > .screen__safe > .quests__title,
+#s-quests > .screen__safe > .mq-progress,
+#s-quests > .screen__safe > .mq-tabs__key,
+#s-quests > .screen__safe > .mq-tabs,
+#s-quests > .screen__safe > .mq-watermark,
+#s-store > .screen__safe > .store__title,
+#s-store > .screen__safe > .st-view,
+#s-pack > .screen__safe > .pk-left,
+#s-pack > .screen__safe > .pk-preview,
+#s-rewards > .screen__safe > .rewards__title,
+#s-rewards > .screen__safe > .reward-grid,
+#s-rewards > .screen__safe > .rewards__scroll,
+#s-rewards > .screen__safe > .rewards__hero,
+#s-rewards > .screen__safe > .rewards__info,
+#s-attributes > .screen__safe > .attr__vtitle,
+#s-attributes > .screen__safe > .attr__panel,
+#s-management > .screen__safe > .management__title,
+#s-management > .screen__safe > .sim__cards,
+#s-leaderboard > .screen__safe > .lb-clock,
+#s-leaderboard > .screen__safe > .lb__title,
+#s-leaderboard > .screen__safe > .lb__season,
+#s-leaderboard > .screen__safe > .lb-tabs,
+#s-leaderboard > .screen__safe > .lb-you,
+#s-leaderboard > .screen__safe > .lb-table,
+#s-history > .screen__safe > .mh__title,
+#s-history > .screen__safe > .lb__season,
+#s-history > .screen__safe > .lb-tabs,
+#s-history > .screen__safe > .mh-detail,
+#s-history > .screen__safe > .mh-table,
+#s-collection > .screen__safe > .collection__title,
+#s-collection > .screen__safe > .col-tabs,
+#s-collection > .screen__safe > .collection__groups,
+#s-media > .screen__safe > .xprofile { margin-top: -95px }
+
+/* the profile card goes all the way up: its top lines up with the wallet (top-right, 48px) - same anchor on Main menu and Ultimate Fight */
+#s-main > .screen__safe > .profile-card.main__profile,
+#s-charselect > .screen__safe > .profile-card.main__profile,
+#s-career > .screen__safe > .profile-card.career__profile { margin-top: -198px }
+
+/* ...but never into the top-right HUD (it ends at 113px): what runs under it stops 16px below (129px) */
+#s-mastery > .screen__safe > .mastery__title,
+#s-mastery > .screen__safe > .mastery__cards { margin-top: -90px }
+#s-quests > .screen__safe > .mq-progress { margin-top: -91px }
+#s-attributes > .screen__safe > .attr__panel { margin-top: -61px }
+#s-leaderboard > .screen__safe > .lb-tabs,
+#s-history > .screen__safe > .lb-tabs { margin-top: -71px }
+/* Leaderboard / History: the tabs sit on the table, so the whole group moves by the tabs' limit */
+#s-leaderboard > .screen__safe > .lb-clock,
+#s-leaderboard > .screen__safe > .lb__title,
+#s-leaderboard > .screen__safe > .lb__season,
+#s-leaderboard > .screen__safe > .lb-you,
+#s-leaderboard > .screen__safe > .lb-table,
+#s-history > .screen__safe > .mh__title,
+#s-history > .screen__safe > .lb__season,
+#s-history > .screen__safe > .mh-detail,
+#s-history > .screen__safe > .mh-table { margin-top: -71px }
+
+/* no container may overlap another: each block moves with what it sits next to */
+#s-store > .screen__safe > .st-balance,
+#s-store > .screen__safe > .st-view { margin-top: -43px }   /* the balance sits on the view; HUD limit */
+#s-attributes > .screen__safe > .attr__panel { margin-top: 0 }   /* stays under the tabs (the tabs don't move) */
+#s-collection > .screen__safe > .col-count { margin-top: -95px }   /* moves with the tabs / grid */
+
+/* Quests: the freed space goes to the content - list, scrollbar, detail and art start 91px higher and grow by as much
+   (the Accept button below keeps its place) */
+#s-quests > .screen__safe > .mq-list { margin-top: -91px; height: 421px }
+#s-quests > .screen__safe > .scrollbar { margin-top: -91px; height: 437px }
+#s-quests > .screen__safe > .mq-detail { margin-top: -91px; height: 433px }
+#s-quests > .screen__safe > .mq-art { margin-top: -91px }
+
+/* Management: the cards (+ Collection link) are centred vertically between the title (ends 107px) and the hint bar (1013px) */
+#s-management > .screen__safe > .sim__cards { margin-top: -7px }
+/* Mastery: the title box hugs its content, so its empty right side doesn't run under the HUD */
+#s-mastery > .screen__safe > .mastery__title { width: max-content }

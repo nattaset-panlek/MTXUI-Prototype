@@ -1,0 +1,226 @@
+/* Player HUD + profile card E/S/R styles 1-10 (Figma 301:43473, 306:44800). Switched by html[data-hud-style]
+   from Dev Tools (js/hud-style.js). HUD styles change only the E / S / R chips; the wallet has its own switch (Blocks, at the end).
+   Without the attribute nothing here applies except hiding the extra parts. */
+
+/* extra parts added by hud-style.js: hidden in the current look */
+.level-chip__xps, .level-chip__seg, .level-expand,
+.level-chip--mini .level-chip__xp, .level-chip--mini .level-chip__bar { display: none }
+
+/* ============ common reset (every new style) ============ */
+html[data-hud-style] {
+  --hs-bg: #05070b; --hs-pill: #16181f; --hs-row: #0b1018; --hs-track: #2a2c33; --hs-line: #3a3e4a;
+  --hs-t1: #f6f1eb; --hs-t2: #acacbb; --hs-ink: #16181f;
+}
+html[data-hud-style] :is(.player-hud:where(:not(.player-hud--wallet)), .profile-card__levels) {
+  & .level-chip { width: auto; height: auto; display: grid; position: relative; align-items: center; column-gap: 10px; background: none }
+  & .level-chip--s { --c2: #8a5cff } & .level-chip--e { --c2: var(--track-e) } & .level-chip--r { --c2: var(--track-r) }
+  & .level-chip__body { display: contents }
+  & .level-chip__label { display: none }
+  & .level-chip__badge { grid-area: b; width: 28px; height: 28px; margin: 0; padding: 0; z-index: auto; border-radius: 1px;
+    font: 400 15px/1 var(--font-display); color: var(--hs-ink); display: grid; place-items: center; box-sizing: border-box }
+  & .level-chip__value { grid-area: v; position: static; font: 600 20px/1 var(--font-ui); letter-spacing: -.019em; color: var(--hs-t1); white-space: nowrap }
+  & .level-chip__value::before { content: "LV " }
+  & .level-chip__xp, & .level-chip__xps { grid-area: x; position: static; display: block; font: 500 13px/1 var(--font-ui); letter-spacing: -.019em; text-transform: uppercase; color: var(--hs-t2); white-space: nowrap }
+  & .level-chip__xps { display: none }
+  & .level-chip__bar { grid-area: bar; display: block; position: relative; left: auto; right: auto; bottom: auto; height: 4px; background: var(--hs-track) }
+  & .level-chip__bar i { clip-path: none; width: var(--p, 50%) }
+  & .level-chip__seg { grid-area: bar; display: none; position: relative; height: 10px;
+    background: repeating-linear-gradient(90deg, var(--hs-track) 0 var(--sw), transparent var(--sw) calc(var(--sw) + 3px)) }
+  & .level-chip__seg::before { content: ""; position: absolute; inset: 0 auto 0 0; width: calc(var(--n, 0) * (var(--sw) + 3px));
+    background: repeating-linear-gradient(90deg, var(--c) 0 var(--sw), transparent var(--sw) calc(var(--sw) + 3px)) }
+}
+/* HUD: chips row + the unchanged wallet on the right */
+html[data-hud-style] .player-hud:where(:not(.player-hud--wallet)) { gap: 0; align-items: center }
+/* stacked styles (3, 5, 8, 9): E / S / R in one column, wallet to the right of it, top aligned */
+html:is([data-hud-style="3"], [data-hud-style="5"], [data-hud-style="8"], [data-hud-style="9"]) .player-hud:where(:not(.player-hud--wallet)) {
+  display: grid; grid-template-columns: auto auto; align-items: center;
+  & .level-chip { grid-column: 1 }
+  & .wallet { grid-column: 2; grid-row: 1 / span 3; align-self: start }
+}
+
+/* ============ 1 · Unified strip ============ */
+html[data-hud-style="1"] {
+  & :is(.player-hud, .profile-card__levels) .level-chip {
+    width: 196px; height: 60px; padding: 0 14px; box-sizing: border-box; background: var(--hs-bg);
+    grid-template: "b v" 1fr "b x" 1fr / 28px 1fr; align-content: center; row-gap: 2px }
+  & :is(.player-hud, .profile-card__levels) .level-chip:not(:last-of-type)::after { content: ""; position: absolute; right: 0; top: 10px; height: 40px; width: 1px; background: var(--hs-line) }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { align-self: end }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { align-self: start }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #1d1f26 }
+  & .profile-card__levels { gap: 0; height: 58px }
+  & .profile-card__levels .level-chip { flex: 1; width: auto; height: 58px; padding: 0 10px; background: var(--hs-row); grid-template-columns: 26px 1fr; column-gap: 8px }
+  & .profile-card__levels .level-chip__badge { width: 26px; height: 26px }
+  & .profile-card__levels .level-chip__value { font-size: 18px }
+  & .profile-card__levels .level-chip__xp { font-size: 12px }
+}
+
+/* ============ 2 · Ring gauges ============ */
+html[data-hud-style="2"] {
+  & :is(.player-hud, .profile-card__levels) .level-chip { grid-template: "b v" 1fr "b x" 1fr / 60px 1fr; column-gap: 8px; row-gap: 3px }
+  & .player-hud .level-chip { width: 196px; height: 60px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 60px; height: 60px; border-radius: 50%; color: var(--hs-t1); font-size: 18px;
+    background: radial-gradient(circle, #0b0d12 23px, transparent 24px), conic-gradient(var(--c) var(--p, 50%), var(--hs-track) 0) }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { align-self: end }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { align-self: start }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { display: none }
+  & .profile-card__levels { gap: 0; height: 58px; align-items: center }
+  & .profile-card__levels .level-chip { flex: 1; grid-template-columns: 52px 1fr; column-gap: 6px }
+  & .profile-card__levels .level-chip__badge { width: 52px; height: 52px; font-size: 16px;
+    background: radial-gradient(circle, #0b0d12 20px, transparent 21px), conic-gradient(var(--c) var(--p, 50%), var(--hs-track) 0) }
+  & .profile-card__levels .level-chip__value { font-size: 18px }
+  & .profile-card__levels .level-chip__xp { font-size: 12px }
+}
+
+/* ============ 3 · Vertical stack ============ */
+html[data-hud-style="3"] {
+  & .player-hud .level-chip { width: 340px; padding: 0 16px; box-sizing: border-box; background: var(--hs-bg) }
+  & .player-hud .level-chip--e { padding-top: 12px } & .player-hud .level-chip--r { padding-bottom: 12px }
+  & :is(.player-hud, .profile-card__levels) .level-chip { grid-template: "b bar v" 12px "b x v" auto / 26px 1fr 66px; row-gap: 5px; column-gap: 12px; min-height: 44px; align-content: center }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 26px; height: 26px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { height: 6px; align-self: end }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { justify-self: end }
+  & .profile-card__levels { flex-direction: column; gap: 4px }
+  & .profile-card__levels .level-chip { min-height: 36px; padding: 0 8px; background: var(--hs-row); grid-template-columns: 26px 1fr 74px; column-gap: 10px }
+  & .profile-card__levels .level-chip__value { font-size: 18px }
+  & .profile-card__levels .level-chip__xp { font-size: 12px }
+}
+
+/* ============ 4 · Track pills ============ */
+html[data-hud-style="4"] {
+  & .player-hud:where(:not(.player-hud--wallet)) { gap: 8px }
+  & :is(.player-hud, .profile-card__levels) .level-chip { width: 200px; height: 48px; padding: 0 8px; box-sizing: border-box; overflow: hidden; border-radius: 24px;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c) 35%, transparent) var(--p, 50%), var(--hs-pill) 0);
+    grid-template: "b v" 1fr "b x" 1fr / 32px 1fr; row-gap: 1px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 32px; height: 32px; border-radius: 50%; font-size: 18px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { align-self: end; font-size: 18px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { align-self: start; font-size: 12px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { display: none }
+  & .profile-card__levels { gap: 6px; height: 48px; align-items: center }
+  & .profile-card__levels .level-chip { flex: 1; width: auto; height: 44px; padding: 0 6px; grid-template-columns: 30px 1fr; column-gap: 8px }
+  & .profile-card__levels .level-chip__badge { width: 30px; height: 30px; font-size: 17px }
+  & .profile-card__levels .level-chip__value { font-size: 17px }
+  & .profile-card__levels .level-chip__xp { font-size: 11px }
+}
+
+/* ============ 5 · Emblem hub ============ */
+html[data-hud-style="5"] {
+  & .player-hud .level-chip { width: 270px; margin-right: 16px; margin-bottom: 4px }
+  & :is(.player-hud, .profile-card__levels) .level-chip { grid-template: "b x v" 16px "b bar v" 6px / 26px 1fr 42px; row-gap: 3px; height: 30px; align-content: center }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 26px; height: 26px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { height: 5px; align-self: center }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { justify-self: end; font-size: 20px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value::before { content: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { font-size: 12px }
+  & .profile-card__levels { flex-direction: column; gap: 3px }
+  & .profile-card__levels .level-chip { grid-template-columns: 26px 1fr 50px; height: 32px }
+}
+
+/* ============ 6 · Minimal type ============ */
+html[data-hud-style="6"] {
+  & .player-hud:where(:not(.player-hud--wallet)) { gap: 4px }
+  & .player-hud:where(:not(.player-hud--wallet)) { --wb-h: 74px }   /* wallet blocks match the 74px E/S/R tiles */
+  & :is(.player-hud, .profile-card__levels) .level-chip { width: 148px; padding: 6px 14px 8px; box-sizing: border-box; background: rgb(5 7 11 / .85); border-radius: 2px;
+    grid-template: "b v" 36px "bar bar" 2px "x x" auto / auto 1fr; row-gap: 5px; column-gap: 10px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: auto; height: auto; background: none; color: var(--c2); font-size: 16px; align-self: center }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { font-size: 36px; font-weight: 700 }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value::before { content: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { height: 2px; background: #33353d }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { display: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xps { display: block; font-size: 12px }
+  & .profile-card__levels { gap: 6px; height: auto }
+  & .profile-card__levels .level-chip { flex: 1; width: auto; background: var(--hs-row) }
+}
+
+/* ============ 7 · Slanted tiles ============ */
+html[data-hud-style="7"] {
+  --slant: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  & :is(.player-hud, .profile-card__levels) .level-chip { width: 172px; height: 58px; margin-right: -6px; clip-path: var(--slant); background: var(--hs-bg);
+    grid-template: "b v" 1fr "b x" auto / 52px 1fr; column-gap: 6px; align-content: center; row-gap: 0 }
+  & .player-hud .level-chip--r { margin-right: 6px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 52px; height: 100%; grid-row: 1 / 3; clip-path: var(--slant); font-size: 22px; padding-left: 4px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { font-size: 30px; font-weight: 700; align-self: end }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value::before { content: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { font-size: 12px; align-self: start; padding-bottom: 6px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { display: none }
+  & .profile-card__levels { gap: 0; height: 52px }
+  & .profile-card__levels .level-chip { flex: 1; width: auto; height: 52px; margin-right: -9px; grid-template-columns: 40px 1fr }
+  & .profile-card__levels .level-chip:last-child { margin-right: 0 }
+  & .profile-card__levels .level-chip__badge { width: 40px; font-size: 18px }
+  & .profile-card__levels .level-chip__value { font-size: 26px }
+  & .profile-card__levels .level-chip__xp { font-size: 11px }
+}
+
+/* ============ 8 · Segmented XP ============ */
+html[data-hud-style="8"] {
+  & .player-hud .level-chip { width: 300px; margin-right: 16px; margin-bottom: 4px }
+  & :is(.player-hud, .profile-card__levels) .level-chip { --sw: 16px; grid-template: "b bar v" 10px "b x v" auto / 26px 1fr 68px; row-gap: 3px; height: 34px; align-content: center }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 26px; height: 26px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { display: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__seg { display: block; width: calc(10 * var(--sw) + 27px) }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { justify-self: end; font-size: 18px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { font-size: 12px }
+  & .profile-card__levels { flex-direction: column; gap: 4px }
+  & .profile-card__levels .level-chip { --sw: 24px; grid-template-columns: 26px 1fr 80px; column-gap: 12px }
+}
+
+/* ============ 9 · Profile widget tracks (HUD) / vertical meters (profile card) ============ */
+html[data-hud-style="9"] {
+  & .player-hud .level-chip { width: 296px; padding: 6px 16px; box-sizing: border-box; background: var(--hs-bg);
+    grid-template: "b v x" 18px "bar bar bar" 4px / 14px auto 1fr; column-gap: 10px; row-gap: 4px; align-items: center }
+  & .player-hud .level-chip--e { padding-top: 14px } & .player-hud .level-chip--r { padding-bottom: 14px }
+  & .player-hud .level-chip__badge { width: auto; height: auto; background: none; color: var(--c2); font-size: 15px }
+  & .player-hud .level-chip__value { font-size: 17px }
+  & .player-hud .level-chip__xp { justify-self: end; font-size: 13px }
+  & .profile-card__levels { gap: 6px; height: 112px }
+  & .profile-card__levels .level-chip { flex: 1; height: 112px; background: var(--hs-row); grid-template: "v" 24px "bar" 52px "b" 12px "x" 15px / 1fr; row-gap: 2px; justify-items: center; align-content: center }
+  & .profile-card__levels .level-chip__value { font-size: 16px }
+  & .profile-card__levels .level-chip__bar { width: 14px; height: 52px }
+  & .profile-card__levels .level-chip__bar i { inset: auto 0 0 0; width: auto; height: var(--p, 50%) }
+  & .profile-card__levels .level-chip__badge { width: auto; height: auto; background: none; color: var(--c2); font-size: 11px }
+  & .profile-card__levels .level-chip__xp { font-size: 11px }
+}
+
+/* ============ 10 · Collapsed + expanded (hover expands) ============ */
+html[data-hud-style="10"] {
+  & .player-hud:where(:not(.player-hud--wallet)) { gap: 4px }
+  & .player-hud .wallet { margin-left: 8px }
+  & :is(.player-hud, .profile-card__levels) .level-chip { width: 132px; height: 44px; padding: 0 8px; box-sizing: border-box; background: var(--hs-pill); border-radius: 6px;
+    grid-template: "b v" 1fr "b x" 1fr / 20px 1fr; column-gap: 8px; align-content: center; row-gap: 2px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__badge { width: 20px; height: 20px; border-radius: 50%; font-size: 0 }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value { font-size: 18px; align-self: end }
+  & :is(.player-hud, .profile-card__levels) .level-chip__value::before { content: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xp { display: none }
+  & :is(.player-hud, .profile-card__levels) .level-chip__xps { display: block; align-self: start; font-size: 11px }
+  & :is(.player-hud, .profile-card__levels) .level-chip__bar { display: none }
+  & .profile-card__levels { gap: 6px; height: 48px; align-items: center; position: relative }
+  & .profile-card__levels .level-chip { flex: 1; width: auto }
+  /* the collapsed row stays; .level-expand (clones made by hud-style.js) opens under it as an overlay */
+  & :is(.player-hud:where(:not(.player-hud--wallet)), .profile-card__levels):is(:hover, .is-expanded) > .level-expand {
+    display: flex; flex-direction: column; gap: 6px; position: absolute; z-index: 20; right: 0; top: calc(100% + 12px); width: 662px }
+  & .profile-card__levels:is(:hover, .is-expanded) > .level-expand { left: 0; width: auto }
+  & :is(.player-hud, .profile-card__levels) .level-expand {
+    & .level-chip { width: auto; flex: none; height: 52px; padding: 0 20px 0 10px; box-sizing: border-box; box-shadow: 0 6px 18px rgb(0 0 0 / .45);
+      grid-template: "b l x" 18px "b v bar" 22px / 32px 56px 1fr; row-gap: 2px; column-gap: 12px }
+    & .level-chip__badge { width: 32px; height: 32px; border-radius: 1px; font-size: 18px }
+    & .level-chip__label { display: block; grid-area: l; position: static; font: 500 12px/1 var(--font-ui); color: var(--hs-t2) }
+    & .level-chip__value { font-size: 22px; align-self: start }
+    & .level-chip__xps { display: none }
+    & .level-chip__xp { display: block; font-size: 15px; align-self: end }
+    & .level-chip__bar { display: block; height: 4px; align-self: center }
+  }
+}
+
+/* ============ Wallet style "Blocks" (Dev Tools > Wallet style; html[data-wallet-style="blocks"]) ============
+   Every wallet (all HUD variants, any HUD style): emblem | L | cash (| tickets | R point) as separate dark blocks.
+   User design, not in Figma. Which cells show still follows the HUD variant (tickets on Main, R point on Rewards). */
+html[data-wallet-style="blocks"] .player-hud {
+  & .wallet { margin-left: 4px; width: auto; height: var(--wb-h, 62px); padding: 0; background: none; border-radius: 0; display: flex; gap: 4px; align-items: stretch }
+  & .wallet__divider, & .wallet__divider.wallet__tickets, & .wallet__divider.wallet__rpoint { display: none }
+  & .wallet__badge { position: static; flex: none; align-self: center; width: var(--wb-h, 62px); height: var(--wb-h, 62px); padding: calc(var(--wb-h, 62px) * .19);
+    object-fit: contain; object-position: center; box-sizing: border-box; background: rgb(5 7 11 / .85); border-radius: 2px }
+  & .wallet__cell { width: auto; min-width: 96px; height: auto; padding: 8px 14px; box-sizing: border-box; background: rgb(5 7 11 / .85); border-radius: 2px;
+    flex-direction: column-reverse; align-items: flex-start; justify-content: center; gap: 6px }
+  & .wallet__cell img { width: 18px; height: 18px; object-fit: contain }
+  & .wallet__value { font: 700 calc(var(--wb-h, 62px) * .35)/1 var(--font-ui) }
+}
+html[data-wallet-style="blocks"] .player-hud--wallet .wallet { margin-left: 0 }

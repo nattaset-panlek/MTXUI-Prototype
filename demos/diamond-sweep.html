@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diamond Sweep · transition demo</title>
+<style>
+  @font-face { font-family: "Industry"; src: url(../mtx/fonts/Industry-Demi.otf) format("opentype"); font-weight: 600 }
+  @font-face { font-family: "Industry"; src: url(../mtx/fonts/Industry-Bold.otf) format("opentype"); font-weight: 700 }
+  @font-face { font-family: "Modi Thorson"; src: url(../mtx/fonts/modithorson.ttf) format("truetype") }
+  :root { --ink: #0b0d12; --panel: #16181f; --line: #3a3e4a; --text: #f6f1eb; --muted: #acacbb; --yellow: #f6df2f; --sel: #232434 }
+  * { box-sizing: border-box }
+  html, body { margin: 0; min-height: 100%; background: var(--ink); color: var(--text); font: 600 15px/1.3 "Industry", "Arial Narrow", system-ui, sans-serif }
+  main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 40px }
+  h1 { margin: 0; font: 400 34px/1 "Modi Thorson", Impact, sans-serif; text-transform: uppercase; letter-spacing: .02em }
+  .sub { margin: 8px 0 18px; color: var(--muted) }
+  .stage { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #000; box-shadow: inset 0 0 0 1px var(--line) }
+  .stage img, .stage canvas { position: absolute; inset: 0; width: 100%; height: 100% }
+  .stage img { object-fit: cover }
+  .stage .logo { inset: auto; left: 50%; top: 50%; width: 24%; height: auto; object-fit: contain; opacity: 0; transform: translate(-50%, -50%) scale(.96); pointer-events: none }
+  .tag { position: absolute; left: 12px; top: 12px; padding: 4px 8px; background: rgb(11 13 18 / .8); font: 700 12px/1 "Industry", sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+  .panel { display: grid; grid-template-columns: auto 1fr; gap: 24px; margin-top: 16px; padding: 20px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line) }
+  @media (max-width: 760px) { .panel { grid-template-columns: 1fr } }
+  .label { margin: 0 0 10px; font: 700 13px/1 "Industry", sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+  .pad { display: grid; grid-template-columns: repeat(3, 64px); gap: 6px }
+  .pad button, .chip, .play { font: 700 13px/1 "Industry", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--text); background: var(--ink); border: 0; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer }
+  .pad button { height: 52px; display: grid; place-items: center; gap: 2px; padding: 4px }
+  .pad button i { font-style: normal; font-size: 18px; line-height: 1 }
+  .pad button small { font-size: 10px; color: var(--muted) }
+  .pad button.on, .chip.on { background: var(--sel); box-shadow: inset 0 0 0 1px #4e4e4e, inset 0 -3px 0 var(--yellow) }
+  .pad button:focus-visible, .chip:focus-visible, .play:focus-visible, input:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px }
+  .controls { display: grid; gap: 16px }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px }
+  .chip { height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 8px }
+  .chip svg { width: 16px; height: 16px; fill: currentColor }
+  .sw { display: inline-flex } .sw b { width: 14px; height: 14px; display: block }
+  .play { height: 48px; padding: 0 22px; background: var(--yellow); color: #141415; box-shadow: none; border-radius: 999px; display: inline-flex; align-items: center; gap: 10px; font-size: 15px }
+  .play kbd { padding: 3px 7px; border-radius: 4px; background: #141415; color: var(--text); font: 700 11px/1 "Industry", sans-serif }
+  .sliders { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 24px }
+  .sl { display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center }
+  .sl[hidden] { display: none }
+  .sl span { color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: .08em }
+  .sl output { font: 700 13px/1 "Industry", sans-serif; color: var(--text) }
+  .sl input { grid-column: 1 / -1; width: 100%; accent-color: var(--yellow) }
+  .check { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: .08em; cursor: pointer }
+  .check input { accent-color: var(--yellow); width: 18px; height: 18px }
+  .note { margin: 14px 0 0; color: var(--muted); font-size: 13px }
+</style>
+</head>
+<body>
+<main>
+  <h1>Diamond Sweep</h1>
+  <p class="sub">Grid flow: lines stroke in → theme cells → black cells → lines fade, the center clears for the logo → dissolve out. Profile → Match History.</p>
+
+  <div class="stage" id="stage">
+    <img id="scrA" src="img/screen-profile.jpg" alt="Profile screen">
+    <img id="scrB" src="img/screen-match-history.jpg" alt="Match History screen" hidden>
+    <canvas id="fx"></canvas>
+    <img class="logo" id="logo" src="../mtx/assets/svg/logo.svg" alt="Muay Thai X logo">
+    <span class="tag" id="tag">Timeline 0.00</span>
+  </div>
+
+  <section class="panel">
+    <div>
+      <p class="label">Origin · numpad 1-9</p>
+      <div class="pad" id="pad" role="radiogroup" aria-label="Sweep origin"></div>
+    </div>
+    <div class="controls">
+      <div>
+        <p class="label">Mode</p>
+        <div class="row" id="modes" role="radiogroup" aria-label="Transition mode"></div>
+      </div>
+      <div data-flow="1">
+        <p class="label">Cell animation</p>
+        <div class="row" id="anims" role="radiogroup" aria-label="Cell animation"></div>
+      </div>
+      <div>
+        <p class="label">Cell shape</p>
+        <div class="row" id="shapes" role="radiogroup" aria-label="Cell shape"></div>
+      </div>
+      <div>
+        <p class="label">Colours · game theme</p>
+        <div class="row" id="pal" role="radiogroup" aria-label="Colour preset"></div>
+      </div>
+      <div class="row">
+        <button class="play" id="play" type="button"><kbd>Space</kbd>Play transition</button>
+        <label class="check"><input type="checkbox" id="invert"> Reverse (Invert)</label>
+      </div>
+      <div class="sliders" id="sliders"></div>
+    </div>
+  </section>
+  <p class="note">Classic with Square shape and 45° rotation is the original UI/DiamondSweep frag line for line (Direction 5-8 = corners, new). Grid flow reuses its grid and cell order, and adds the line, colour, black and logo stages. Cell shape sets the whole grid: Square, Diamond, Hexagon and Triangle tile; Circle and Rounded sit on the square grid.</p>
+</main>
+
+<script>
+(() => {
+  //#region [Shader] uMode 0 = Classic (UI/DiamondSweep frag, line for line, HLSL -> GLSL ES) · uMode 1 = Grid flow (new)
+  const FRAG = `
+precision highp float;
+varying vec2 vUv;
+uniform float uMode, uProgress, uDirection, uInvert, uSpread, uNoise, uEdgeIntensity, uEdgeSoftness, uAspect;
+uniform vec2 uGrid;   // cells per screen height along the grid's x (width) and y (height) axes; the original _GridSize on both
+uniform float uRot, uShape, uAnim, uLineWidth, uLineOpacity, uPxH;
+uniform float uLine, uColor, uBlack, uCore, uFade, uStagger, uCoreR, uCenterOrigin;
+uniform float uColorDensity, uColorOpacity;
+uniform float uLineOut, uColorOut, uBlackOut;   // the out runs the same stages in reverse order, continuing away from the origin
+uniform vec2 uAway;   // from the origin across the screen (uv, y up)
+uniform vec3 uCol1, uCol2, uCol3;
+uniform vec4 uTex;   // Graphic colour x white _MainTex
+
+const float PI = 3.14159265, K = 0.8660254;
+// set once in main(), shared by the helpers below
+float gC, gS, gTri;          // grid rotation cos / sin; gTri = 1 when this triangle points down
+vec2 G, pxCell, st, awN, dirQ;
+
+float random(vec2 st) { return fract(sin(dot(st, vec2(12.9898, 78.233))) * 43758.5453123); }
+float ss(float e0, float e1, float x) { float t = clamp((x - e0) / (e1 - e0), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }   // HLSL smoothstep (e0 > e1 allowed)
+float sweep(float phase, float order) { return clamp(phase * (1.0 + uSpread) - order * uSpread, 0.0, 1.0); }   // the original s_in / s_out
+float glowE(float a) { return ss(1.0, 1.0 - uEdgeSoftness, a) * ss(0.0, uEdgeSoftness, a); }                  // the original edge term
+float ease(float a) { return 1.0 - (1.0 - a) * (1.0 - a) * (1.0 - a); }
+float wipe(float a, float side) { return clamp((a * 1.5 - side) / 0.5, 0.0, 1.0); }
+vec2 toSt(vec2 r) { return vec2(r.x * gC + r.y * gS, -r.x * gS + r.y * gC); }   // grid rotation undone
+
+// ---- lattice: q = grid space (rot * uGrid), where the square cell is 1 x 1 ----
+// shape: 0 square · 1 diamond · 2 hexagon · 3 triangle (these tile) · 4 circle · 5 rounded (on the square lattice)
+vec2 latticeCentre(vec2 q) {
+  gTri = 0.0;
+  if (uShape < 0.5 || uShape > 3.5) return floor(q) + 0.5;
+  if (uShape < 1.5) { vec2 n1 = vec2(0.70711, 0.70711), n2 = vec2(0.70711, -0.70711); return (floor(dot(q, n1)) + 0.5) * n1 + (floor(dot(q, n2)) + 0.5) * n2; }
+  if (uShape < 2.5) { vec2 r = vec2(1.0, 1.7320508), h = r * 0.5; vec2 a = mod(q, r) - h, b = mod(q - h, r) - h; return dot(a, a) < dot(b, b) ? q - a : q - b; }
+  float v = q.y / K, u = q.x - 0.5 * v;   // triangle: skewed coords, lattice points at integer (u, v), side 1
+  vec2 f = fract(vec2(u, v));
+  gTri = step(1.0, f.x + f.y);
+  vec2 c = floor(vec2(u, v)) + mix(vec2(1.0 / 3.0), vec2(2.0 / 3.0), gTri);
+  return vec2(c.x + 0.5 * c.y, c.y * K);
+}
+// 0 at the cell centre, 1 on the cell outline
+float metric(vec2 p) {
+  vec2 a = abs(p);
+  if (uShape < 0.5) return max(a.x, a.y) * 2.0;
+  if (uShape < 1.5) return max(abs(p.x + p.y), abs(p.x - p.y)) * 1.41421;
+  if (uShape < 2.5) return max(a.x, max(abs(0.5 * p.x + K * p.y), abs(0.5 * p.x - K * p.y))) * 2.0;
+  if (uShape < 3.5) { vec2 t = gTri > 0.5 ? -p : p; return max(-t.y, max(K * t.x + 0.5 * t.y, -K * t.x + 0.5 * t.y)) / 0.288675; }
+  if (uShape < 4.5) return length(p) * 2.0;
+  return pow(pow(a.x, 4.0) + pow(a.y, 4.0), 0.25) * 2.0;
+}
+float coverMax() { return uShape < 3.5 ? 1.0 : uShape < 4.5 ? 1.41421 : 1.1892; }   // metric at the cell corner: the size that covers the whole cell
+float cover(float m, float size, float aa) { float r = size * (1.0 + aa); return 1.0 - ss(r - aa, r, m); }
+
+// how one cell shows: a = in progress, x = out progress (0..1), size in metric units;
+// side = 0 on the cell's edge facing the origin .. 1 on the far edge. The out keeps going the same way as the in.
+float cellMask(vec2 p, float side, float a, float x, float size, float aa) {
+  if (uAnim < 0.5) return wipe(a, side) * (1.0 - wipe(x, side)) * cover(metric(p), size, aa);                // side wipe
+  if (uAnim < 1.5) return a * (1.0 - x) * cover(metric(p), size, aa);                                          // fade
+  if (uAnim < 2.5) return cover(metric(p), size * min(ease(a), 1.0 - x * x * x), aa);                        // size
+  if (uAnim < 3.5) return step(0.5, a) * (1.0 - step(0.5, x)) * cover(metric(p), size, aa);                  // instant
+  float k = min(ease(a), 1.0 - x * x * x);
+  if (k <= 0.001) return 0.0;
+  if (uAnim < 4.5) { float al = dot(p, dirQ); return cover(metric(p - dirQ * al + dirQ * al / k), size, aa); }   // flip: squashed along the sweep
+  if (uAnim < 5.5) {                                                                                             // spin: 90° in, carries on 90° out
+    float ang = (1.0 - ease(a)) * 1.5708 - x * x * x * 1.5708, cs = cos(ang), sn = sin(ang);
+    return cover(metric(vec2(p.x * cs - p.y * sn, p.x * sn + p.y * cs) / k), size, aa);
+  }
+  return cover(metric(p + dirQ * (1.0 - ease(a)) - dirQ * x * x * x), size, aa);                                // slide: in from the origin side, out to the far side
+}
+
+// ---- grid lines: x = drawn coverage, y = flash at the moving end ----
+// pr = position along the stroke (0 start .. 1 end); the in draws from the start, the out erases from the start the same way
+vec2 stroke(float pr, float delay) {
+  float h = clamp((uLine - delay) / (1.0 - uStagger), 0.0, 1.0), e = clamp((uLineOut - delay) / (1.0 - uStagger), 0.0, 1.0);
+  float draw = step(pr, h) * step(0.0001, h) * (1.0 - step(pr, e) * step(0.0001, e));
+  float tip = draw * max(ss(h - 0.06, h, pr) * (1.0 - step(1.0, h)), ss(e + 0.06, e, pr) * step(0.0001, e));
+  return vec2(draw, tip);
+}
+// one family of straight parallel lines (square, diamond, triangle lattices): normal n in grid space, spacing sp.
+// each line strokes across the screen away from the origin; lines nearer the origin start first, plus a random stagger
+vec2 family(vec2 q, vec2 n, float sp, float seed, float hw) {
+  float d = dot(q, n) / sp, k = floor(d + 0.5);
+  float mk = 1.0 - ss(hw - 0.5, hw + 0.5, abs(d - k) * sp / length(n / pxCell));
+  vec2 t = toSt(normalize(vec2(-n.y, n.x) / G));          // line direction on screen
+  vec2 foot = toSt(n * (k * sp) / dot(n, n) / G);         // the line's point nearest the screen centre
+  float L = 0.5 * uAspect * abs(t.x) + 0.5 * abs(t.y);     // half the screen, measured along the line
+  float along = dot(st, t), pr, o;
+  if (uCenterOrigin > 0.5) { pr = abs(along) / L; o = length(foot) / length(vec2(0.5 * uAspect, 0.5)); }
+  else {
+    float sg = dot(t, awN);
+    sg = abs(sg) > 1e-3 ? sign(sg) : abs(t.x * awN.x) > 1e-3 ? sign(t.x * awN.x) : 1.0;   // a tie goes to the origin's left / right side
+    pr = (along * sg / L + 1.0) * 0.5;
+    o = (dot(foot, awN) / (0.5 * uAspect * abs(awN.x) + 0.5 * abs(awN.y)) + 1.0) * 0.5;
+  }
+  return stroke(pr, (random(vec2(k, seed)) * 0.5 + clamp(o, 0.0, 1.0) * 0.5) * uStagger) * mk;
+}
+// closed outlines (hexagon, circle, rounded): each cell traces its outline both ways round, from the side facing the origin
+vec2 trace(vec2 p, float m, float order, vec2 seed, float hw) {
+  float mk = 1.0 - ss(hw - 0.5, hw + 0.5, abs(m - 1.0) * 0.5 * min(pxCell.x, pxCell.y));
+  float ang = atan(p.y, p.x) - atan(-dirQ.y, -dirQ.x);
+  float pr = abs(mod(ang + PI, 2.0 * PI) - PI) / PI;
+  return stroke(pr, (random(seed + 7.7) * 0.5 + order * 0.5) * uStagger) * mk;
+}
+
+void main() {
+  st = vUv - 0.5;
+  st.x *= uAspect;
+  gC = cos(uRot); gS = sin(uRot);   // 45° = the original 0.70710678
+  vec2 rot = vec2(st.x * gC - st.y * gS, st.x * gS + st.y * gC);
+  G = uGrid;
+  pxCell = uPxH / G;   // square-cell width / height in pixels
+  vec2 q = rot * G;
+  vec2 ctr = latticeCentre(q);
+  vec2 p = q - ctr;
+  vec2 id = ctr - 0.5;   // = floor(rot * _GridSize) on the square lattice, as in the original
+  vec2 cell = ctr / G;
+  vec2 unrot = toSt(cell);
+  vec2 nuv = vec2(unrot.x / uAspect + 0.5, unrot.y + 0.5);
+
+  float gradient = 0.0;
+  if (uDirection < 0.5) gradient = length(unrot) / length(vec2(0.5 * uAspect, 0.5));   // Center
+  else if (uDirection < 1.5) gradient = 1.0 - nuv.y;                                    // Vertical (from top)
+  else if (uDirection < 2.5) gradient = 1.0 - nuv.x;                                    // Horizontal (from right)
+  else if (uDirection < 3.5) gradient = abs(nuv.y - 0.5) * 2.0;                         // VerticalBoth
+  else if (uDirection < 4.5) gradient = abs(nuv.x - 0.5) * 2.0;                         // HorizontalBoth
+  else if (uDirection < 5.5) gradient = (nuv.x + (1.0 - nuv.y)) * 0.5;                  // corner: top-left
+  else if (uDirection < 6.5) gradient = ((1.0 - nuv.x) + (1.0 - nuv.y)) * 0.5;          // corner: top-right
+  else if (uDirection < 7.5) gradient = (nuv.x + nuv.y) * 0.5;                          // corner: bottom-left
+  else gradient = ((1.0 - nuv.x) + nuv.y) * 0.5;                                        // corner: bottom-right
+  if (uInvert > 0.5) gradient = 1.0 - gradient;
+  float base = gradient;
+
+  float n = random(id) * uNoise;
+  gradient = clamp(gradient + (n - uNoise * 0.5), 0.0, 1.0);
+
+  float m = metric(p);
+  float aa = 2.0 / min(pxCell.x, pxCell.y);   // one pixel, in metric units
+  float t = nuv.x * 0.5 + nuv.y * 0.5;
+  vec3 grad = mix(mix(uCol1, uCol2, t * 2.0), mix(uCol2, uCol3, (t - 0.5) * 2.0), step(0.5, t));
+
+  if (uMode < 0.5) {
+    float phaseIn = clamp((1.0 - uProgress) * 4.0, 0.0, 1.0);
+    float phaseOut = clamp((0.25 - uProgress) * 4.0, 0.0, 1.0);
+    float sIn = clamp(phaseIn * (1.0 + uSpread) - gradient * uSpread, 0.0, 1.0);
+    float sOut = clamp(phaseOut * (1.0 + uSpread) - gradient * uSpread, 0.0, 1.0);
+    float fillAmount = clamp(sIn - sOut, 0.0, 1.0);
+    if (fillAmount <= 0.001) { gl_FragColor = vec4(0.0); return; }
+    float shapeAlpha = 1.0 - ss(0.5, 0.52, max(abs(p.x), abs(p.y)));
+    if (uShape > 0.5) shapeAlpha = cover(m, fillAmount * coverMax(), aa);   // other shapes: the cell grows / shrinks as that shape
+    float alpha = shapeAlpha * fillAmount;
+    float edge = ss(1.0, 1.0 - uEdgeSoftness, fillAmount) * ss(0.0, uEdgeSoftness, fillAmount);
+    vec3 finalColor = uTex.rgb + grad * edge * uEdgeIntensity;
+    gl_FragColor = vec4(clamp(finalColor, 0.0, 1.0), uTex.a * alpha);   // LDR target, straight alpha (Blend SrcAlpha OneMinusSrcAlpha)
+    return;
+  }
+
+  // ---- Grid flow · Spread = how many cells move at once, Edge glow / softness = the flash on every moving cell and line ----
+  vec2 aw = vec2(uAway.x * uAspect, uAway.y);
+  awN = normalize(aw);
+  dirQ = normalize(uCenterOrigin > 0.5 ? ctr + 1e-4 : vec2(aw.x * gC - aw.y * gS, aw.x * gS + aw.y * gC) * G);   // away from the origin, in grid space
+  float ext = uShape < 0.5 || uShape > 3.5 ? 0.5 * (abs(dirQ.x) + abs(dirQ.y)) : uShape < 1.5 ? 0.70711 * max(abs(dirQ.x), abs(dirQ.y)) : 0.58;
+  float side = (dot(p, dirQ) / ext + 1.0) * 0.5;   // 0 = the cell's edge facing the origin, 1 = the far edge
+
+  // 1 · lines, in the cell shape
+  float hw = uLineWidth * 0.5;
+  vec2 ln;
+  if (uShape < 0.5) ln = max(family(q, vec2(1.0, 0.0), 1.0, 1.3, hw), family(q, vec2(0.0, 1.0), 1.0, 2.7, hw));
+  else if (uShape < 1.5) ln = max(family(q, vec2(0.70711, 0.70711), 1.0, 1.3, hw), family(q, vec2(0.70711, -0.70711), 1.0, 2.7, hw));
+  else if (uShape > 2.5 && uShape < 3.5) ln = max(family(q, vec2(0.0, 1.0), K, 1.3, hw), max(family(q, vec2(K, -0.5), K, 2.7, hw), family(q, vec2(K, 0.5), K, 4.1, hw)));
+  else ln = trace(p, m, gradient, id, hw);
+  float line = ln.x, flash = ln.y;
+
+  // 2 · theme colour cells (fill the shape up to its outline), 3 · black cells (the whole cell): each shows by the chosen cell animation,
+  // flashing while it moves; out: the same animation carries on and takes it away (first in, first out)
+  float o2 = clamp(base + random(id + 17.31) * uNoise - uNoise * 0.5, 0.0, 1.0);
+  float aC = sweep(uColor, gradient), aB = sweep(uBlack, o2), xC = sweep(uColorOut, gradient), xB = sweep(uBlackOut, o2);
+  // density = share of cells that light up in theme colour; the rest stay clear until their black cell comes
+  float inC = cellMask(p, side, aC, xC, 1.0, aa) * step(random(id + 21.7), uColorDensity) * uColorOpacity, inB =cellMask(p, side, aB, xB, coverMax(), aa);
+  float gT = max(max(glowE(aC), glowE(xC)) * inC * (1.0 - inB), max(glowE(aB), glowE(xB)) * inB);
+  vec3 tileCol = mix(grad * (0.72 + 0.4 * random(id + 3.7)), uTex.rgb, inB) + grad * gT * uEdgeIntensity * 0.5;
+  float tileA = max(inC, inB);
+
+  // 4 · logo: the cells in the centre shape lose their lines first (one by one), then every other line fades out from the centre;
+  // after the logo uCore / uFade run back down, so the lines return the same way
+  float coreD = uShape > 2.5 && uShape < 3.5 ? max(abs(cell.x), max(abs(0.5 * cell.x + K * cell.y), abs(0.5 * cell.x - K * cell.y))) : metric(cell) * 0.5;
+  float core = step(coreD, uCoreR) * sweep(uCore, coreD / uCoreR * 0.55 + random(id + 9.1) * 0.45);
+  float fade = sweep(uFade, clamp(length(unrot) / length(vec2(0.5 * uAspect, 0.5)), 0.0, 1.0) * 0.75 + random(id + 4.3) * 0.25);
+  float gone = max(core, fade);
+  flash = max(flash, glowE(gone));
+  line *= 1.0 - gone;
+
+  float la = line * uLineOpacity;
+  vec3 lineCol = grad * (1.0 + flash * uEdgeIntensity * 0.6) + flash * uEdgeIntensity * 0.1;
+  float a = la + tileA * (1.0 - la);
+  vec3 rgb = a > 0.0 ? (lineCol * la + tileCol * tileA * (1.0 - la)) / a : vec3(0.0);
+  gl_FragColor = vec4(clamp(rgb, 0.0, 1.0), uTex.a * a);
+}`;
+  const VERT = `attribute vec2 aPos; varying vec2 vUv; void main() { vUv = aPos * 0.5 + 0.5; gl_Position = vec4(aPos, 0.0, 1.0); }`;   // vUv origin bottom-left, like Unity
+  //#endregion
+
+  //#region [Data]
+  // pad: numpad layout -> [direction, invert]; Left / Bottom are the existing modes inverted. away = from the origin across the screen (uv, y up)
+  const ORIGINS = [
+    { k: 7, label: "Top left", icon: "↖", dir: 5, inv: 0, away: [1, -1] }, { k: 8, label: "Top", icon: "↑", dir: 1, inv: 0, away: [0, -1] }, { k: 9, label: "Top right", icon: "↗", dir: 6, inv: 0, away: [-1, -1] },
+    { k: 4, label: "Left", icon: "←", dir: 2, inv: 1, away: [1, 0] }, { k: 5, label: "Center", icon: "◆", dir: 0, inv: 0, away: null }, { k: 6, label: "Right", icon: "→", dir: 2, inv: 0, away: [-1, 0] },
+    { k: 1, label: "Bottom left", icon: "↙", dir: 7, inv: 0, away: [1, 1] }, { k: 2, label: "Bottom", icon: "↓", dir: 1, inv: 1, away: [0, 1] }, { k: 3, label: "Bottom right", icon: "↘", dir: 8, inv: 0, away: [-1, 1] },
+  ];
+  // game theme (tokens.css): yellow #f6df2f, red corner #ff0027, blue corner #5214df, Muay Thai orange #f96000
+  const PALETTES = [
+    { name: "MTX gold", cols: ["#f6df2f", "#f96000", "#ff0027"], tex: "#0b0d12" },
+    { name: "Red vs blue", cols: ["#ff0027", "#f6df2f", "#5214df"], tex: "#0b0d12" },
+    { name: "Fight night", cols: ["#5214df", "#ff0027", "#f6df2f"], tex: "#0b0d12" },
+    { name: "Gold only", cols: ["#f6df2f", "#f2d654", "#d6ba26"], tex: "#141415" },
+    { name: "Unity material", cols: ["#7e00ff", "#002921", "#ff0700"], tex: "#0b0d12" },
+  ];
+  // icon = 16x16 path of the shape, same order as metric() / latticeCentre() in the shader; the first 4 tile
+  const SHAPES = [
+    { name: "Square", icon: "M2 2h12v12H2z" },
+    { name: "Diamond", icon: "M8 1l7 7-7 7-7-7z" },
+    { name: "Hexagon", icon: "M8 1l6 3.5v7L8 15l-6-3.5v-7z" },
+    { name: "Triangle", icon: "M8 2l7 12H1z" },
+    { name: "Circle", icon: "M8 2a6 6 0 1 1 0 12A6 6 0 0 1 8 2z" },
+    { name: "Rounded", icon: "M5 2h6a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3z" },
+  ];
+  // same order as cellMask() in the shader
+  const ANIMS = ["Side wipe", "Fade", "Size", "Instant", "Flip", "Spin", "Slide"];
+  const MODES = [{ name: "Grid flow", dur: 4.2, spread: 4 }, { name: "Classic (1:1)", dur: 1.1, spread: 1 }];
+  // SLIDERS with flow: true only show in Grid flow
+  const SLIDERS = [
+    { id: "rot", label: "Grid rotation (°)", min: 0, max: 90, step: 1, value: 45 },
+    { id: "cellW", label: "Cell W (px @1080p)", min: 8, max: 160, step: 1, value: 27 },
+    { id: "cellH", label: "Cell H (px @1080p)", min: 8, max: 160, step: 1, value: 27 },
+    { id: "noise", label: "Noise (dissolve)", min: 0, max: 1, step: 0.01, value: 0.6 },
+    { id: "spread", label: "Spread (sharpness)", min: 0.1, max: 8, step: 0.05, value: 4 },
+    { id: "edge", label: "Edge glow", min: 0, max: 8, step: 0.1, value: 2.5 },
+    { id: "soft", label: "Edge softness", min: 0.01, max: 1, step: 0.01, value: 0.5 },
+    { id: "lineW", label: "Grid line width (px)", min: 0.5, max: 4, step: 0.1, value: 1.4, flow: true },
+    { id: "lineA", label: "Grid line opacity", min: 0, max: 1, step: 0.01, value: 0.9, flow: true },
+    { id: "colD", label: "Colour cell density", min: 0, max: 1, step: 0.01, value: 1, flow: true },
+    { id: "colA", label: "Colour cell opacity", min: 0, max: 1, step: 0.01, value: 1, flow: true },
+    { id: "stagger", label: "Line stagger", min: 0, max: 0.9, step: 0.01, value: 0.6, flow: true },
+    { id: "core", label: "Logo area", min: 0.08, max: 0.4, step: 0.005, value: 0.24, flow: true },
+    { id: "dur", label: "Duration (s)", min: 0.3, max: 6, step: 0.05, value: 4.2 },
+    { id: "progress", label: "Timeline (scrub)", min: 0, max: 1, step: 0.002, value: 0 },
+  ];
+  // Grid flow stages on the 0-1 timeline (they overlap so one hands over to the next); fade = every grid line fades out while the logo comes in
+  // the out is the in mirrored (stage [a, b] -> [1 - b, 1 - a]), so it runs the same stages in reverse order with a logo hold in the middle
+  const FLOW = { line: [0, 0.17], color: [0.08, 0.25], black: [0.17, 0.34], core: [0.32, 0.4], fade: [0.34, 0.42], logo: [0.36, 0.42], swap: 0.34 };
+  const mirror = ([a, b]) => [1 - b, 1 - a];
+  const inOut = (t, st) => Math.min(seg(t, st), 1 - seg(t, mirror(st)));   // 0 -> 1 on the way in, back to 0 on the way out
+  const S = { origin: 3, palette: 0, mode: 0, shape: 0, cellAnim: 0, invert: false, anim: null };
+  //#endregion
+
+  //#region [WebGL]
+  const canvas = document.getElementById("fx");
+  const gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: false });
+  const sh = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  const prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VERT)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FRAG)); gl.linkProgram(prog); gl.useProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+  const aPos = gl.getAttribLocation(prog, "aPos"); gl.enableVertexAttribArray(aPos); gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(prog, n);
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+  const val = id => +document.getElementById("s-" + id).value;
+  const seg = (t, [a, b]) => Math.min(1, Math.max(0, (t - a) / (b - a)));
+  // Classic: the DiamondSweepPlayer steps on the same timeline (in 42% · cover 16% · out 42%)
+  const classicP = t => t < 0.42 ? 1 - 0.25 * t / 0.42 : t < 0.58 ? 0.75 - 0.5 * (t - 0.42) / 0.16 : 0.25 - 0.25 * (t - 0.58) / 0.42;
+  function stageName(t) {
+    if (S.mode) return t < 0.42 ? "In" : t < 0.58 ? "Cover" : "Out";
+    const out = t > 0.5, u = out ? 1 - t : t;
+    const name = u < FLOW.color[0] ? "Lines" : u < FLOW.black[0] ? "Theme cells" : u < FLOW.core[0] ? "Black cells" : "Logo";
+    return name === "Logo" ? name : `${name} ${out ? "out" : "in"}`;
+  }
+
+  function draw() {
+    const r = canvas.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+    const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    gl.viewport(0, 0, w, h); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    const o = ORIGINS[S.origin], p = PALETTES[S.palette], t = val("progress"), flow = S.mode === 0, th = val("rot") * Math.PI / 180;
+    gl.uniform1f(U("uMode"), flow ? 1 : 0);
+    gl.uniform1f(U("uProgress"), classicP(t));
+    gl.uniform1f(U("uDirection"), o.dir);
+    gl.uniform1f(U("uInvert"), (o.inv ^ (S.invert ? 1 : 0)));
+    gl.uniform2fv(U("uGrid"), [1080 / val("cellW"), 1080 / val("cellH")]);   // Grid size 40 = 27 px
+    gl.uniform1f(U("uRot"), th);
+    gl.uniform1f(U("uShape"), S.shape);
+    gl.uniform1f(U("uAnim"), S.cellAnim);
+    gl.uniform1f(U("uSpread"), val("spread"));
+    gl.uniform1f(U("uNoise"), val("noise"));
+    gl.uniform1f(U("uEdgeIntensity"), val("edge"));
+    gl.uniform1f(U("uEdgeSoftness"), val("soft"));
+    gl.uniform1f(U("uAspect"), w / h);
+    gl.uniform1f(U("uPxH"), h);
+    gl.uniform1f(U("uLineWidth"), val("lineW") * dpr);
+    gl.uniform1f(U("uLineOpacity"), val("lineA"));
+    gl.uniform1f(U("uStagger"), val("stagger"));
+    gl.uniform1f(U("uColorDensity"), val("colD"));
+    gl.uniform1f(U("uColorOpacity"), val("colA"));
+    gl.uniform1f(U("uCoreR"), val("core"));
+    gl.uniform1f(U("uLine"), seg(t, FLOW.line));
+    gl.uniform1f(U("uColor"), seg(t, FLOW.color));
+    gl.uniform1f(U("uBlack"), seg(t, FLOW.black));
+    gl.uniform1f(U("uCore"), inOut(t, FLOW.core));
+    gl.uniform1f(U("uFade"), inOut(t, FLOW.fade));
+    gl.uniform1f(U("uLineOut"), seg(t, mirror(FLOW.line)));
+    gl.uniform1f(U("uColorOut"), seg(t, mirror(FLOW.color)));
+    gl.uniform1f(U("uBlackOut"), seg(t, mirror(FLOW.black)));
+    const away = o.away ? (S.invert ? o.away.map(v => -v) : o.away) : null;
+    gl.uniform1f(U("uCenterOrigin"), away ? 0 : 1);
+    gl.uniform2fv(U("uAway"), away || [1, 0]);   // line stroke directions are worked out from this in the shader
+    gl.uniform3fv(U("uCol1"), hex(p.cols[0])); gl.uniform3fv(U("uCol2"), hex(p.cols[1])); gl.uniform3fv(U("uCol3"), hex(p.cols[2]));
+    gl.uniform4fv(U("uTex"), [...hex(p.tex), 1]);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    // screen swap under full cover; logo only in Grid flow, in its cleared core
+    const showB = t >= (flow ? FLOW.swap : 0.5);
+    document.getElementById("scrA").hidden = showB; document.getElementById("scrB").hidden = !showB;
+    const logo = document.getElementById("logo"), lo = flow ? inOut(t, FLOW.logo) : 0;
+    logo.style.opacity = lo; logo.style.transform = `translate(-50%, -50%) scale(${0.94 + 0.06 * lo})`;
+    document.getElementById("tag").textContent = `Timeline ${t.toFixed(2)} · ${stageName(t)} · ${o.label}${S.invert ? " · reversed" : ""}`;
+  }
+  //#endregion
+
+  //#region [Player] plays the timeline 0 -> 1 over Duration
+  function setSlider(id, v, label = v) { document.getElementById("s-" + id).value = v; document.getElementById("o-" + id).textContent = label; }
+  function setProgress(v) { setSlider("progress", v, (+v).toFixed(2)); draw(); }
+  function stop() { if (S.anim) { cancelAnimationFrame(S.anim); S.anim = null; } }
+  function play() {
+    stop();
+    const t0 = performance.now(), d = val("dur") * 1000;
+    const tick = now => { const v = Math.min(1, (now - t0) / d); setProgress(v); S.anim = v < 1 ? requestAnimationFrame(tick) : null; };
+    setProgress(0);
+    S.anim = requestAnimationFrame(tick);
+  }
+  //#endregion
+
+  //#region [UI]
+  const chips = (host, list, label, pick) => list.forEach((item, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.setAttribute("role", "radio");
+    b.innerHTML = label(item); b.onclick = () => pick(i);
+    document.getElementById(host).appendChild(b);
+  });
+  const pad = document.getElementById("pad");
+  ORIGINS.forEach((o, i) => {
+    const b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "radio");
+    b.innerHTML = `<i aria-hidden="true">${o.icon}</i><small>${o.k}</small>`; b.title = b.ariaLabel = o.label;
+    b.onclick = () => { S.origin = i; ui(); draw(); };
+    pad.appendChild(b);
+  });
+  chips("modes", MODES, m => m.name, i => { S.mode = i; stop(); setSlider("dur", MODES[i].dur); setSlider("spread", MODES[i].spread); ui(); setProgress(0); });
+  chips("anims", ANIMS, a => a, i => { S.cellAnim = i; ui(); draw(); });
+  chips("shapes", SHAPES, x => `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="${x.icon}"/></svg>${x.name}`, i => { S.shape = i; ui(); draw(); });
+  chips("pal", PALETTES, p => `<span class="sw">${p.cols.map(c => `<b style="background:${c}"></b>`).join("")}</span>${p.name}`, i => { S.palette = i; ui(); draw(); });
+  document.getElementById("sliders").innerHTML = SLIDERS.map(s => `<label class="sl" data-flow="${s.flow ? 1 : 0}"><span>${s.label}</span><output id="o-${s.id}">${s.value}</output>
+    <input id="s-${s.id}" type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.value}"></label>`).join("");
+  SLIDERS.forEach(s => document.getElementById("s-" + s.id).addEventListener("input", e => {
+    document.getElementById("o-" + s.id).textContent = s.id === "progress" ? (+e.target.value).toFixed(2) : e.target.value;
+    if (s.id === "progress") stop();
+    draw();
+  }));
+  document.getElementById("invert").addEventListener("change", e => { S.invert = e.target.checked; draw(); });
+  document.getElementById("play").addEventListener("click", play);
+  function ui() {
+    [...pad.children].forEach((b, i) => { b.classList.toggle("on", i === S.origin); b.setAttribute("aria-checked", i === S.origin); });
+    [["modes", S.mode], ["anims", S.cellAnim], ["shapes", S.shape], ["pal", S.palette]].forEach(([host, on]) => [...document.getElementById(host).children].forEach((b, i) => { b.classList.toggle("on", i === on); b.setAttribute("aria-checked", i === on); }));
+    document.querySelectorAll('[data-flow="1"]').forEach(el => { el.hidden = S.mode !== 0; });
+  }
+  addEventListener("keydown", e => {
+    if (e.target.matches("input")) return;
+    if (e.code === "Space") { e.preventDefault(); play(); return; }
+    const k = +(e.code.startsWith("Numpad") ? e.code.slice(6) : e.key);
+    const i = ORIGINS.findIndex(o => o.k === k);
+    if (i >= 0) { S.origin = i; ui(); draw(); }
+  });
+  addEventListener("resize", draw);
+  ui(); draw();
+  //#endregion
+})();
+</script>
+</body>
+</html>

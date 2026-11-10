@@ -1,0 +1,14 @@
+<svg width="40" height="39" viewBox="0 0 40 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 1244833366">
+<rect id="Rectangle 11263" x="0.5" y="0.5" width="38.3333" height="37.0645" rx="18.5323" fill="#16181F" stroke="#373737"/>
+<g id="Group 120">
+<g id="Rectangle 216">
+<mask id="path-2-inside-1_168_3958" fill="white">
+<rect x="17.5" y="17.8008" width="10" height="8" rx="0.5"/>
+</mask>
+<rect x="17.5" y="17.8008" width="10" height="8" rx="0.5" fill="#16181F" stroke="#4E4E4E" stroke-width="3" mask="url(#path-2-inside-1_168_3958)"/>
+</g>
+<path id="Subtract" d="M22.6006 13.3105C22.8286 13.3571 23 13.5591 23 13.8008V16.8008H21.5V14.8008H14.5V19.8008H16.5V21.3008H13.5C13.2239 21.3008 13 21.0769 13 20.8008V13.8008C13 13.5246 13.2239 13.3008 13.5 13.3008H22.5L22.6006 13.3105Z" fill="#4E4E4E"/>
+</g>
+</g>
+</svg>

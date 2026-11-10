@@ -1,0 +1,93 @@
+/* Key glyphs, black / white (Figma "MTX / Key Glyph" 225:146565, Tone=White / Black).
+   Controller keys are the punched Figma shapes used as CSS masks, so their holes show what is behind the key.
+   --key-tone: white by default, black on the yellow and grey CTAs. Keyboard keys are an outline + text in the same tone.
+   Loaded last: older per-device rules in components.css still set sizes (--g) but no longer paint the key. */
+:root{--key-tone:#fff}
+.btn-cta:not(.btn-cta--secondary):not(.btn-cta--ghost):not(.is-done):not(.is-locked){--key-tone:#000}
+.mode-card.is-focused{--key-tone:#000}
+
+html body:not([data-device="kb"]) .glyph[data-btn],html body:not([data-device="kb"]) .glyph--key[data-cc-key],html body:not([data-device="kb"]) .cc-key{
+  --ar:1;width:calc(var(--g,21px) * var(--ar))!important;min-width:0!important;height:var(--g,21px)!important;padding:0!important;border-radius:0!important;box-shadow:none!important;
+  background:var(--key-tone)!important;-webkit-mask:var(--key-svg) center/contain no-repeat;mask:var(--key-svg) center/contain no-repeat;font-size:0!important;color:transparent!important;aspect-ratio:auto!important}
+html body:not([data-device="kb"]) .glyph[data-btn]::before,html body:not([data-device="kb"]) .glyph[data-btn]::after{display:none!important}
+html body[data-device="xbox"] .glyph[data-btn="ls"],html body[data-device="xbox"] .glyph[data-btn="rs"]{--g:45px;margin:0}
+html body[data-device="ps"] .glyph[data-btn="ls"],html body[data-device="ps"] .glyph[data-btn="rs"]{--g:45px;margin:0}
+html body:not([data-device="kb"]) .cc-key{--g:26px}
+
+html body[data-device="kb"] .glyph[data-btn],html body[data-device="kb"] .glyph--key[data-cc-key],html body[data-device="kb"] .cc-key{
+  background:transparent!important;box-shadow:inset 0 0 0 1px var(--key-tone)!important;color:var(--key-tone)!important}
+
+/* CTA with a key (Figma Show Key=true). Keys stay hidden on CTAs by default; add .btn-cta--key to show one:
+   30 px key, key + label centered as one group */
+html body .btn-cta.btn-cta--key .glyph[data-btn]{display:inline-grid!important}
+html body .btn-cta.btn-cta--key{justify-content:center;gap:10px;padding-left:16px!important;padding-right:16px!important}
+html body .btn-cta.btn-cta--key.is-done .glyph[data-btn],html body .btn-cta.btn-cta--key.is-locked .glyph[data-btn]{display:none!important}
+html body .btn-cta.btn-cta--key .btn-cta__label{flex:0 1 auto}
+html body:not([data-device="kb"]) .btn-cta.btn-cta--key .glyph[data-btn]{--g:30px;margin:0}
+html body:not([data-device="kb"]) .btn-cta--sm.btn-cta--key .glyph[data-btn]{--g:24px}
+html body[data-device="kb"] .btn-cta.btn-cta--key .glyph[data-btn]{margin:0}
+
+html body[data-device="xbox"] .glyph[data-btn="a"],html body[data-device="xbox"] .cc-key--a{--key-svg:url(../assets/svg/key/xbox/a.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="b"],html body[data-device="xbox"] .cc-key--b{--key-svg:url(../assets/svg/key/xbox/b.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="x"],html body[data-device="xbox"] .cc-key--x{--key-svg:url(../assets/svg/key/xbox/x.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="y"],html body[data-device="xbox"] .cc-key--y{--key-svg:url(../assets/svg/key/xbox/y.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="lb"],html body[data-device="xbox"] .cc-key--lb{--key-svg:url(../assets/svg/key/xbox/lb.svg);--ar:1.75}
+html body[data-device="xbox"] .glyph[data-btn="rb"],html body[data-device="xbox"] .cc-key--rb{--key-svg:url(../assets/svg/key/xbox/rb.svg);--ar:1.75}
+html body[data-device="xbox"] .glyph[data-btn="lt"],html body[data-device="xbox"] .glyph[data-btn="zl"],html body[data-device="xbox"] .cc-key--lt{--key-svg:url(../assets/svg/key/xbox/lt.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="rt"],html body[data-device="xbox"] .glyph[data-btn="zr"],html body[data-device="xbox"] .cc-key--rt{--key-svg:url(../assets/svg/key/xbox/rt.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="ls"],html body[data-device="xbox"] .cc-key--ls{--key-svg:url(../assets/svg/key/xbox/ls.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="rs"],html body[data-device="xbox"] .cc-key--rs{--key-svg:url(../assets/svg/key/xbox/rs.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="menu"],html body[data-device="xbox"] .cc-key--menu{--key-svg:url(../assets/svg/key/xbox/menu.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="view"],html body[data-device="xbox"] .cc-key--view,html body[data-device="xbox"] .glyph--key[data-cc-key]{--key-svg:url(../assets/svg/key/xbox/view.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="dl"]{--key-svg:url(../assets/svg/key/xbox/dl.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="dr"]{--key-svg:url(../assets/svg/key/xbox/dr.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="a"],html body[data-device="ps"][data-pad="ps5"] .cc-key--a{--key-svg:url(../assets/svg/key/ps5/a.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="b"],html body[data-device="ps"][data-pad="ps5"] .cc-key--b{--key-svg:url(../assets/svg/key/ps5/b.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="x"],html body[data-device="ps"][data-pad="ps5"] .cc-key--x{--key-svg:url(../assets/svg/key/ps5/x.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="y"],html body[data-device="ps"][data-pad="ps5"] .cc-key--y{--key-svg:url(../assets/svg/key/ps5/y.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lb{--key-svg:url(../assets/svg/key/ps5/lb.svg);--ar:1.476}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rb{--key-svg:url(../assets/svg/key/ps5/rb.svg);--ar:1.476}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="zl"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lt{--key-svg:url(../assets/svg/key/ps5/lt.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="zr"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rt{--key-svg:url(../assets/svg/key/ps5/rt.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="ls"],html body[data-device="ps"][data-pad="ps5"] .cc-key--ls{--key-svg:url(../assets/svg/key/ps5/ls.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rs"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rs{--key-svg:url(../assets/svg/key/ps5/rs.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="menu"],html body[data-device="ps"][data-pad="ps5"] .cc-key--menu{--key-svg:url(../assets/svg/key/ps5/menu.svg);--ar:1.2}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="view"],html body[data-device="ps"][data-pad="ps5"] .cc-key--view,html body[data-device="ps"][data-pad="ps5"] .glyph--key[data-cc-key]{--key-svg:url(../assets/svg/key/ps5/view.svg);--ar:1.2}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dl"]{--key-svg:url(../assets/svg/key/ps5/dl.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dr"]{--key-svg:url(../assets/svg/key/ps5/dr.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="a"],html body[data-device="ps"][data-pad="ps4"] .cc-key--a{--key-svg:url(../assets/svg/key/ps4/a.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="b"],html body[data-device="ps"][data-pad="ps4"] .cc-key--b{--key-svg:url(../assets/svg/key/ps4/b.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="x"],html body[data-device="ps"][data-pad="ps4"] .cc-key--x{--key-svg:url(../assets/svg/key/ps4/x.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="y"],html body[data-device="ps"][data-pad="ps4"] .cc-key--y{--key-svg:url(../assets/svg/key/ps4/y.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lb{--key-svg:url(../assets/svg/key/ps4/lb.svg);--ar:1.619}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rb{--key-svg:url(../assets/svg/key/ps4/rb.svg);--ar:1.619}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="zl"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lt{--key-svg:url(../assets/svg/key/ps4/lt.svg);--ar:0.964}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="zr"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rt{--key-svg:url(../assets/svg/key/ps4/rt.svg);--ar:0.964}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="ls"],html body[data-device="ps"][data-pad="ps4"] .cc-key--ls{--key-svg:url(../assets/svg/key/ps4/ls.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rs"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rs{--key-svg:url(../assets/svg/key/ps4/rs.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="menu"],html body[data-device="ps"][data-pad="ps4"] .cc-key--menu{--key-svg:url(../assets/svg/key/ps4/menu.svg);--ar:1.267}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="view"],html body[data-device="ps"][data-pad="ps4"] .cc-key--view,html body[data-device="ps"][data-pad="ps4"] .glyph--key[data-cc-key]{--key-svg:url(../assets/svg/key/ps4/view.svg);--ar:1.267}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dl"]{--key-svg:url(../assets/svg/key/ps4/dl.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dr"]{--key-svg:url(../assets/svg/key/ps4/dr.svg);--ar:1}
+
+/* D-pad scenarios (Figma Key Glyph, Key=D-pad Up / Down / Up Down / Left Right / All); dl and dr are above */
+html body[data-device="xbox"] .glyph[data-btn="du"]{--key-svg:url(../assets/svg/key/xbox/du.svg);--ar:1;--g:26px}
+html body[data-device="xbox"] .glyph[data-btn="dd"]{--key-svg:url(../assets/svg/key/xbox/dd.svg);--ar:1;--g:26px}
+html body[data-device="xbox"] .glyph[data-btn="dud"]{--key-svg:url(../assets/svg/key/xbox/dud.svg);--ar:1;--g:26px}
+html body[data-device="xbox"] .glyph[data-btn="dlr"]{--key-svg:url(../assets/svg/key/xbox/dlr.svg);--ar:1;--g:26px}
+html body[data-device="xbox"] .glyph[data-btn="dall"]{--key-svg:url(../assets/svg/key/xbox/dall.svg);--ar:1;--g:26px}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="du"]{--key-svg:url(../assets/svg/key/ps4/du.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dd"]{--key-svg:url(../assets/svg/key/ps4/dd.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dud"]{--key-svg:url(../assets/svg/key/ps4/dud.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dlr"]{--key-svg:url(../assets/svg/key/ps4/dlr.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dall"]{--key-svg:url(../assets/svg/key/ps4/dall.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="du"]{--key-svg:url(../assets/svg/key/ps5/du.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dd"]{--key-svg:url(../assets/svg/key/ps5/dd.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dud"]{--key-svg:url(../assets/svg/key/ps5/dud.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dlr"]{--key-svg:url(../assets/svg/key/ps5/dlr.svg);--ar:1;--g:28px}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dall"]{--key-svg:url(../assets/svg/key/ps5/dall.svg);--ar:1;--g:28px}
+
+/* PS Options / Share: outlined text key like the keyboard (Figma Key Glyph, Device=PS4 / PS5, Key=Start / Select) */
+html body[data-device="ps"] .glyph.glyph[data-btn="menu"],html body[data-device="ps"] .glyph.glyph[data-btn="view"],html body[data-device="ps"] .cc-key.cc-key--menu,html body[data-device="ps"] .cc-key.cc-key--view,html body[data-device="ps"] .glyph.glyph--key[data-cc-key]{
+  place-items:center;width:auto!important;min-width:0!important;height:21px!important;padding:0 6px!important;margin:0;border-radius:4px!important;box-sizing:border-box;
+  background:none!important;-webkit-mask:none;mask:none;box-shadow:inset 0 0 0 1px var(--key-tone,#fff)!important;font:700 11px/1 var(--font-ui)!important;letter-spacing:.02em;text-transform:uppercase;color:var(--key-tone,#fff)!important}

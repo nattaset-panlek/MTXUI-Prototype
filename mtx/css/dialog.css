@@ -1,0 +1,25 @@
+/* Component: Dialog (global message popup) - light top, dark bottom, keys floating under the panel */
+.dlg { position: absolute; inset: 0; z-index: 999; font-family: var(--font-ui); color: #f6f1eb }
+.dlg[hidden] { display: none }
+.dlg__scrim { position: absolute; inset: 0; background: rgb(4 5 8 / .6); animation: lgFadeIn .18s ease-out both }
+.dlg__wrap { position: absolute; left: calc(var(--ox, 0px) + 478px); top: 50%; width: 965px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 22px; animation: dlgIn .22s cubic-bezier(.2,.8,.2,1) both }
+.dlg__top { padding: 52px 64px 44px; background: #f6f1eb; color: #16181f; border-radius: 8px 8px 0 0 }
+.dlg__top h2 { margin: 0; font: 400 52px/52px var(--font-display); text-transform: uppercase }
+.dlg__top p { margin: 22px 0 0; font: 500 28px/40px var(--font-ui); color: #727581 }
+.dlg__bot { margin-top: -1px; padding: 36px 64px 44px; background: #0d1118; border-radius: 0 0 8px 8px }
+.dlg__foot { display: grid; grid-template-columns: 1fr 1fr; gap: 28px } .dlg__foot.is-one { grid-template-columns: 1fr }
+.dlg__foot .btn-cta { width: auto; min-width: 0; height: 64px; justify-content: center; cursor: pointer }
+.dlg__keys { display: flex; justify-content: center; gap: 34px; font: 600 18px/1 var(--font-ui); text-transform: uppercase }
+.dlg__keys .hint { position: static; display: flex; align-items: center; gap: 10px; cursor: pointer }
+@keyframes dlgIn { from { opacity: 0; transform: translateY(calc(-50% + 16px)) } to { opacity: 1; transform: translateY(-50%) } }
+.dlg__foot .btn-cta.is-focused{outline:none}
+.dlg__foot .btn-cta.is-focused::before{content:"";position:absolute;inset:-7px;border-radius:0;border:3px solid;border-image:none;border-color:#c9e8dc;pointer-events:none}
+/* Figma 225:145953: the dialog buttons never pop / scale / flash on press - only the focus ring moves */
+.dlg .btn-cta,.dlg .btn-cta:active,.dlg .btn-cta.is-pressed,.dlg .btn-cta.is-holding,.dlg .btn-cta.is-unlocked-flash{transform:none!important;animation:none!important;transition:none!important;filter:none!important}
+.dlg .btn-cta:not(.is-holding)::after{display:none}   /* hold-to-confirm: only the ring sweeps */
+
+/* blur everything behind an open dialog (layers of #stage except the dialog itself) */
+#stage.dlg-open > :not(#dialog){filter:blur(18px);transition:filter .18s ease-out}
+#stage > :not(#dialog){transition:filter .18s ease-out}
+/* a backdrop-filter inside a blurred layer stops the layer's filter from rendering (Chrome): switch them off while a dialog is up */
+#stage.dlg-open > :not(#dialog) *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}

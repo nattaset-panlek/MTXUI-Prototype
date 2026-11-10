@@ -1,0 +1,595 @@
+/* =====================================================================
+   Shared components
+   Each block names its Figma source. Most of these exist in Figma only as
+   loose layers copied frame to frame; FIGMA_STRUCTURE_NOTES.md lists the
+   component/variant each one should become.
+   ===================================================================== */
+
+/* ---------- Texture layer: Figma image fill "Scratch" over a solid ---------- */
+.tex{isolation:isolate}
+.tex::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;
+  background:var(--tex-scratch) center/cover;opacity:var(--tex-o,.3);mix-blend-mode:var(--tex-blend,normal)}
+
+/* ---------- Brand (Figma "Layer_1" 249x95, top-left on every screen) ---------- */
+.brand{position:absolute;left:46px;top:34px;width:249px;height:95px}
+
+/* ---------- Input glyph (Figma "Group 1244833286": 21px pill + letter) ----------
+   Markup: <span class="glyph" data-btn="a|b|x|y|ls|rs|lt|rt">. app.js fills the
+   label and sets data-device on <body> (xbox | ps | kb) from the last input used. */
+.glyph{--g:21px;--c:var(--text-1);position:relative;display:inline-grid;place-items:center;min-width:var(--g);height:var(--g);flex:none;box-sizing:border-box;border-radius:var(--r-pill);
+  background:var(--surface-chip);box-shadow:inset 0 0 0 1px var(--line-1);font:900 12px/1 var(--font-ui);text-transform:uppercase;color:var(--c);white-space:nowrap}
+.glyph[data-btn="a"]{--c:var(--glyph-a)} .glyph[data-btn="b"]{--c:var(--glyph-b)} .glyph[data-btn="x"]{--c:var(--glyph-x)} .glyph[data-btn="y"]{--c:var(--glyph-y)}
+.glyph[data-btn="ls"],.glyph[data-btn="lt"],.glyph[data-btn="rt"]{--c:var(--glyph-stick)} .glyph[data-btn="rs"]{--c:var(--yellow-3)}
+.glyph--md{--g:28px;font-size:14px}
+.glyph--lg{--g:37px;font-size:18px}
+/* sticks: pill + four direction ticks (Figma "Vector 89/93/97/101") */
+.glyph[data-btn="ls"],.glyph[data-btn="rs"]{--g:31px;font-size:13px;margin:7px}
+.glyph[data-btn="ls"]::before,.glyph[data-btn="ls"]::after,.glyph[data-btn="rs"]::before,.glyph[data-btn="rs"]::after{content:"";position:absolute;inset:-7px;pointer-events:none;
+  background:
+    conic-gradient(from 135deg at 50% 0,var(--tick,#4e4e4e) 0 90deg,transparent 0) 50% 0/14px 6px no-repeat,
+    conic-gradient(from -45deg at 50% 100%,var(--tick,#4e4e4e) 0 90deg,transparent 0) 50% 100%/14px 6px no-repeat}
+.glyph[data-btn="rs"]{--tick:var(--yellow-3)}
+.glyph[data-btn="ls"]::after,.glyph[data-btn="rs"]::after{transform:rotate(90deg)}
+/* triggers (Figma "Vector 27" bumper shape) */
+.glyph[data-btn="lt"],.glyph[data-btn="rt"]{--g:28px;border-radius:2px 2px 10px 10px;font:700 13px/1 var(--font-ui);box-shadow:inset 0 0 0 1.5px var(--line-1)}
+/* PlayStation: face buttons are shapes, colours follow the DualSense legend */
+body[data-device="ps"] .glyph[data-btn="a"]{--c:#7c9cf0} body[data-device="ps"] .glyph[data-btn="b"]{--c:#f0626a}
+body[data-device="ps"] .glyph[data-btn="x"]{--c:#e48ad0} body[data-device="ps"] .glyph[data-btn="y"]{--c:#3ec4a0}
+body[data-device="ps"] .glyph[data-btn="lt"],body[data-device="ps"] .glyph[data-btn="rt"]{border-radius:3px 3px 9px 9px;font-size:11px}
+/* Keyboard: square keycaps, sticks become arrow/letter keys */
+/* keyboard keycaps: plain white text, no controller button colours */
+body[data-device="kb"] .glyph[data-btn]{--c:var(--text-1);--tick:transparent}
+body[data-device="kb"] .glyph{border-radius:4px;padding:0 6px;font:700 11px/1 var(--font-ui);letter-spacing:.02em;box-shadow:inset 0 0 0 1px var(--line-2),inset 0 -2px 0 var(--line-1)}
+body[data-device="kb"] .glyph[data-btn="ls"],body[data-device="kb"] .glyph[data-btn="rs"]{margin:0;--g:24px}
+body[data-device="kb"] .glyph[data-btn="ls"]::before,body[data-device="kb"] .glyph[data-btn="ls"]::after,
+body[data-device="kb"] .glyph[data-btn="rs"]::before,body[data-device="kb"] .glyph[data-btn="rs"]::after{display:none}
+body[data-device="kb"] .glyph--lg{--g:34px;font-size:13px}
+body[data-device="kb"] .glyph--md{--g:26px}
+
+/* ---------- Hint bar (Figma "Frame 1244833096", auto-layout H, gap 41) ---------- */
+.hint-bar{position:absolute;left:59px;bottom:23px;height:44px;display:flex;align-items:center;gap:41px}
+.hint{display:flex;align-items:center;gap:10px;font:700 18px/1 var(--font-ui);text-transform:uppercase;color:var(--text-1);white-space:nowrap}
+.hint--pair{gap:11px}
+.hint__glyphs{display:flex;gap:11px}
+
+/* ---------- Social bar (Figma "Group 1244834110", bottom-right) ---------- */
+.social-bar{position:absolute;right:61px;bottom:31px;height:46px;display:flex;align-items:center;gap:7px}
+.social-bar__btn{height:45px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 14px;border-radius:5px;background:var(--surface-chip);
+  box-shadow:inset 0 0 0 1px var(--line-2);font:400 18px/1 var(--font-ui);text-transform:uppercase;color:#fff}
+.social-bar__btn--bell{width:55px;padding:0;box-shadow:none}
+.social-bar__btn--options{width:136px}
+
+/* ---------- Level chip (Figma R/E/S chip, 36px badge + 158px body) ---------- */
+.level-chip{--c:var(--track-r);position:relative;display:flex;width:194px;height:62px}
+.level-chip--e{--c:var(--track-e)} .level-chip--s{--c:var(--track-s)}
+.level-chip__badge{width:36px;height:62px;flex:none;border-radius:1px;background:var(--c);display:grid;place-items:center;font:400 23px/1 var(--font-display);color:var(--text-ink);padding-top:12px;box-sizing:border-box}
+.level-chip__body{position:relative;flex:1;background:linear-gradient(rgb(22 24 31 / .7) 0 33px,#000 33px)}
+.level-chip__label{position:absolute;left:13px;top:6px;font:600 15px/1 var(--font-ui);letter-spacing:-.019em;text-transform:uppercase;color:var(--text-1)}
+.level-chip__value{position:absolute;right:10px;top:4px;font:600 20px/1 var(--font-ui);letter-spacing:-.019em;color:var(--text-1)}
+.level-chip__xp{position:absolute;left:13px;top:41px;font:500 14px/1 var(--font-ui);letter-spacing:-.019em;text-transform:uppercase;color:var(--text-muted)}
+.level-chip__bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgb(255 255 255 / .12)}
+.level-chip__bar i{position:absolute;inset:0 auto 0 0;width:var(--p,50%);background:var(--c);clip-path:polygon(0 0,100% 0,calc(100% - 3px) 100%,0 100%)}
+/* compact variant used inside the profile card (Figma 136x47) */
+.level-chip--mini{width:136px;height:47px}
+/* Figma order: body first, badge + letter on top (badge overlaps the body by 7px) */
+.level-chip--mini .level-chip__badge{position:relative;z-index:1;width:36px;height:43px;margin-top:3px;padding:2px 0 0}
+.level-chip--mini .level-chip__body{position:relative;z-index:0;margin:4px 0 2px -7px;background:var(--surface-chip);border-radius:1px}
+.level-chip--mini .level-chip__label{left:14px;top:12px;color:var(--c)}
+.level-chip--mini .level-chip__value{right:14px;top:12px;font-size:15px;color:var(--c)}
+
+/* ---------- Wallet (Figma "Currency" 236:4940, 250x62): rank badge, MTX Credit | Money ---------- */
+.wallet{position:relative;width:250px;height:62px;display:flex;align-items:center;padding-left:80px;box-sizing:border-box;border-radius:3px;background:rgb(0 0 0 / .5)}
+.wallet__badge{position:absolute;left:6px;top:-4px;width:70px;height:70px}
+.wallet__cell{width:82px;height:100%;display:flex;align-items:center;justify-content:center;gap:5px}
+.wallet__divider{flex:none;width:1px;height:22px;background:#3a3e4a}
+.wallet__value{font:700 14px/1 var(--font-ui);color:#f6f1eb}
+.wallet__value--gold{color:#f6df2f}
+.wallet__cell img{flex:none}
+.wallet__tickets{display:none}
+.wallet__rpoint{display:none}
+.wallet__value--r{color:#f5e5b5}
+
+/* ---------- Player HUD (top-right: 3 level chips + wallet) ---------- */
+.player-hud{position:absolute;right:61px;top:51px;display:flex;gap:3px;align-items:flex-start}
+.player-hud .wallet{margin-left:3px}
+
+/* ---------- Panel + tile surfaces ---------- */
+.panel{position:absolute;border-radius:var(--r-md);background:var(--surface-scrim)}
+.tile{position:relative;background:var(--surface-card);--tex-o:.3}
+.tile--line{border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--line-1)}
+
+/* ---------- Tag (Figma "TheFinals/Tag") ---------- */
+.tag{display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 12px;border-radius:var(--r-tag);background:var(--yellow-2);
+  font:600 16px/1 var(--font-ui);letter-spacing:.01em;text-transform:uppercase;color:#1d1a20;white-space:nowrap}
+.tag--news{height:23px;padding:0 6px;background:var(--amber-2);font-weight:700;font-size:14px}
+.tag--timer{height:28px;gap:8px;padding:0 10px;border-radius:var(--r-xs);background:var(--yellow-2);font:700 18px/1 var(--font-ui);color:var(--text-ink)}
+.tag--timer img{width:18px;height:18px}
+
+/* ---------- CTA button (Figma "Group 1244833676", 255x56) ----------
+   Same layer stack as Figma, bottom to top:
+     .btn-cta__grad  = "Scratch-White 2"  gold linear gradient (#f2df57 / #f3ad3b / #f2df57)
+     .btn-cta__tex   = "Scratch-White 1"  scratch image, blend LINEAR_BURN
+                       (CSS has no linear-burn; multiply is the closest match)
+     .glyph          = "Group 1244833398" A button
+     .btn-cta__label = the two "SELECT" text layers (one has LAYER_BLUR 2 -> text-shadow) */
+.btn-cta{position:relative;isolation:isolate;display:flex;align-items:center;gap:22px;width:max-content;min-width:255px;height:56px;padding:0 24px 0 28px;box-sizing:border-box;border-radius:var(--r-sm);cursor:pointer}
+.btn-cta__grad,.btn-cta__tex{position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+.btn-cta__grad{z-index:-2;background:var(--grad-gold)}
+.btn-cta__tex{z-index:-1;background:var(--tex-white) center/cover;mix-blend-mode:multiply}
+.btn-cta__label{font:400 30px/1 var(--font-display);text-transform:uppercase;color:var(--text-cta);padding-top:4px;text-shadow:0 0 2px rgb(30 30 29 / .6)}
+.btn-cta.is-ready-unlock{transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+.btn-cta.is-ready-unlock:hover:not(.is-holding){filter:brightness(1.12);box-shadow:0 0 18px rgba(242,223,87,.45)}
+.btn-cta__hold-bar{position:absolute;left:0;top:0;bottom:0;width:var(--hold-p,0%);border-radius:inherit;pointer-events:none;z-index:0;background:linear-gradient(90deg,rgba(255,255,255,.25),rgba(255,244,165,.9));box-shadow:0 0 16px rgba(255,244,165,.85);border-right:2px solid #fff;display:none}
+.btn-cta.is-holding .btn-cta__hold-bar{display:block}
+.btn-cta.is-holding{transform:scale(.97);box-shadow:0 0 24px rgba(242,223,87,.6)!important}
+.btn-cta.is-unlocked-flash{animation:cta-flash .45s ease-out}
+@keyframes cta-flash{0%{transform:scale(1.08);filter:brightness(2);box-shadow:0 0 40px #fff,0 0 60px var(--yellow-2)}100%{transform:scale(1);filter:none;box-shadow:none}}
+.btn-cta__check{display:none}
+.btn-cta.is-done{display:flex;justify-content:space-between;align-items:center;padding:0 28px 0 24px;background:rgba(18,20,26,.85);border:1px solid var(--line-3);border-radius:var(--r-sm);box-shadow:inset 0 0 0 1px rgb(0 0 0 / .5);cursor:default}
+.btn-cta.is-done .btn-cta__grad,.btn-cta.is-done .btn-cta__tex,.btn-cta.is-done .btn-cta__hold-bar,.btn-cta.is-done .glyph{display:none!important}
+.btn-cta.is-done .btn-cta__label{color:var(--text-subtle);text-shadow:none;padding-top:2px;letter-spacing:.03em}
+.btn-cta.is-done .btn-cta__check{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;color:var(--text-1);flex:none}
+.btn-cta.is-done .btn-cta__check svg{width:100%;height:100%;display:block}
+/* Dev "Show Figma map": pull the two background layers apart so the stack is visible */
+body.show-layers .btn-cta__grad{transform:translate(-10px,-10px);outline:1px dashed #8bcab2}
+body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed #8bcab2;mix-blend-mode:normal}
+.btn-cta--sm{height:46px;width:285px;gap:14px;padding-left:19px}
+.btn-cta--sm .glyph{--g:31px}
+.btn-cta--sm .btn-cta__label{font-size:24px;flex:1;text-align:center;padding-right:12px}
+
+/* ---------- Mode card (Figma "Component 1/2/8", 441x175) ---------- */
+.mode-card{position:absolute;width:441px;height:175px;box-sizing:border-box;padding:23px 47px 11px 24px;display:flex;flex-direction:column;gap:38px;
+  background:var(--surface-card-dark);box-shadow:inset 0 0 0 2px #000;--tex-o:.1;--tex-blend:screen;overflow:visible;
+  transition:background .18s ease,box-shadow .18s ease}
+.mode-card__title{margin:0;font:400 40px/.78 var(--font-display);text-transform:uppercase;color:var(--text-off);white-space:pre-line;
+  transition:opacity .125s ease-in-out,color .25s ease}
+.mode-card__sub{margin:0;font:600 16px/16px var(--font-ui);text-transform:uppercase;color:var(--text-dim);
+  transition:opacity .125s ease-in-out,color .25s ease}
+.mode-card.is-fading .mode-card__title,
+.mode-card.is-fading .mode-card__sub{opacity:0}
+.mode-card__fx{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.mode-card__fist{position:absolute;left:206px;top:-96px;width:247px;height:247px;mix-blend-mode:multiply;opacity:0;transition:opacity .25s ease}
+.mode-card.is-focused .mode-card__fist,.mode-card:hover .mode-card__fist{opacity:.45}
+.mode-card.is-focused{background:linear-gradient(rgb(0 0 0 / .1),rgb(0 0 0 / .1)),var(--grad-gold),var(--yellow);--tex-o:.5}
+.mode-card.is-focused .mode-card__title,.mode-card:hover .mode-card__title{color:var(--text-ink-2)}
+.mode-card.is-focused .mode-card__sub,.mode-card:hover .mode-card__sub,.mode-card.is-focused .mode-card__label,.mode-card:hover .mode-card__label{color:var(--text-ink-2)}
+/* Figma 613:60103 Hover: same yellow as focus, without the ring */
+.mode-card:hover{background:linear-gradient(rgb(0 0 0 / .1),rgb(0 0 0 / .1)),var(--grad-gold),var(--yellow);--tex-o:.5}
+.mode-card__label{position:absolute;left:24px;top:94px;margin:0;font:600 15px/20px var(--font-ui);text-transform:uppercase;color:var(--text-2,#acacbb);transition:color .18s ease}
+/* Figma 613:60103 Disabled (sample 613:59368) */
+.mode-card.is-disabled,.mode-card.is-disabled:hover{background:#272727;opacity:.3;pointer-events:none}
+.mode-card.is-disabled::before{background:url(../assets/img/tex-tile.webp) 0 0/8px repeat;opacity:.3;mix-blend-mode:overlay}
+.mode-card.is-disabled .mode-card__title,.mode-card.is-disabled .mode-card__sub,.mode-card.is-disabled .mode-card__label{color:var(--text-dim)}
+.mode-card.is-disabled .mode-card__fist,.mode-card.is-disabled .mode-card__pager{opacity:0}
+/* Figma 613:59644 Match Find */
+.mode-card.is-finding{pointer-events:none}
+.mode-card.is-finding > :not(.mode-card__find){display:none}
+.mode-card__find{position:absolute;inset:0;color:#f6f1eb;font:600 15px/18px var(--font-ui)}
+.mode-card.is-focused .mode-card__find{color:var(--text-ink-2)}
+.mode-card__find-title{position:absolute;left:24px;top:18px;font-size:16px;text-transform:uppercase}
+.mode-card__find-time{position:absolute;left:0;right:0;top:44px;text-align:center;font:400 88px/92px var(--font-display);color:transparent;background:linear-gradient(rgb(0 0 0/.1),rgb(0 0 0/.1)),var(--grad-gold),var(--yellow);-webkit-background-clip:text;background-clip:text}   /* golden, Figma 613:59626 */
+.mode-card.is-focused .mode-card__find-time{color:var(--text-ink);background:none}
+.mode-card__find-mode{position:absolute;left:24px;bottom:15px;text-transform:uppercase}
+.mode-card__find-status{position:absolute;right:24px;bottom:15px}
+.is-find-lock [data-nav]:not(.mode-card),.is-find-lock [data-fn]:not(.mode-card){opacity:.55;pointer-events:none}
+.is-find-lock .social-bar{opacity:.3;pointer-events:none}
+
+.mode-card__lock{position:absolute;inset:0;display:grid;place-items:center;background:rgb(22 24 31 / .7)}
+.mode-card__lock img{width:70px;height:70px}
+.mode-card.is-locked.is-focused{background:var(--surface-card-dark);--tex-o:.1}
+.mode-card.is-locked.is-focused .mode-card__title,.mode-card.is-locked.is-focused .mode-card__sub{color:var(--text-off)}
+.mode-card__pager{position:absolute;right:16px;bottom:13px;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .25s ease;z-index:2}
+.mode-card.is-focused .mode-card__pager,.mode-card:hover .mode-card__pager{opacity:1}
+.mode-card__pager i{width:9px;height:9px;border-radius:50%;background:rgb(0 0 0 / .5);cursor:pointer;transition:background .25s ease,opacity .25s ease}
+.mode-card__pager i.is-active,
+.mode-card.is-focused .mode-card__pager i.is-active{background:#ffffff;transform:none}
+.mode-card__pager i:not(.is-active):hover{background:rgb(0 0 0 / .75);transform:none}
+.mode-card__pager .glyph{--g:22px;font-size:10px;cursor:pointer;user-select:none;transition:transform .12s ease,filter .12s ease}
+.mode-card.is-focused .mode-card__pager .glyph{background:#1e2026;color:#ffffff;box-shadow:0 2px 4px rgb(0 0 0 / .3)}
+.mode-card__pager .glyph:hover{transform:scale(1.15);filter:brightness(1.2)}
+.mode-card__pager .glyph:active{transform:scale(.92)}
+
+/* ---------- Red slash (Figma "Vector 683" band + "Vector 684" wedge) ---------- */
+.slash{position:absolute;left:0;right:0;height:74px;pointer-events:none}
+.slash__wedge{position:absolute;right:0;bottom:6px;width:78px;height:68px}
+.slash__band{position:absolute;left:0;right:0;bottom:0;height:44px;background:var(--red-2);clip-path:polygon(0 calc(100% - 6px),calc(100% - 112px) calc(100% - 6px),100% 0,100% 100%,0 100%)}
+.slash--top{transform:scale(-1,-1)}
+.slash--red .slash__band{background:var(--red)}
+
+/* ---------- Level ring (Figma "Ellipse 434" 37px ring + number) ---------- */
+.level-ring{display:grid;place-items:center;width:37px;height:37px;flex:none;border-radius:50%;background:#000;box-shadow:inset 0 0 0 3px var(--text-1);
+  font:600 15px/1 var(--font-ui);color:var(--text-1)}
+.is-done .level-ring{box-shadow:inset 0 0 0 3px var(--text-dim);color:var(--text-dim)}
+
+/* ---------- Scrollbar (Figma "Rectangle 11427/11428") ---------- */
+.scrollbar{position:absolute;width:7px}
+.scrollbar::before{content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:var(--line-2)}
+.scrollbar__thumb{position:absolute;left:0;width:7px;height:99px;border-radius:10px;background:var(--yellow-2);box-shadow:0 0 0 3px #141415;transition:top .15s}
+
+/* ---------- Divider ---------- */
+.divider{height:1px;background:var(--line-3);border:0;margin:0}
+
+/* ---------- Stat card (followers / reputation, used on Simulation + Media) ---------- */
+.stat-card{position:relative;width:321px;box-sizing:border-box;border-radius:var(--r-md);background:var(--surface-card);box-shadow:inset 0 0 0 1px var(--line-1)}
+.stat-card--followers{height:218px;display:flex;flex-direction:column;align-items:center;padding-top:21px}
+.stat-card__title{font:700 24px/19px var(--font-ui);text-transform:uppercase;color:var(--text-1)}
+.stat-card__icon{width:125px;height:89px;margin-top:21px}
+.stat-card__big{margin-top:18px;font:700 32px/19px var(--font-ui);color:var(--yellow-3)}
+.stat-card--rep{height:115px;padding:14px 22px}
+.stat-card__head{display:flex;align-items:center;gap:9px;font:700 24px/24px var(--font-ui);text-transform:uppercase;color:var(--yellow-3)}
+.stat-card__head img{width:19px;height:19px}
+.stat-card__row{display:flex;justify-content:space-between;align-items:baseline;margin-top:26px}
+.stat-card__k{font:600 20px/24px var(--font-ui);text-transform:uppercase}
+.stat-card__v{font:500 15px/19px var(--font-ui);color:var(--text-muted)}
+.stat-card__bar{height:4px;margin-top:8px;border-radius:3px;background:#000}
+.stat-card__bar i{display:block;height:100%;width:var(--p);border-radius:3px;background:var(--yellow-3)}
+
+/* ---------- News stack (Figma "Group 1244833896" season + wishlist) ---------- */
+.news-stack{position:absolute;width:360px;height:566px;border-radius:var(--r-md);background:var(--surface-scrim)}
+.news-item{position:absolute;left:10px;width:339px;display:block}
+.news-item__art{position:relative;width:339px;overflow:hidden}
+.news-item__art > img{width:100%;height:100%;object-fit:cover}
+.news-item__footer{height:48px;border-top:2px solid var(--amber-2);background:#1d1a20;display:flex;align-items:center;padding-left:10px;
+  font:700 24px/32px var(--font-ui);letter-spacing:.01em;text-transform:uppercase;color:#e5e6e8}
+.news-item .tag{position:absolute}
+
+/* ---------- CTA button · Pill (Figma "Accept Button / 06 Pill", 280x60, mtx-figma-export_AcceptButton) ----------
+   One place for every Accept / Select / Hold button in the prototype (.btn-cta):
+     body        #f6df2f pill, 1 px black inner edge, scratch texture on top (linear burn 50 %)
+     hint        dark circle (#141415) in a #484848 rim, white letter
+     label       Modi Thorson 30, #141415
+     Hold Fill   3 px prismatic ring around the pill (Figma paint style "Selected Prismatic");
+                 while a hold runs it sweeps 360 degrees clockwise from 12 o'clock, driven by --hold-p (0-100 %),
+                 which every hold in the game already sets on the button. */
+.btn-cta{--cta-h:60px;min-width:280px;height:var(--cta-h);gap:14px;padding:0 30px 0 10px;border-radius:999px}
+.btn-cta__grad{background:#f6df2f;box-shadow:inset 0 0 0 1px #000}
+.btn-cta__tex{opacity:.5}
+.btn-cta .glyph{--g:36px;border-radius:999px;background:#141415;box-shadow:0 0 0 2px #484848;color:#fff;font:900 20px/1 var(--font-ui)}
+
+.btn-cta__label{color:#141415;letter-spacing:.02em;text-shadow:none}
+.btn-cta__hold-bar{display:none!important}
+/* the sweep sits BEHIND the pill body (z -3 under the body's z -2): the body covers the middle, so only a
+   ring shows outside the pill; a single conic mask layer reveals it clockwise from 12 o'clock */
+.btn-cta::after{
+  content:"";position:absolute;inset:-5px -6px;border-radius:999px;pointer-events:none;z-index:-3;
+  background:linear-gradient(90deg,#f3eed0 0%,#e4b996 21%,#766ab2 52%,#5a8dc2 78%,#8bcab2 100%);
+  -webkit-mask:conic-gradient(#000 var(--hold-p,0%),transparent 0);
+  mask:conic-gradient(#000 var(--hold-p,0%),transparent 0);
+  opacity:0;transition:opacity .12s ease
+}
+/* 2 px dark gap between the pill and the ring, like the Figma Hold Fill */
+.btn-cta.is-holding .btn-cta__grad,.btn-cta.is-unlocked-flash .btn-cta__grad{box-shadow:inset 0 0 0 1px #000,0 0 0 2px #141415}
+.btn-cta.is-holding::after{opacity:1}
+.btn-cta.is-holding{transform:scale(.98);box-shadow:none!important}
+.btn-cta.is-ready-unlock:hover:not(.is-holding){box-shadow:none;filter:brightness(1.06)}
+/* finished hold: the full ring flashes once, no glow */
+.btn-cta.is-unlocked-flash{animation:cta-done .45s ease-out}
+.btn-cta.is-unlocked-flash::after{opacity:1;--hold-p:100%;animation:cta-ring .45s ease-out forwards}
+@keyframes cta-done{0%{transform:scale(1.04)}100%{transform:scale(1)}}
+@keyframes cta-ring{0%{opacity:1}100%{opacity:0}}
+.btn-cta.is-done{border-radius:999px}
+.btn-cta.is-done::after{display:none}
+.btn-cta--sm{--cta-h:46px;width:285px;min-width:0;padding-left:8px}
+.btn-cta--sm .glyph{--g:30px}
+
+/* ================= CTA standard (every .btn-cta: Select, Accept, Track, Claim, Buy, Unlock, Flip card ...) =================
+   one pill:   60 px tall, fully rounded, no browser button chrome
+   icon slot:  ALWAYS first, 38 px tall, 11 px from the left edge
+               - button hint: dark cap, white letter; a single key is a circle, a word ("Space") a capsule
+               - done: check, locked: lock (same slot, same size)
+   label:      Modi Thorson 30, 14 px after the slot, 30 px right padding
+   states:     primary (yellow) / ghost (secondary) / done / locked share the same geometry */
+.btn-cta{appearance:none;-webkit-appearance:none;border:0;margin:0;background:none;font:inherit;color:inherit;outline:none;
+  --cta-h:60px;--slot:38px;height:var(--cta-h);min-width:280px;width:max-content;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:flex-start;gap:14px;padding:0 30px 0 11px;border-radius:999px}
+.btn-cta .glyph,.btn-cta .btn-cta__check,.btn-cta::before{order:-1;flex:none}
+.btn-cta .glyph{--g:var(--slot);height:var(--slot);min-width:var(--slot);padding:0;margin:0;border-radius:999px;
+  background:linear-gradient(#2a2c33,#141415);box-shadow:inset 0 1px 0 rgb(255 255 255 / .12),inset 0 -2px 0 rgb(0 0 0 / .5);
+  font:900 18px/1 var(--font-ui);color:#fff}
+body[data-device="kb"] .btn-cta .glyph{padding:0 13px;font:800 12px/1 var(--font-ui);letter-spacing:.08em;border-radius:999px;
+  background:linear-gradient(#2a2c33,#141415);box-shadow:inset 0 1px 0 rgb(255 255 255 / .12),inset 0 -2px 0 rgb(0 0 0 / .5);color:#f6f1eb}
+.btn-cta__label{font:400 30px/1 var(--font-display);padding-top:3px;color:#141415;letter-spacing:.02em;text-shadow:none;white-space:nowrap}
+
+/* Accept Secondary: the dark body of the done / Completed state inside a 3 px yellow ring that carries the
+   primary's scratch texture, 3 px of dark gap between ring and body. Same 60 px pill, icon slot, label and hold
+   ring as Accept Primary. Use it for the second action next to a primary (Flip card next to Select ...):
+   .btn-cta.btn-cta--secondary
+     ring   = .btn-cta__grad (yellow) + .btn-cta__tex (texture, multiply), both masked to a 3 px band
+     body   = the button's own background, kept inside a 6 px transparent border (3 ring + 3 gap) */
+.btn-cta--secondary{border:6px solid transparent;padding:0 24px 0 5px;background:#16181f padding-box;
+  box-shadow:inset 0 0 0 1px #3a3d4f}
+.btn-cta--secondary .btn-cta__grad,.btn-cta--secondary .btn-cta__tex{inset:-6px;padding:3px;border-radius:999px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.btn-cta--secondary .btn-cta__grad{background:#f6df2f;box-shadow:none}
+.btn-cta--secondary .btn-cta__tex{opacity:.5}
+.btn-cta--secondary .btn-cta__label{color:#f6f1eb}
+.btn-cta--secondary .glyph{box-shadow:inset 0 1px 0 rgb(255 255 255 / .12),inset 0 -2px 0 rgb(0 0 0 / .5),0 0 0 1px #484848}
+/* secondary hold = the yellow border itself: while held the 3 px ring dims and fills back with yellow clockwise
+   from 12 o'clock as --hold-p runs; drawn over the ring only, never over the body */
+.btn-cta--secondary::after{inset:-6px;padding:3px;z-index:1;
+  background:conic-gradient(#f6df2f 0 var(--hold-p,0%),#3a3d4f var(--hold-p,0%) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.btn-cta--secondary.is-holding .btn-cta__grad,.btn-cta--secondary.is-unlocked-flash .btn-cta__grad{box-shadow:none}
+.btn-cta--secondary.is-ready-unlock:hover:not(.is-holding){filter:brightness(1.1)}
+
+/* ghost (outline) variant, kept for overlays on art where a solid pill is too heavy */
+.btn-cta--ghost .btn-cta__grad,.btn-cta--ghost .btn-cta__tex{display:none}
+.btn-cta--ghost{background:rgb(10 11 14 / .75);box-shadow:inset 0 0 0 1px rgb(246 223 47 / .6)}
+.btn-cta--ghost .btn-cta__label{color:#f6f1eb}
+.btn-cta--ghost .glyph,body[data-device="kb"] .btn-cta--ghost .glyph{background:linear-gradient(#fff07a,#f6df2f);color:#141415;box-shadow:inset 0 -2px 0 rgb(0 0 0 / .2)}
+
+/* done / locked: dark body, 1 px grey edge, the icon sits in the slot */
+.btn-cta.is-done,.btn-cta.is-locked{background:#16181f;border:0;box-shadow:inset 0 0 0 1px #3a3d4f;padding:0 30px 0 11px;justify-content:flex-start;gap:14px;cursor:default}
+.btn-cta.is-done .btn-cta__grad,.btn-cta.is-done .btn-cta__tex,.btn-cta.is-locked .btn-cta__grad,.btn-cta.is-locked .btn-cta__tex,
+.btn-cta.is-done .glyph,.btn-cta.is-locked .glyph{display:none!important}
+.btn-cta.is-done .btn-cta__label,.btn-cta.is-locked .btn-cta__label{color:#acacbb;padding-top:3px;letter-spacing:.02em}
+.btn-cta.is-done .btn-cta__check{display:grid;place-items:center;width:var(--slot);height:var(--slot);border-radius:50%;background:#2a2c33;color:#f6f1eb}
+.btn-cta.is-done .btn-cta__check svg{width:20px;height:20px}
+.btn-cta.is-locked .btn-cta__check{display:none!important}
+.btn-cta.is-locked::before{content:"";width:var(--slot);height:var(--slot);border-radius:50%;
+  background:#2a2c33 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23acacbb' d='M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") center/18px no-repeat}
+.btn-cta.is-locked{filter:none}
+
+/* smaller sizes keep the same proportions */
+.btn-cta--sm{--cta-h:46px;--slot:30px;padding-left:8px;gap:12px}
+.btn-cta--sm .btn-cta__label{font-size:24px}
+
+
+/* key cap inside a CTA: same padding on every device (single key = circle via min-width, words = capsule),
+   text always centred both ways; the label is centred in the space after the slot */
+.btn-cta .glyph,body[data-device] .btn-cta .glyph{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  padding:0 12px;min-width:var(--slot);height:var(--slot);line-height:1;text-align:center;white-space:nowrap}
+body[data-device="xbox"] .btn-cta .glyph,body[data-device="ps"] .btn-cta .glyph{font:900 16px/1 var(--font-ui);letter-spacing:.02em}
+body[data-device="kb"] .btn-cta .glyph{font:800 12px/1 var(--font-ui);letter-spacing:.08em}
+.btn-cta__label{flex:1;text-align:center;padding-top:3px;line-height:1}
+.btn-cta{gap:14px}
+
+/* ================= Controller key icons (mtx-figma-export_ControllerKey) =================
+   Every non-keyboard hint uses the Figma set: #16181f circle with a 1 px #373737 edge, Industry Black letter
+   (A #35d900, B #e00000, X #223bd6, Y #f5e414, sticks #4e4e4e); bumpers / triggers / menu / view are the
+   Figma shapes in assets/svg/pad. PlayStation keeps its legend colours on the same circle. */
+body:not([data-device="kb"]) .glyph[data-btn]{background:#16181f;box-shadow:inset 0 0 0 1px #373737;font-family:var(--font-ui);font-weight:900}
+body[data-device="xbox"] .glyph[data-btn="ls"],body[data-device="xbox"] .glyph[data-btn="rs"]{--c:#4e4e4e;--tick:#4e4e4e}
+body[data-device="xbox"] .glyph[data-btn="lt"],body[data-device="xbox"] .glyph[data-btn="rt"],
+body[data-device="xbox"] .glyph[data-btn="lb"],body[data-device="xbox"] .glyph[data-btn="rb"]{--c:#4e4e4e;border-radius:0;box-shadow:none;background:center/100% 100% no-repeat;font:700 11px/1 var(--font-ui)}
+body[data-device="xbox"] .glyph[data-btn="lt"]{--g:28px;width:28px;background-image:url(../assets/svg/pad/lt.svg);padding-top:0}
+body[data-device="xbox"] .glyph[data-btn="rt"]{--g:28px;width:28px;background-image:url(../assets/svg/pad/rt.svg)}
+body[data-device="xbox"] .glyph[data-btn="lb"]{--g:24px;width:42px;background-image:url(../assets/svg/pad/lb.svg)}
+body[data-device="xbox"] .glyph[data-btn="rb"]{--g:24px;width:42px;background-image:url(../assets/svg/pad/rb.svg)}
+body[data-device="xbox"] .glyph[data-btn="menu"],body[data-device="xbox"] .glyph[data-btn="view"]{min-width:var(--g);width:var(--g);padding:0!important;font-size:0!important;
+  background:center/100% 100% no-repeat;box-shadow:none}
+body[data-device="xbox"] .glyph[data-btn="menu"]{background-image:url(../assets/svg/pad/menu.svg)}
+body[data-device="xbox"] .glyph[data-btn="view"]{background-image:url(../assets/svg/pad/view.svg)}
+
+/* the same icons inside the CTA slot (38 px), primary and secondary alike */
+body[data-device="xbox"] .btn-cta .glyph,body[data-device="ps"] .btn-cta .glyph{background-color:#16181f;background-image:none;
+  box-shadow:inset 0 0 0 1px #373737;color:var(--c);font:900 20px/1 var(--font-ui);letter-spacing:0}
+body[data-device="xbox"] .btn-cta .glyph[data-btn="menu"]{background:url(../assets/svg/pad/menu.svg) center/100% 100% no-repeat;box-shadow:none}
+body[data-device="xbox"] .btn-cta--ghost .glyph,body[data-device="ps"] .btn-cta--ghost .glyph{background-color:#16181f;color:var(--c)}
+
+/* Customize overlay key chips (Q / E / Z / C / View / Menu) follow the same set on a controller */
+html body[data-device="xbox"] .cc-key{background:#16181f;box-shadow:inset 0 0 0 1px #373737;color:#4e4e4e;font-family:var(--font-ui);font-weight:700}
+html body[data-device="xbox"] .cc-key--lb,html body[data-device="xbox"] .cc-key--rb,html body[data-device="xbox"] .cc-key--lt,html body[data-device="xbox"] .cc-key--rt{
+  background:center/100% 100% no-repeat;box-shadow:none;border-radius:0;padding:0;color:#4e4e4e}
+html body[data-device="xbox"] .cc-key--lb{background-image:url(../assets/svg/pad/lb.svg);min-width:52px}
+html body[data-device="xbox"] .cc-key--rb{background-image:url(../assets/svg/pad/rb.svg);min-width:52px}
+html body[data-device="xbox"] .cc-key--lt{background-image:url(../assets/svg/pad/lt.svg);min-width:34px}
+html body[data-device="xbox"] .cc-key--rt{background-image:url(../assets/svg/pad/rt.svg);min-width:34px}
+html body[data-device="xbox"] .cc-key--view,html body[data-device="xbox"] .cc-key--menu{background:center/contain no-repeat;box-shadow:none;font-size:0;min-width:0;padding:0;aspect-ratio:1}
+html body[data-device="xbox"] .cc-key--view{background-image:url(../assets/svg/pad/view.svg)}
+html body[data-device="xbox"] .cc-key--menu{background-image:url(../assets/svg/pad/menu.svg)}
+/* Xbox: the Customization launcher chip (.glyph--key, label "View") uses the View icon too */
+html body[data-device="xbox"] .glyph--key[data-cc-key]{min-width:var(--g);width:var(--g);padding:0;font-size:0;box-shadow:none;background:url(../assets/svg/pad/view.svg) center/100% 100% no-repeat}
+
+/* ================= PlayStation key icons (source/P5Gamepad "Alt 2", source/P4Gamepad "Alt") =================
+   body[data-pad] = ps5 | ps4 (app.js, from the pad's product id or the dev Glyphs select). Each icon is cropped
+   to its artwork; --ar is that artwork's width / height so the chip keeps the right shape at any --g. */
+html body[data-device="ps"] .glyph[data-btn],html body[data-device="ps"] .glyph--key[data-cc-key],html body[data-device="ps"] .cc-key{
+  --ar:1;width:calc(var(--g) * var(--ar));min-width:0;height:var(--g);padding:0!important;margin:0;border-radius:0;box-shadow:none;
+  background:var(--pad-img) center/contain no-repeat;font-size:0!important;color:transparent}
+html body[data-device="ps"] .glyph[data-btn]::before,html body[data-device="ps"] .glyph[data-btn]::after{display:none}
+html body[data-device="ps"] .glyph[data-btn="ls"],html body[data-device="ps"] .glyph[data-btn="rs"]{--g:36px;margin:-4px 0}
+html body[data-device="ps"] .glyph[data-btn="lt"],html body[data-device="ps"] .glyph[data-btn="rt"]{--g:28px}
+html body[data-device="ps"] .glyph[data-btn="menu"]{--g:30px;margin:-4px 0}
+html body[data-device="ps"] .cc-key{--g:30px}
+html body[data-device="ps"] .cc-key--menu{--g:34px}
+/* CTA slot: the icon fills the 38 px slot (sticks / triggers keep their artwork scale) */
+html body[data-device="ps"] .btn-cta .glyph[data-btn]{--g:var(--slot);height:var(--slot);background-color:transparent;margin:0}
+html body[data-device="ps"] .btn-cta--detail .glyph[data-btn]{padding:0!important}
+
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="a"],html body[data-device="ps"][data-pad="ps5"] .cc-key--a{--pad-img:url(../assets/img/pad/ps5/a.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="b"],html body[data-device="ps"][data-pad="ps5"] .cc-key--b{--pad-img:url(../assets/img/pad/ps5/b.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="x"],html body[data-device="ps"][data-pad="ps5"] .cc-key--x{--pad-img:url(../assets/img/pad/ps5/x.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="y"],html body[data-device="ps"][data-pad="ps5"] .cc-key--y{--pad-img:url(../assets/img/pad/ps5/y.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="ls"],html body[data-device="ps"][data-pad="ps5"] .cc-key--ls{--pad-img:url(../assets/img/pad/ps5/ls.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rs"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rs{--pad-img:url(../assets/img/pad/ps5/rs.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lt{--pad-img:url(../assets/img/pad/ps5/lt.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rt{--pad-img:url(../assets/img/pad/ps5/rt.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lb{--pad-img:url(../assets/img/pad/ps5/lb.webp);--ar:1.455}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rb{--pad-img:url(../assets/img/pad/ps5/rb.webp);--ar:1.455}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="menu"],html body[data-device="ps"][data-pad="ps5"] .cc-key--menu{--pad-img:url(../assets/img/pad/ps5/menu.webp);--ar:1.196}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="view"],html body[data-device="ps"][data-pad="ps5"] .cc-key--view,html body[data-device="ps"][data-pad="ps5"] .glyph--key[data-cc-key]{--pad-img:url(../assets/img/pad/ps5/view.webp);--ar:1.333}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="a"],html body[data-device="ps"][data-pad="ps4"] .cc-key--a{--pad-img:url(../assets/img/pad/ps4/a.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="b"],html body[data-device="ps"][data-pad="ps4"] .cc-key--b{--pad-img:url(../assets/img/pad/ps4/b.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="x"],html body[data-device="ps"][data-pad="ps4"] .cc-key--x{--pad-img:url(../assets/img/pad/ps4/x.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="y"],html body[data-device="ps"][data-pad="ps4"] .cc-key--y{--pad-img:url(../assets/img/pad/ps4/y.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="ls"],html body[data-device="ps"][data-pad="ps4"] .cc-key--ls{--pad-img:url(../assets/img/pad/ps4/ls.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rs"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rs{--pad-img:url(../assets/img/pad/ps4/rs.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lt{--pad-img:url(../assets/img/pad/ps4/lt.webp);--ar:0.945}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rt{--pad-img:url(../assets/img/pad/ps4/rt.webp);--ar:0.945}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lb{--pad-img:url(../assets/img/pad/ps4/lb.webp);--ar:1.58}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rb{--pad-img:url(../assets/img/pad/ps4/rb.webp);--ar:1.58}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="menu"],html body[data-device="ps"][data-pad="ps4"] .cc-key--menu{--pad-img:url(../assets/img/pad/ps4/menu.webp);--ar:1.258}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="view"],html body[data-device="ps"][data-pad="ps4"] .cc-key--view,html body[data-device="ps"][data-pad="ps4"] .glyph--key[data-cc-key]{--pad-img:url(../assets/img/pad/ps4/view.webp);--ar:1.5}
+
+/* D-pad left / right (attribute -/+): Xbox uses the ControllerKey export, PlayStation its pad set */
+html body[data-device="xbox"] .glyph[data-btn="dl"],html body[data-device="xbox"] .glyph[data-btn="dr"]{--g:26px;width:var(--g);min-width:0;padding:0;font-size:0;box-shadow:none;border-radius:0;background:center/contain no-repeat}
+html body[data-device="xbox"] .glyph[data-btn="dl"]{background-image:url(../assets/svg/pad/dpad-left.svg)}
+html body[data-device="xbox"] .glyph[data-btn="dr"]{background-image:url(../assets/svg/pad/dpad-right.svg)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dl"]{--pad-img:url(../assets/img/pad/ps5/dpad-left.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dr"]{--pad-img:url(../assets/img/pad/ps5/dpad-right.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dl"]{--pad-img:url(../assets/img/pad/ps4/dpad-left.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dr"]{--pad-img:url(../assets/img/pad/ps4/dpad-right.webp)}
+html body[data-device="ps"] .glyph[data-btn="dl"],html body[data-device="ps"] .glyph[data-btn="dr"]{--g:28px}
+
+/* keyboard key inside a CTA = the hint-bar keycap (21 px tall, 11 px text, 1 px edge, darker bottom line) with 10 px side padding */
+html body[data-device="kb"] .btn-cta .glyph {
+  --g: 21px;
+  height: 21px;
+  min-width: 21px;
+  padding: 0 10px;
+  margin: 0 10px 0 20px;   /* square keycap: keep it clear of the pill's rounded end */
+  border-radius: 4px;
+  background: var(--surface-chip);
+  box-shadow: inset 0 0 0 1px var(--line-2), inset 0 -2px 0 var(--line-1);
+  color: var(--text-1);
+  font: 700 11px/1 var(--font-ui);
+  letter-spacing: .02em
+}
+
+/* player currency only (Main menu): the shared HUD without the E / S / R level chips */
+.player-hud--wallet { top: 48px }
+.player-hud--wallet .level-chip { display: none }
+.player-hud--wallet .wallet { margin-left: 0; width: 330px }   /* Figma "With tickets" 413:46921 */
+.player-hud--wallet .wallet__cell.wallet__tickets { display: flex }
+.player-hud--wallet .wallet__divider.wallet__tickets { display: block }
+.player-hud--rpoint .wallet { width: 330px }   /* Figma "With R Point" 567:65615: Rewards only */
+.player-hud--rpoint .wallet__cell.wallet__rpoint { display: flex }
+.player-hud--rpoint .wallet__divider.wallet__rpoint { display: block }
+.btn-cta { cursor: pointer }
+/* second trigger pair (Z / C on keyboard, LT / RT on a pad): same key shape as LT / RT */
+.glyph[data-btn="zl"],.glyph[data-btn="zr"]{--c:var(--glyph-stick);--g:28px;border-radius:2px 2px 10px 10px;font:700 13px/1 var(--font-ui);box-shadow:inset 0 0 0 1.5px var(--line-1)}
+
+/* key hints are clickable: they press their key (app.js · clickable key hints) */
+.hint, .social-bar__btn, [data-cl-btn] { cursor: pointer }
+.hint.is-off { cursor: default }
+.hint:active { opacity: .7 }
+
+/* Shop button in place of the news stack (Figma 388:143767, menu button 1:854: 440 × 80 dark, scratched, grey label) */
+.news-stack--shop{height:auto;background:none}
+.shop-btn{position:relative;display:flex;align-items:center;width:360px;height:80px;padding:0 30px;box-sizing:border-box;background:#020202;
+  font:600 28px/1 var(--font-ui);letter-spacing:.04em;text-transform:uppercase;color:#acacbb;text-decoration:none;cursor:pointer}
+.shop-btn.is-focused{color:#fff}
+
+/* ================= CTA = Figma "MTX / CTA" set (225:145953), every style =================
+   all     280 × 60 pill, key slot 40 px at 13 px from the left, label 12 px after it (Modi Thorson 30, 0.6 ls)
+   key     flat #141415 cap in a 2 px #484848 rim, letter Industry 800 22 px white
+   Primary   #f6df2f + scratch 35 % multiply, 1 px #000 edge, inner rings #3d3a1b / #000 (4 px in), label #141415
+   Secondary #16181f, 1 px #454545 edge, 4 px #0f0f0f outer ring, label #f6f1eb
+   Ghost     #16181f, 1 px #787878 @ 60 %, yellow key (#f6df2f, dark letter), label #f6f1eb
+   Done / Locked  #16181f, 1 px #3a3d4f, white check / lock (24 px) in a #2a2c33 circle, label #acacbb
+   Disabled  #828282, 1 px #000 edge + inner #000 ring, label #141415 */
+.btn-cta{--slot:40px;min-width:280px;padding:0 30px 0 13px;gap:12px}
+.btn-cta__label{letter-spacing:.6px}
+.btn-cta .glyph,body[data-device] .btn-cta .glyph{background:#141415;box-shadow:0 0 0 2px #484848 inset;color:#fff;font:800 22px/1 var(--font-ui)}
+body[data-device="kb"] .btn-cta .glyph{font:800 13px/1 var(--font-ui)}
+/* primary */
+.btn-cta__grad{background:#f6df2f;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 4px transparent,inset 0 0 0 5px #000}
+.btn-cta__tex{opacity:.35;mix-blend-mode:multiply}
+.btn-cta:not(.btn-cta--secondary):not(.btn-cta--ghost):not(.is-done):not(.is-locked):not(.is-disabled){box-shadow:none}
+/* secondary */
+.btn-cta.btn-cta--secondary{border:0;padding:0 30px 0 13px;background:#16181f;box-shadow:inset 0 0 0 1px #454545,0 0 0 4px #0f0f0f}
+.btn-cta.btn-cta--secondary .btn-cta__grad,.btn-cta.btn-cta--secondary .btn-cta__tex{display:none}
+.btn-cta.btn-cta--secondary .btn-cta__label{color:#f6f1eb}
+/* ghost */
+.btn-cta.btn-cta--ghost{background:#16181f;box-shadow:inset 0 0 0 1px rgb(120 120 120 / .6)}
+.btn-cta.btn-cta--ghost .btn-cta__label{color:#f6f1eb}
+.btn-cta.btn-cta--ghost .glyph,body[data-device] .btn-cta.btn-cta--ghost .glyph{background:#f6df2f;box-shadow:none;color:#141415}
+/* done / locked */
+.btn-cta.is-done,.btn-cta.is-locked{background:#16181f;box-shadow:inset 0 0 0 1px #3a3d4f;padding:0 30px 0 13px;gap:12px}
+.btn-cta.is-done .btn-cta__check{width:var(--slot);height:var(--slot);background:#2a2c33;color:#fff}
+.btn-cta.is-done .btn-cta__check svg{width:24px;height:24px}
+.btn-cta.is-locked::before{width:var(--slot);height:var(--slot);
+  background:#2a2c33 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z'/%3E%3C/svg%3E") center/24px no-repeat}
+.btn-cta.is-done .btn-cta__label,.btn-cta.is-locked .btn-cta__label{color:#acacbb}
+/* disabled */
+.btn-cta.is-disabled{cursor:default}
+.btn-cta.is-disabled .btn-cta__grad{background:#828282;box-shadow:inset 0 0 0 1px #000,inset 0 0 0 4px rgb(0 0 0 / .34)}
+.btn-cta.is-disabled .btn-cta__tex{display:none}
+.btn-cta.is-disabled .btn-cta__label{color:#141415}
+.btn-cta--sm{--slot:30px;min-width:0;padding-left:8px}
+
+/* Shop reads as a button: bag icon, a › on the right edge, and on hover / focus the text lights up, a frame shows and the arrow nudges */
+.shop-btn{gap:16px;box-shadow:inset 0 0 0 1px #2a2c33;transition:color .15s ease,box-shadow .15s ease}
+.shop-btn__icon{width:28px;height:28px;flex:none}
+.shop-btn__go{width:12px;height:20px;margin-left:auto;flex:none;transition:transform .15s ease}
+.shop-btn:hover,.shop-btn.is-focused{color:#fff}
+.shop-btn:hover{box-shadow:inset 0 0 0 1px #8a8a8a}
+.shop-btn:hover .shop-btn__go,.shop-btn.is-focused .shop-btn__go{transform:translateX(5px);color:#f6df2f}
+
+/* CTA = Figma CTA set without the key (225:145953): the key lives in the page hint bar, or floats under a modal */
+.btn-cta .glyph{display:none!important}
+.btn-cta{justify-content:center;padding:0 30px}
+.btn-cta.is-done,.btn-cta.is-locked{justify-content:center;padding:0 30px 0 13px}
+
+/* Secondary must read on dark modals too: lighter edge (Figma CTA / Secondary: stroke #8a8d99) */
+.btn-cta.btn-cta--secondary{box-shadow:inset 0 0 0 1px #8a8d99!important;outline:3px solid #0f0f0f;outline-offset:1px}
+
+/* ================= CTA button, current Figma "Accept Button / 06 Pill" (225:145953) =================
+   Square corners. Primary = #f6df2f + gold gradient + 10 % black, 1 px black edge, no scratch texture.
+   Hold Fill ring: 290 x 68 around the 280 x 60 button. */
+.btn-cta,.btn-cta.is-done,.btn-cta.is-locked,.btn-cta::after{border-radius:0}
+.btn-cta__grad{background:linear-gradient(rgb(0 0 0 / .1),rgb(0 0 0 / .1)),linear-gradient(129.5deg,#f2df57 6.8%,#f3ad3b 77.6%,#f2df57 91.5%),#f6df2f;box-shadow:inset 0 0 0 1px #000}
+.btn-cta__tex{display:none}
+.btn-cta::after{inset:-4px -5px}
+
+/* ---------- Load screen (Figma 638:70485, components/loading.js) ---------- */
+@keyframes mtx-load-in { from { opacity: 0 } }
+.mtx-load { animation: mtx-load-in .24s ease-out; transition: opacity .3s ease-out }
+.mtx-load.is-leaving { opacity: 0; pointer-events: none }
+.mtx-load { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; z-index: 9000; background: #16181f; color: #fff; font-family: var(--font-ui); text-transform: uppercase }
+.mtx-load__bg { position: absolute; inset: 0; width: 1920px; height: 1080px }
+.mtx-load__art { position: absolute; max-width: none }
+.mtx-load__title { position: absolute; margin: 0; font: 400 130px/100px var(--font-display) }
+.mtx-load--decisive .mtx-load__title { margin-top: 46px }
+.mtx-load--resources .mtx-load__title { margin-top: 28px }
+.mtx-load__line { position: absolute; left: 0; width: 1920px; height: 1px; background: rgb(255 255 255 / .14) }
+.mtx-load__text { position: absolute; margin: 0; font-weight: 400; color: #fff }
+.mtx-load__text b { font-weight: 700 }
+.mtx-load__text.is-desc { font-size: 30px; line-height: 34px }
+.mtx-load__text.is-body { font-size: 25px; line-height: 27px }
+.mtx-load__text.is-res { font-size: 25px; line-height: 30px }
+.mtx-load__text.is-rule { font-size: 27px; line-height: 34px }
+.mtx-load__text.is-big { font-size: 35px; line-height: 41px }
+.mtx-load .is-yellow { color: #f6df2f } .mtx-load .is-green { color: #00fda1 } .mtx-load .is-blue { color: #30b3ff } .mtx-load .is-red { color: #f33928 }
+.mtx-load__gauge { position: absolute; left: 118px; top: 550px; font: 400 15px/20px var(--font-display); color: #272727 }
+.mtx-load__hud-name { position: absolute; left: 187px; top: 283px; font: 400 35px/41px var(--font-display); color: #fff2e3 }
+.mtx-load__badge { position: absolute; left: 945px; top: 494px; width: 218px; height: 42px; background: #f6df2f; text-align: center; font: 700 36px/42px var(--font-ui); color: #16181f }
+.mtx-load__band { position: absolute; left: 0; top: 866px; width: 1920px; height: 213px }
+.mtx-load__track { position: absolute; left: 0; top: 862px; width: 1920px; height: 5px; background: #2b2c30 }
+.mtx-load__fill { position: absolute; left: 0; top: 862px; width: 0; height: 5px; background: #f6df2f }
+.mtx-load__label { position: absolute; left: 88px; top: 902px; margin: 0; font: 400 20px/22px var(--font-display); color: #f6f1eb }
+.mtx-load__pose { position: absolute; left: 92px; top: 948px; width: 104px; height: 96px }
+.mtx-load__keys { position: absolute; left: 199px; top: 989px; display: flex; align-items: center; height: 40px }
+.mtx-load__keys kbd { width: 39px; height: 38px; box-sizing: border-box; display: grid; place-items: center; border-radius: 50%; background: rgb(255 255 255 / .06); font: 700 19px/1 var(--font-ui); color: #4e4e4e }
+.mtx-load__keys kbd.is-x { background: rgb(34 59 214 / .15); color: #223bd6 }
+.mtx-load__keys em { width: 62px; text-align: center; font: 500 38px/40px var(--font-ui); font-style: normal; color: #9da4a5 }
+.mtx-load__sep { position: absolute; left: 485px; top: 961px; width: 1px; height: 66px; background: rgb(255 255 255 / .35) }
+.mtx-load__tip { position: absolute; left: 524px; top: 955px; width: 461px; margin: 0; font: 500 20px/22px var(--font-ui); color: #f6f1eb }
+.mtx-load__tip b { display: block; margin-bottom: 6px; font: 700 20px/22px var(--font-ui) }
+.mtx-load__pager { position: absolute; left: 1600px; top: 1041px; display: flex; gap: 14px }
+.mtx-load__pager i { width: 31px; height: 3px; background: rgb(255 255 255 / .12) }
+.mtx-load__pager i.is-on { width: 71px; background: #f6df2f }
+
+/* ---------- Match Found video (components/match-found.js) ---------- */
+.mtx-match-found { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 9001; pointer-events: none; background: transparent }
+
+/* Match Find strip (Figma MTX / Find Strip 670:66464): top edge of every screen while a find runs.
+   Layout = Figma auto layout: content row (padding 0 64) -> left (fill, mode) · time (hug, centred) · right (fill, estimate) */
+.find-strip{position:absolute;left:0;top:0;width:1920px;height:55px;z-index:60;overflow:hidden;pointer-events:none;background:rgb(10 11 14/.7);animation:findStripIn .45s cubic-bezier(.2,.9,.3,1)}
+.find-strip.is-out{transform:translateY(-55px);opacity:0;transition:transform .3s cubic-bezier(.5,0,.8,.4),opacity .3s}
+.find-strip__tex{position:absolute;left:0;top:0;width:100%;height:100%;background:var(--tex-scratch) center/cover;opacity:.2}
+.find-strip__track{position:absolute;left:0;bottom:0;width:100%;height:2px;background:rgb(255 255 255/.14)}
+.find-strip__fill{position:absolute;left:0;top:0;height:2px;width:2%;background:#f6df2f;transition:width .25s linear}
+.find-strip__row{position:absolute;left:0;top:0;width:100%;height:100%;box-sizing:border-box;padding:0 64px;display:flex;align-items:center;gap:24px}
+.find-strip__l,.find-strip__r{flex:1 1 0;min-width:0;display:flex;align-items:center}
+.find-strip__r{justify-content:flex-end}
+.find-strip__mode{font:600 16px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:#a9a9b3;white-space:nowrap}
+.find-strip__time{flex:none;font:400 36px/1 var(--font-display);color:transparent;background:linear-gradient(rgb(0 0 0/.1),rgb(0 0 0/.1)),var(--grad-gold),var(--yellow);-webkit-background-clip:text;background-clip:text;letter-spacing:.02em;white-space:nowrap}
+.find-strip__est{font:600 17px/1 var(--font-ui);text-transform:uppercase;color:#a9a9b3;white-space:nowrap}
+.find-strip.is-long{background:rgb(40 36 6/.7)}
+.find-strip.is-long .find-strip__est{color:#f6df2f}
+@keyframes findStripIn{from{transform:translateY(-55px);opacity:0}}
+@keyframes findPulse{50%{opacity:.25}}
