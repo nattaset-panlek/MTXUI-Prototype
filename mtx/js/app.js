@@ -622,6 +622,13 @@
       prev[key] = down;
       return;
     }
+    const lo = window.MTX_LOADOUT;   // Tactical Loadout overlay takes every button while open
+    if (lo && lo.isOpen?.()) {
+      if (down && !prev[key]) { setDevice(padType); logIn(label); lo.pad(key, action); held[key] = now + DELAY; }
+      else if (down && DIRS.includes(action) && now >= held[key]) { lo.pad(key, action); held[key] = now + RATE; }
+      prev[key] = down;
+      return;
+    }
     if (cust && cust.isOpen?.()) {
       if (down && !prev[key]) { setDevice(padType); logIn(label); cust.handlePad?.(key, action); held[key] = now + DELAY; }
       else if (down && DIRS.includes(action) && now >= held[key]) { cust.handlePad?.(key, action); held[key] = now + RATE; }

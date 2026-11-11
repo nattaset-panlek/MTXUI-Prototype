@@ -1,0 +1,191 @@
+/* Tactical Loadout overlay (screen-loadout.js).
+   Figma eKm2meOcqHG0cFBt4eoWQr page Prototype: Style preset v2 Profile 719:28883, Inventory 719:29474,
+   TSP 01 Hub 726:39699, Perk 02-06b (719:28292 ... 719:88261), Special 07/08, Decisive 09/10.
+   Every box below is in Figma frame pixels (1920 x 1080). Square corners, Industry font. */
+.tl { position: absolute; inset: 0; z-index: 991; overflow: hidden; background: #101318; color: #f6f1eb; font-family: var(--font-ui);
+  --prism: linear-gradient(90deg, #f3eed0, #e4b996 25%, #766ab2 50%, #5a8dc2 75%, #8bcab2) }
+.tl[hidden] { display: none }
+.tl * { box-sizing: border-box }
+.tl .abs, .tl-abs { position: absolute }
+.tl-up { text-transform: uppercase }
+
+/* ---- background: cc-style-bg + #0b1018 35 % + vertical shade, bottom shade (cc__bg / cc__shade) */
+.tl-bg { position: absolute; inset: 0; background: url(../assets/img/cc-style-bg.webp) center/cover }
+.tl-bg::before { content: ""; position: absolute; inset: 0; background: linear-gradient(#16181f, rgb(22 24 31 / .4) 30%, rgb(22 24 31 / .4) 70%, #16181f), rgb(11 16 24 / .35) }
+.tl-shade { position: absolute; left: -160px; top: 720px; width: 2240px; height: 360px; background: linear-gradient(rgb(21 23 30 / 0), rgb(21 23 30 / .95)) }
+.tl-hubart { position: absolute; inset: 0; pointer-events: none }
+.tl-hubart__icon { position: absolute; left: -620px; top: -14px; width: 1580px; height: 1580px; opacity: .1 }
+.tl-hubart__fighter { position: absolute; left: 1163px; top: 263px; width: 556px; height: 1026px; object-fit: cover; object-position: top }
+
+/* ---- breadcrumb (60,14) */
+.tl-crumb { position: absolute; left: 60px; top: 14px; height: 23px; display: flex; gap: 12px; align-items: center; font: 600 15px/23px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb; white-space: nowrap }
+.tl-crumb b { font-weight: 700; color: #f4dd2f } .tl-crumb em { font-style: normal; font-weight: 700; color: #f6f1eb }
+
+/* ---- tab bar (60,56): LT 28 px, 12 px, tabs with 4 px gaps, 12 px, RT */
+.tl-tabs { position: absolute; left: 60px; top: 56px; height: 48px; display: flex; align-items: center; gap: 4px }
+.tl-tabs > .glyph:first-child { margin-right: 8px } .tl-tabs > .glyph:last-child { margin-left: 8px }
+.tl-tabs .glyph { --g: 28px }
+.tl-tab { height: 48px; display: grid; place-items: center; padding: 0; background: var(--tex-scratch) center/cover, #16181f; background-blend-mode: soft-light, normal;
+  box-shadow: inset 0 0 0 1px #4e4e4e; font: 400 24px/1 var(--font-display); text-transform: uppercase; color: #f6f1eb; white-space: nowrap; cursor: pointer }
+.tl-tab.is-active { background: var(--tex-scratch) center/cover, #f4dd2f; box-shadow: none; color: #16181f }
+
+/* ---- wallet = core Player HUD (tpl-player-hud wallet + rpoint), Figma 1448,49 412 x 62: Credit | Money | R Point | Tickets */
+.tl .player-hud.tl-wallet { right: 60px; top: 49px; z-index: 2 }
+.tl .tl-wallet .wallet { width: 412px }
+.tl .tl-wallet .wallet__rpoint { order: 1 } .tl .tl-wallet .wallet__tickets { order: 2 }
+.tl .tl-wallet i.wallet__rpoint { order: 1 } .tl .tl-wallet i.wallet__tickets { order: 2 }
+
+/* ---- hint bar (60,1012), 32 px between hints */
+.tl .hint-bar.tl-hints { left: 60px; top: 1012px; bottom: auto; height: 28px; gap: 32px }
+
+/* ---- Profile / Inventory placeholder (content TBD 60,150 1800 x 828) */
+.tl-tbd { position: absolute; left: 60px; top: 150px; width: 1800px; height: 828px; background: rgb(0 0 0 / .55); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .08) }
+.tl-tbd h2 { position: absolute; left: 0; right: 0; top: 338px; margin: 0; text-align: center; font: 400 48px/44px var(--font-display); text-transform: uppercase; color: #fff }
+.tl-tbd p { position: absolute; left: 0; right: 0; top: 439px; letter-spacing: -.25px; margin: 0; text-align: center; font: 500 20px/28px var(--font-ui); color: #8a8a8a }
+
+/* =========================================================== HUB */
+/* style switcher (slanted slices) 60,150 1800 x 96 */
+.tl-sw { position: absolute; left: 60px; top: 150px; width: 1800px; height: 96px; overflow: hidden; background: rgb(11 13 18 / .92) }
+.tl-sw__icon { position: absolute; left: 300px; top: -70px; width: 240px; height: 240px; opacity: .18 }
+.tl-sw__name { position: absolute; left: 29px; top: 10px; height: 88px; display: flex; align-items: center; font: 700 58px/1 var(--font-ui); text-transform: uppercase; color: #f6f1eb; white-space: nowrap }
+.tl-sw__req { position: absolute; left: 31px; top: 66px; font: 600 14px/1 var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb }
+.tl-slices { position: absolute; left: 900px; top: 0; height: 96px; display: flex }
+.tl-slice { position: relative; flex: none; width: 150px; height: 96px; margin-right: -22px; transition: width .2s ease }
+.tl-slice__shape { position: absolute; inset: 0; background: rgb(255 255 255 / .1); clip-path: polygon(28px 0, 100% 0, calc(100% - 28px) 100%, 0 100%); opacity: 0; transition: opacity .2s ease }
+.tl-slice__icon { position: absolute; left: 53px; top: 26px; width: 44px; height: 44px; transition: left .2s ease, top .2s ease, width .2s ease, height .2s ease }
+.tl-slice__icon img { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .2s ease }
+.tl-slice__icon img.is-sel { opacity: 0 } .tl-slice.is-sel .tl-slice__icon img.is-sel { opacity: 1 }
+.tl-slice__name { position: absolute; left: 120px; top: 33px; height: 30px; font: 700 20px/30px var(--font-ui); text-transform: uppercase; white-space: nowrap; color: #f6f1eb; opacity: 0; transition: opacity .12s ease }
+.tl-slice__lock { position: absolute; left: 108px; top: 10px; width: 12px; height: 16px }
+.tl-slice.is-locked .tl-slice__icon { opacity: .35 }
+.tl-slice.is-sel { width: 330px }
+.tl-slice.is-sel .tl-slice__shape { opacity: 1 }
+.tl-slice.is-sel .tl-slice__icon { left: 46px; top: 18px; width: 60px; height: 60px }
+.tl-slice.is-sel .tl-slice__name { opacity: 1; transition-delay: .1s }
+.tl-slice.is-sel .tl-slice__lock { left: 288px }
+
+.tl-vl { position: absolute; margin-top: 5px; font: 700 28px/42px var(--font-ui); text-transform: uppercase; white-space: nowrap }
+.tl-vl small { display: block; margin-top: 2px; font: 600 14px/21px var(--font-ui); letter-spacing: 1px; color: #acacbb }
+.tl-hub.is-locked .tl-hub__body { opacity: .35 }
+
+/* perk diamond cluster (top / right / left / bottom centres) */
+.tl-pc { position: absolute; transform: translate(-50%, -50%) }
+.tl-pc > img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) }
+
+/* =========================================================== D-pad cluster (sub: 250,169 563 x 640, hub: scale .72) */
+.tl-cl { position: absolute; width: 563px; height: 640px; transform-origin: 0 0 }
+.tl-cl__dpad { position: absolute; left: 119px; top: 119px; width: 325px; height: 325px }
+.tl-key { position: absolute; width: 38px; height: 38px; display: grid; place-items: center; background: #fff; color: #000; font: 800 24px/1 var(--font-ui) }
+.tl-slot { position: absolute; width: 188px; height: 188px }
+.tl-slot > img, .tl-slot > svg { position: absolute; left: 0; top: 0; width: 188px; height: 188px; overflow: visible }
+.tl-slot > .tl-ring, .tl-slot > .tl-dim { display: none; pointer-events: none }
+.tl-slot.is-focused > .tl-ring { display: block }
+.tl-cl.is-choosing .tl-slot:not(.is-focused) > .tl-dim { display: block }
+
+/* =========================================================== submenu */
+.tl-head { position: absolute; top: 112px; height: 24px; display: flex; gap: 16px; align-items: baseline; white-space: nowrap; text-transform: uppercase; letter-spacing: 1px }
+.tl-head[hidden] { display: none }
+.tl-head b { font: 700 16px/24px var(--font-ui); color: #f6f1eb } .tl-head span { font: 600 14px/21px var(--font-ui); color: #acacbb }
+
+/* perk slot list 60,150: 4 cards 942 x 198, 12 px apart */
+.tl-list { position: absolute; left: 60px; top: 150px; width: 942px; height: 828px }
+.tl-card { position: absolute; left: 0; width: 942px; height: 198px; background: rgb(0 0 0 / .72); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .08); transition: opacity .15s }
+.tl-card.is-empty { background: rgb(0 0 0 / .45) }
+.tl-list.is-choosing .tl-card:not(.is-target) { opacity: .35 }
+.tl-card__art { position: absolute; left: 99px; top: 99px }
+.tl-card__art > img { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%) }
+.tl-card__kind { position: absolute; left: 212px; top: 16px; font: 600 12px/18px var(--font-ui); letter-spacing: 1.5px; text-transform: uppercase }
+.tl-card__name { position: absolute; left: 212px; top: 31px; font: 700 28px/42px var(--font-ui); text-transform: uppercase; white-space: nowrap }
+.tl-card__rule { position: absolute; left: 212px; top: 68px; width: 684px; height: 1px; background: rgb(255 255 255 / .15) }
+.tl-card__fx { position: absolute; left: 212px; top: 79px; width: 684px; margin: 0; font: 600 15px/20px var(--font-ui); letter-spacing: -.2px; color: #acacbb }
+.tl-card__draw { position: absolute; left: 212px; top: 153px; letter-spacing: -.2px; margin: 0; font: 600 14px/21px var(--font-ui); color: #ff4060; white-space: nowrap }
+/* empty slot (MTX / Perk Empty Slot 726:41350): 14 px hatch, 5 px #151515 inner edge, plus in a diamond */
+.tl-empty { position: absolute; inset: 0; overflow: hidden;
+  background: repeating-linear-gradient(-45deg, transparent 0 8.9px, rgb(255 255 255 / .05) 8.9px 10.3px); box-shadow: inset 0 0 0 5px #151515 }
+.tl-empty__slot { position: absolute; left: 24px; top: 23px; font: 600 11px/17px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb }
+.tl-empty__box { position: absolute; left: 425px; top: 12px; width: 92px; height: 92px }
+.tl-empty__box::before { content: ""; position: absolute; left: 50%; top: 50%; width: 64.5px; height: 64.5px; border: 2px solid #6e6e7a; transform: translate(-50%, -50%) rotate(45deg) }
+.tl-empty__box::after { content: ""; position: absolute; left: 50%; top: 50%; width: 39.6px; height: 39.6px; background: rgb(147 147 147 / .4); transform: translate(-50%, -50%) rotate(45deg) }
+.tl-empty__plus { position: absolute; left: 459px; top: 46px; width: 24px; height: 24px; z-index: 1;
+  background: linear-gradient(rgb(255 255 255 / .55), rgb(255 255 255 / .55)) center/2.88px 24px no-repeat, linear-gradient(rgb(255 255 255 / .55), rgb(255 255 255 / .55)) center/24px 2.88px no-repeat }
+.tl-empty__t { position: absolute; left: -2px; right: -2px; top: 104px; text-align: center; font: 700 24px/36px var(--font-ui); letter-spacing: 3px; text-transform: uppercase; color: #6e6e7a }
+.tl-empty__h { position: absolute; left: -2px; right: -2px; top: 142px; text-align: center; font: 600 14px/21px var(--font-ui); color: #6e6e7a }
+
+/* focus ring (225:146406): 2 px Selected Prismatic, 6 px outside, r 3 */
+.tl-focus { position: absolute; pointer-events: none; z-index: 4; border-radius: 3px; padding: 2px; background: var(--prism);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude }
+.tl-focus--card { left: -5px; top: -5px; right: -5px; bottom: -5px }
+.tl-focus--cell { left: -5px; top: -5px; right: -5px; bottom: -5px }
+/* slot being filled (Choosing): 3 px prismatic edge + 6 px bar + tag */
+.tl-target { position: absolute; inset: 0; pointer-events: none; z-index: 3 }
+.tl-target::before { content: ""; position: absolute; inset: 0; padding: 3px; background: var(--prism);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude }
+.tl-target::after { content: ""; position: absolute; left: 0; top: 0; width: 6px; height: 100%; background: linear-gradient(#f3eed0, #e4b996 25%, #766ab2 50%, #5a8dc2 75%, #8bcab2) }
+.tl-target__tag { position: absolute; left: 812px; top: 12px; width: 118px; height: 26px; display: grid; place-items: center; background: #f4dd2f; font: 700 12px/18px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #16181f }
+
+/* grid 1032,150: 5 x 5 cells 156 px, 12 px gaps */
+.tl-grid { position: absolute; left: 1032px; top: 150px; width: 828px; height: 828px; transition: opacity .15s }
+.tl-grid.is-idle { opacity: .4 }
+.tl-cell { position: absolute; width: 156px; height: 156px }
+.tl-cell__base { position: absolute; inset: 0; background: linear-gradient(0deg, rgb(154 158 168 / .27), rgb(154 158 168 / 0) 95%), #000; box-shadow: inset 0 0 0 1px #9a9ea8 }
+.tl-cell__corner { position: absolute; left: 1px; top: 80px; width: 154px; height: 48px }
+.tl-cell__bar { position: absolute; left: 1px; bottom: 1px; width: 154px; height: 28px; display: grid; place-items: center; background: #141619; border-radius: 0 0 5px 5px;
+  font: 700 12px/15px var(--font-ui); text-transform: uppercase; color: #f6f1eb; white-space: nowrap; overflow: hidden }
+.tl-cell__eq { position: absolute; inset: 0; box-shadow: inset 0 0 0 2px var(--tc, #f4dd2f) }
+.tl-cell__art { position: absolute; left: 78px; top: 64px }
+.tl-cell__art > img { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%) }
+.tl-cell__move { position: absolute; left: 30px; top: 14px; width: 96px; height: 96px }
+.tl-cell__num { width: 32px; height: 32px; left: 116px; top: 8px; font-size: 20px }
+.tl-cell__dim { position: absolute; inset: 0; background: rgb(0 0 0 / .5) }
+.tl-cell__lock { position: absolute; left: 122px; top: 10px; width: 24px; height: 28px }
+.tl-cell.is-locked .tl-cell__art, .tl-cell.is-locked .tl-cell__move { opacity: .4 }
+.tl-cell--null { background: rgb(0 0 0 / .28); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .06) }
+
+/* move detail (60,750 942 x 228) */
+.tl-detail { position: absolute; left: 60px; top: 750px; width: 942px; height: 228px; background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 18%, transparent), transparent 60%), rgb(0 0 0 / .72);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .08) }
+.tl-detail img { position: absolute; left: 24px; top: 44px; width: 140px; height: 140px }
+.tl-detail h3 { position: absolute; left: 190px; top: 58px; margin: 0; font: 700 42px/63px var(--font-ui); text-transform: uppercase; white-space: nowrap }
+.tl-detail p { position: absolute; left: 190px; top: 117px; margin: 0; font: 600 16px/24px var(--font-ui); color: #acacbb }
+
+/* perk info card (MTX / Perk Info Card 719:89368), 16 px left of the focused cell; reuses .skill-detail */
+.tl .skill-detail.tl-info { top: 117px; z-index: 6; --style-color: var(--tc); --style-fg: #16181f; animation: none }
+.tl-info::before { content: ""; position: absolute; inset: 0; background: #060606 }
+.tl-info::after { content: ""; position: absolute; inset: 1px; background: var(--tex-scratch) center/cover; opacity: .25; box-shadow: inset 0 0 0 2px #d4d4d4; pointer-events: none }
+.tl-info .skill-detail__kind, .tl-info .skill-detail__card { z-index: 1 }
+.tl-info .skill-detail__kind { left: 35px; top: 32px; color: #cecece; background: none; -webkit-text-fill-color: currentColor }
+.tl-info .skill-detail__card { background: #0b1018 }
+.tl-info .skill-detail__card::before { content: ""; position: absolute; left: 1px; top: -107px; width: 486px; height: 817px; background: var(--tex-scratch) center/cover; opacity: .25; box-shadow: inset 0 0 0 2px #999; pointer-events: none }
+.tl-info .skill-detail__art { left: 7px; top: -30px; width: 474px; height: 266px; overflow: visible }
+.tl-info .skill-detail__art > img { box-shadow: inset 0 0 0 3px #5b5b5b; outline: 3px solid #5b5b5b; outline-offset: -3px }
+.tl-info .skill-detail__art .slash { display: none }
+.tl-info .skill-detail__score { right: 16px; top: 256px; gap: 6px; padding: 0 7px 0 6px; font-size: 17px }
+.tl-info .skill-detail__score b { font-weight: 800; font-size: 16px }
+.tl-info .skill-detail__title { left: 24px; top: 300px }
+.tl-info .skill-detail__desc { left: 22px; top: 448px; padding: 0 }
+.tl-lv { position: absolute; left: 21px; top: 14px; display: flex; gap: 4px }
+.tl-lv span { width: 64px; height: 28px; display: grid; place-items: center; box-shadow: inset 0 0 0 1px #acacbb; font: 700 11px/17px var(--font-ui); text-transform: uppercase; color: #acacbb }
+.tl-lv span.is-on { background: #f4dd2f; box-shadow: none; color: #16181f }
+.tl-lv__sr { position: absolute; left: 311px; top: 6px; display: flex; align-items: center; gap: 19px; font: 700 13px/20px var(--font-ui); text-transform: uppercase; color: #acacbb }
+.tl-lv__sr .glyph { --g: 25px; margin: 0 }
+.tl-info .skill-detail__desc p.tl-info__fx { position: absolute; left: 21px; top: 59px; width: 360px; letter-spacing: -.2px; font: 400 15px/20px var(--font-ui); text-transform: none; color: #c1c1c1 }
+.tl-info .skill-detail__desc p.tl-info__draw { position: absolute; left: 21px; top: 130px; font: 700 13px/20px var(--font-ui); text-transform: none; color: #ff4060; margin: 0 }
+.tl-info .skill-detail__actions { top: 645px; gap: 18px }
+.tl-info__equip { position: relative; width: 158px; height: 39px; display: flex; align-items: center; background: #16181f; box-shadow: inset 0 0 0 1px #3a3d4f; border-radius: 19px }
+.tl-info__equip i { position: absolute; left: 5px; top: 5px; width: 29px; height: 29px; border-radius: 50%; background: #2a2c33 url(../assets/svg/icon-check-light.svg) center/15px no-repeat }
+.tl-info__equip span { position: absolute; left: 41px; right: 12px; text-align: center; font: 400 19px/22px var(--font-display); text-transform: uppercase; color: #acacbb }
+.tl-info .hint-inline { display: flex; align-items: center; gap: 8px; font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5 }
+
+/* ---- transitions (screen-loadout.js animate): page / tab slide, hub -> submenu, slots <-> grid, info card */
+@keyframes tl-x { from { opacity: 0; transform: translateX(28px) } }
+@keyframes tl-in { from { opacity: 0; transform: scale(.985) } }
+@keyframes tl-fade { from { opacity: .55 } }
+@keyframes tl-pop { from { opacity: 0; transform: scale(1.04) } }
+@keyframes tl-card { from { opacity: 0; transform: translateX(24px) } }
+.tl-anim-x :is(.tl-tbd, .tl-hub, .tl-list, .tl-grid, .tl-cl, .tl-detail, .tl-head, .tl-crumb) { animation: tl-x .2s ease-out both }
+.tl-anim-in :is(.tl-list, .tl-grid, .tl-cl, .tl-detail, .tl-head, .tl-crumb, .tl-tabs) { animation: tl-in .2s ease-out both }
+.tl-anim-mode :is(.tl-grid, .tl-list, .tl-cl, .tl-detail) { animation: tl-fade .15s ease-out both }
+.tl-anim-mode :is(.tl-focus, .tl-target, .tl-slot.is-focused > .tl-ring) { animation: tl-pop .12s ease-out both }
+.tl .tl-anim-info .skill-detail.tl-info { animation: tl-card .18s ease-out both }
+.tl-hints .hint { transition: opacity .15s }
+@media (prefers-reduced-motion: reduce) { .tl *, .tl-slice, .tl-slice * { animation: none !important; transition: none !important } }

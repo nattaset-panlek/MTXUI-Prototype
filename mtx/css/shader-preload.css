@@ -1,9 +1,8 @@
-/* Shader Preload (Figma 675:105967 "6 · Bottom status strip"): over #titleBg, dark strip at the bottom */
-.shader-preload{position:absolute;inset:0;z-index:60;pointer-events:auto;animation:lgFadeIn .3s both}
-body.shader-preload-open #start{visibility:hidden}
-.shader-preload__strip{position:absolute;left:0;top:960px;width:1920px;height:120px;background:rgba(0,0,0,.65);font-family:var(--font-ui);text-transform:uppercase}
-.shader-preload__title{position:absolute;left:72px;top:30px;margin:0;font:600 22px/27px var(--font-ui);letter-spacing:4px;color:var(--text-1);animation:pulse 1.6s ease-in-out infinite}
-.shader-preload__foot{position:absolute;left:72px;top:66px;margin:0;font:500 16px/20px var(--font-ui);letter-spacing:2px;color:#acacbb}
-.shader-preload__track{position:absolute;left:1160px;top:52px;width:620px;height:6px;background:rgba(255,255,255,.15);overflow:hidden}
+/* Shader Preload (Figma 675:105319 "3 · Thin full-width line"): over #titleBg; status in the "Press any button" spot, line at the bottom edge */
+.shader-preload{position:absolute;inset:0;z-index:60;pointer-events:auto;animation:lgFadeIn .3s both;font-family:var(--font-ui);text-transform:uppercase}
+body.shader-preload-open .intro__press{visibility:hidden}
+.shader-preload__status{position:absolute;left:454px;top:722px;margin:0;font:500 20px/24px var(--font-ui);letter-spacing:4px;color:#acacbb;animation:pulse 1.6s ease-in-out infinite}
+.shader-preload__title{position:absolute;right:72px;top:1030px;margin:0;font:600 20px/24px var(--font-ui);letter-spacing:3px;color:var(--text-1)}
+.shader-preload__pct{margin-left:16px;color:#f6df2f}
+.shader-preload__track{position:absolute;left:0;top:1074px;width:1920px;height:6px;background:rgba(255,255,255,.15);overflow:hidden}
 .shader-preload__fill{position:absolute;left:0;top:0;bottom:0;width:0;background:#f6df2f;box-shadow:0 0 12px rgba(246,223,47,.6)}
-.shader-preload__pct{position:absolute;left:1800px;top:38px;font:700 24px/29px var(--font-ui);letter-spacing:2px;color:#f6df2f}

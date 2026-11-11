@@ -1175,6 +1175,8 @@
 
   //#region [Open / close]
   function show() {
+    // the old Profile / Style preset overlay is replaced by the Tactical Loadout overlay (screen-loadout.js), opened on Profile
+    if (window.MTX_LOADOUT) { if (!window.MTX_SCREENS?.management?.isModalOpen?.()) window.MTX_LOADOUT.open({ page: 0 }); return; }
     if (open || window.MTX_SCREENS?.management?.isModalOpen?.()) return;   // not over a modal / the simulate-day transition
     open = true;
     lastFocus = document.activeElement;

@@ -1,4 +1,4 @@
-/* Component: Shader Preload (first launch, before the Intro). Layout: Figma "Shader Preload · 6 · Bottom status strip" 675:105967 (Intro 398:231999 + bottom strip)
+/* Component: Shader Preload (first launch, before the Intro). Layout: Figma "Shader Preload · 3 · Thin full-width line" 675:105319 (Intro 398:231999 + bottom line)
    (same arena + logo); the "Press any button" line is replaced by a progress bar + status line.
      MTX_SHADER.open({ duration, onDone })  -> show and simulate shader compiling (default 6000 ms)
      MTX_SHADER.close()                     -> close now, without onDone
@@ -19,8 +19,8 @@
     const p = Math.min(1, (performance.now() - t0) / ms), v = Math.max(0, curve(p));
     fill.style.width = (v * 100).toFixed(1) + "%";
     pct.textContent = Math.floor(v * 100) + "%";
-    status.textContent = STEPS[Math.min(STEPS.length - 1, Math.floor(v * STEPS.length))];
-    count.textContent = `${Math.floor(v * TOTAL).toLocaleString("en-US")} / ${TOTAL.toLocaleString("en-US")}`;
+    status.textContent = STEPS[Math.min(STEPS.length - 1, Math.floor(v * STEPS.length))] + "…";
+    if (count) count.textContent = `${Math.floor(v * TOTAL).toLocaleString("en-US")} / ${TOTAL.toLocaleString("en-US")}`;
     if (p >= 1) { try { localStorage.setItem(KEY, "1"); } catch {} const cb = done; close(); cb?.(); return; }
     raf = setTimeout(tick, 33);
   }
@@ -30,12 +30,10 @@
     window.MTX_TITLE?.("intro");
     document.body.classList.add("shader-preload-open");
     root = document.createElement("div");
-    root.className = "shader-preload"; root.dataset.figma = "675:105967";
-    root.innerHTML = `<div class="shader-preload__strip">
-        <p class="shader-preload__title">Optimizing shaders</p>
-        <p class="shader-preload__foot"><span class="shader-preload__status"></span> · <span class="shader-preload__count"></span></p>
-        <div class="shader-preload__track"><i class="shader-preload__fill"></i></div><b class="shader-preload__pct">0%</b>
-      </div>`;
+    root.className = "shader-preload"; root.dataset.figma = "675:105319";
+    root.innerHTML = `<p class="shader-preload__status"></p>
+      <p class="shader-preload__title">Optimizing shaders<b class="shader-preload__pct">0%</b></p>
+      <div class="shader-preload__track"><i class="shader-preload__fill"></i></div>`;
     (document.getElementById("stage") || document.body).appendChild(root);
     fill = root.querySelector(".shader-preload__fill"); pct = root.querySelector(".shader-preload__pct");
     status = root.querySelector(".shader-preload__status"); count = root.querySelector(".shader-preload__count");

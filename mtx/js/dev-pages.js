@@ -41,6 +41,7 @@
     { id: "MTX_TOUR", name: "Tournament" },
     { id: "MTX_CLOBBY", name: "Custom Lobby" },
     { id: "MTX_MATCH_RESULT", name: "Match Result (Rank · RP + Level)", args: [{ mode: "rank" }] },
+    { id: "MTX_LOADOUT", name: "Tactical Loadout" },
     { id: "MTX_FRIENDS", name: "Friends" },
     { id: "MTX_OPTIONS", name: "Options" },
     { id: "MTX_SETTINGS", name: "Settings" },
