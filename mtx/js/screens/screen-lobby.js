@@ -457,7 +457,7 @@
     // Dev › Lobby video (store mtx.sbVideo = "1"): mockup videos instead of the 3D fighters
     //   waiting room (before Ready) -> lobby-waiting.mp4 · "Match starts in" (standby) -> lobby-standby.mp4
     let vid = sb3d.querySelector(".cl-sb3d__vid");
-    const src = S.view === "standby" ? SB_VIDEO : S.view === "waiting" ? SB_VIDEO_WAIT : null;
+    const src = S.view === "standby" ? SB_VIDEO : S.view === "waiting" || S.view === "timer" ? SB_VIDEO_WAIT : null;   // the countdown keeps the waiting-room video
     const vidOn = !!src && sbVideoOn();
     if (vid && vidOn && !vid.src.endsWith(src)) { vid.pause(); vid.remove(); vid = null; }
     if (vidOn && !vid) {

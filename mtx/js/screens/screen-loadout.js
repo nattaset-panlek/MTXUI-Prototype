@@ -138,16 +138,16 @@
       ? [["b", "Close"], ["a", { label: "Select", off: true }], ["y", "History"], ["x", { label: "Edit", off: true }], [tabKeys, "Tab"]]
       : [["b", "Close"], ["a", { label: "Select", off: true }], [tabKeys, "Tab"]];
     else if (view === "hub") h = [["b", "Close"], ["a", { label: isLocked(style()) ? "Locked" : "Open", off: isLocked(style()) }], [styleKeys, "Style"], [tabKeys, "Tab"]];
-    else if (info) h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned("perk", cell) }], ["ls", "Move"], ["y", "Info"], ["rs", "Level"]];
+    else if (info) { h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["ls", "Move"], ["y", "Info"]]; if (T().id === "perk") h.push(["rs", "Level"]); }
     else if (mode === "grid") {
       const tid = T().id;
       h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(tid, cell) }], ["ls", "Move"]];
-      h.push(["y", { label: "Info", off: tid !== "perk" }]);
+      h.push(["y", "Info"]);
     } else {
       const filled = preset()[T().id][slot] != null;
       h = [["b", "Back"], ["a", "Select"], ["ls", "Move"], [tabKeys, "Switch"]];
       if (filled) h.push(["x", "Remove"]);
-      if (filled) h.push(["y", { label: "Info", off: T().id !== "perk" }]);
+      if (filled) h.push(["y", "Info"]);
     }
     h.push(["menu", "Options"], ["view", "Friends"]);
     return `<nav class="hint-bar tl-hints">${h.map(([k, v]) => window.MTX_UI.hintItem(k, v)).join("")}</nav>`;   // Figma order, not the standard sort
@@ -257,26 +257,55 @@
     return `<section class="tl-detail" style="--tc:${T().color}"><img src="${icon}" alt=""><h3>${esc(name)}</h3><p>${esc(text)}</p></section>`;
   }
 
-  function infoHtml() {
-    if (!info) return "";
-    const p = PERKS[cell], [kname, kcol] = KIND[p.kind];
-    const left = 1032 + (cell % 5) * 168 - 16 - 513;
-    const lv = [1, 2, 3].map(l => `<span class="${l === info.lv ? "is-on" : ""}">Lv ${l}</span>`).join("");
-    return `<aside class="skill-detail tl-info" style="left:${left}px;--tc:${kcol}" data-figma="719:89368 MTX / Perk Info Card">
-      <p class="skill-detail__kind">${kname}</p>
+  // Info card (MTX / Perk Info Card 719:89368): ONE persistent element, built once in build(). While it is open,
+  // moving to another cell lerps it to that cell (CSS transition on left) and swaps its text in place with a crossfade.
+  // Perks show the level pager (RS); Special / Decisive moves show kind, name and description.
+  let infoItem = "", infoLv = 0;
+  function infoShellHtml() {
+    return `<aside class="skill-detail tl-info" data-tl-info hidden data-figma="719:89368 MTX / Perk Info Card">
+      <p class="skill-detail__kind" data-i="kind"></p>
       <div class="skill-detail__card">
-        <div class="skill-detail__art"><img src="${IMG}card-art.webp" alt="">
-          <div class="slash"><img class="slash__wedge" src="${SV}detail-slash.svg" alt="" style="width:94px;height:81px"><span class="slash__band" style="height:52px"></span></div></div>
-        <span class="skill-detail__score"><img src="${SV}icon-check-circle.svg" alt="">${p.locked ? "Locked" : "Owned Lv" + p.lv}</span>
-        <div class="skill-detail__title"><div><h2 class="tex-text">${esc(p.name)}</h2></div></div>
+        <div class="skill-detail__art"><img src="${IMG}card-art.webp" alt=""></div>
+        <span class="skill-detail__score"><img src="${SV}icon-check-circle.svg" alt=""><span data-i="badge"></span></span>
+        <div class="skill-detail__title"><div><h2 class="tex-text" data-i="name"></h2></div></div>
         <div class="skill-detail__desc">
-          <div class="tl-lv">${lv}</div><div class="tl-lv__sr">${glyph("rs")}<span>Level</span></div>
-          <p class="tl-info__fx">${esc(p.fx[info.lv - 1])}</p>
-          ${info.lv === 3 ? `<p class="tl-info__draw">${esc(p.draw)}</p>` : ""}
+          <div class="tl-lv" data-i-lv><span>Lv 1</span><span>Lv 2</span><span>Lv 3</span></div><div class="tl-lv__sr" data-i-lv>${glyph("rs")}<span>Level</span></div>
+          <p class="tl-info__fx" data-i="fx"></p><p class="tl-info__draw" data-i="draw"></p>
         </div>
-        <div class="skill-detail__actions"><span class="tl-info__equip"><i></i><span>Equip</span></span>
+        <div class="skill-detail__actions"><span class="tl-info__equip" data-i-equip><i></i><span>Equip</span></span>
           <span class="hint-inline">${glyph("b")}<span>Close</span></span></div>
       </div></aside>`;
+  }
+
+  function infoData() {
+    const tid = T().id;
+    if (tid === "perk") {
+      const p = PERKS[cell], [kind, col] = KIND[p.kind];
+      return { kind, col, badge: p.locked ? "Locked" : "Owned Lv" + p.lv, name: p.name, levels: true, lv: info.lv, fx: p.fx[info.lv - 1], draw: info.lv === 3 ? p.draw : "", own: !p.locked };
+    }
+    const own = owned(tid, cell);
+    return { kind: T().grid, col: T().color, badge: own ? "Owned" : "Locked", name: MOVES[tid][cell], levels: false, lv: 0, fx: MOVE_DESC[tid][cell], draw: "", own };
+  }
+
+  const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+  function syncInfo() {
+    const el = root?.querySelector("[data-tl-info]");
+    if (!el) return;
+    if (!(info && page === 2 && view === "sub" && mode === "grid")) { el.hidden = true; infoItem = ""; return; }
+    const d = infoData(), left = 1032 + (cell % 5) * 168 - 16 - 513, item = T().id + ":" + cell, opening = el.hidden;
+    el.hidden = false;
+    if (opening) { el.style.transition = "none"; el.style.left = left + "px"; void el.offsetWidth; el.style.transition = ""; restart(el, "is-in"); }
+    else el.style.left = left + "px";
+    el.style.setProperty("--tc", d.col);
+    const q = k => el.querySelector(`[data-i="${k}"]`);
+    q("kind").textContent = d.kind; q("badge").textContent = d.badge; q("name").textContent = d.name;
+    q("fx").textContent = d.fx; q("draw").textContent = d.draw; q("draw").hidden = !d.draw;
+    el.querySelectorAll("[data-i-lv]").forEach(n => { n.hidden = !d.levels; });
+    el.querySelectorAll(".tl-lv span").forEach((n, k) => n.classList.toggle("is-on", k + 1 === d.lv));
+    el.querySelector("[data-i-equip]").classList.toggle("is-off", !d.own);
+    if (!opening && item !== infoItem) restart(el, "is-swap");        // another item: crossfade every text
+    else if (!opening && d.lv !== infoLv) restart(el, "is-lv");       // same item, other level: crossfade the effect
+    infoItem = item; infoLv = d.lv;
   }
 
   function subHtml() {
@@ -287,7 +316,7 @@
     let left;
     if (t.id === "perk") left = `<div class="tl-list${mode === "grid" ? " is-choosing" : ""}">${[0, 1, 2, 3].map(perkCardHtml).join("")}</div>`;
     else left = clusterHtml(t.id, 250, 169, 1, { focus: slot, choosing: mode === "grid" }) + detailHtml();
-    return crumb + tabsHtml(TYPES, type, x => x.tab) + heads + gridHtml() + left + infoHtml();
+    return crumb + tabsHtml(TYPES, type, x => x.tab) + heads + gridHtml() + left;
   }
   //#endregion
 
@@ -304,6 +333,7 @@
     if (hub && !sw.firstChild) sw.innerHTML = switcherHtml();
     root.querySelector("[data-tl-view]").innerHTML = body + hintsHtml();
     animate();
+    syncInfo();
     updateHubArt();
   }
 
@@ -355,7 +385,7 @@
     else if (dir === "right" && c % 5 < 4 && c + 1 < n) c++;
     else if (dir === "up" && c >= 5) c -= 5;
     else if (dir === "down" && c + 5 < n) c += 5;
-    if (c !== cell) { cell = c; if (info) info.lv = PERKS[c]?.lv || 1; }
+    if (c !== cell) { cell = c; if (info) info.lv = T().id === "perk" ? PERKS[c].lv : 0; }
   }
 
   function enterGrid() {
@@ -397,7 +427,7 @@
     // ---- submenu
     if (info) {
       if (a === "back" || a === "y") info = null;
-      else if (a === "rs" || a === "rb") info.lv = info.lv % 3 + 1;   // keyboard RS glyph is C (= rb here)
+      else if ((a === "rs" || a === "rb") && T().id === "perk") info.lv = info.lv % 3 + 1;   // keyboard RS glyph is C (= rb here)
       else if (a === "a") { if (equip()) { info = null; mode = "slots"; } }
       else if (["up", "down", "left", "right"].includes(a)) moveGrid(a);
       render(); return;
@@ -406,7 +436,7 @@
       if (["up", "down", "left", "right"].includes(a)) moveGrid(a);
       else if (a === "back") mode = "slots";
       else if (a === "a") { if (equip()) mode = "slots"; }
-      else if (a === "y" && T().id === "perk") info = { lv: PERKS[cell].lv };
+      else if (a === "y") info = { lv: T().id === "perk" ? PERKS[cell].lv : 0 };
       else return;
       render(); return;
     }
@@ -416,8 +446,8 @@
     else if (a === "x") { if (preset()[T().id][slot] == null) return; preset()[T().id][slot] = null; rumble(40, .2); }
     else if (a === "y") {
       const v = preset()[T().id][slot];
-      if (v == null || T().id !== "perk") return;
-      cell = v; mode = "grid"; info = { lv: PERKS[v].lv };
+      if (v == null) return;
+      cell = v; mode = "grid"; info = { lv: T().id === "perk" ? PERKS[v].lv : 0 };
     }
     else if (a === "back") { view = "hub"; info = null; }
     else return;
@@ -471,7 +501,7 @@
       <div class="tl-hubart" data-tl-hubart hidden><img class="tl-hubart__icon" data-tl-bgicon alt=""><img class="tl-hubart__fighter" src="${IMG}cc-character.webp" alt="Fighter"></div>
       <div class="tl-shade"></div>
       <div data-tl-sw hidden></div>
-      <div data-tl-view></div>`;
+      <div data-tl-view></div>${infoShellHtml()}`;
     mountWallet();
     (document.getElementById("stage") || document.body).appendChild(root);
     root.addEventListener("click", onClick);

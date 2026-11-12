@@ -159,32 +159,9 @@
     return null;
   }
 
-  // Index of the Style Level group at the top of the scroll view
-  function currentGroup(grid, groups) {
-    if (grid.scrollTop >= grid.scrollHeight - grid.clientHeight - 1) return groups.length - 1;
-    let index = 0;
-    groups.forEach((g, i) => { if (g.offsetTop - 24 <= grid.scrollTop) index = i; });
-    return index;
-  }
-
+  // Scrollbar: shared .scrollbar look (MTX / Scrollbar), right of the grid
   function updateScrollbar() {
-    const grid = api.$("#s-rewards .reward-grid");
-    const track = api.$("#s-rewards .rw-scroll__track");
-    if (!grid || !track) return;
-    const groups = Array.from(grid.querySelectorAll(".reward-group"));
-    if (track.children.length !== groups.length) {
-      track.innerHTML = groups.map((_, i) => `<i class="rw-scroll__pill" data-group="${i}"></i>`).join("");
-    }
-    const index = currentGroup(grid, groups);
-    Array.from(track.children).forEach((pill, i) => pill.classList.toggle("is-current", i === index));
-    api.$("#s-rewards [data-scroll-dir='-1']").classList.toggle("is-off", grid.scrollTop <= 0);
-    api.$("#s-rewards [data-scroll-dir='1']").classList.toggle("is-off", grid.scrollTop >= grid.scrollHeight - grid.clientHeight - 1);
-  }
-
-  function scrollToGroup(index) {
-    const grid = api.$("#s-rewards .reward-grid");
-    const group = grid?.querySelectorAll(".reward-group")[index];
-    if (group) grid.scrollTo({ top: group.offsetTop - 12, behavior: "smooth" });
+    window.MTX_UI.syncScrollbar(api.$("#s-rewards .reward-grid"), api.bind("rewardsScroll"), { thumb: api.bind("rewardsThumb") });
   }
 
   function renderPage() {
@@ -310,18 +287,6 @@
     const grid = api.$("#s-rewards .reward-grid");
     if (grid) {
       grid.addEventListener("scroll", updateScrollbar, { passive: true });
-    }
-
-    const scrollbar = api.$("#s-rewards .rewards__scroll");
-    if (scrollbar) {
-      scrollbar.addEventListener("click", e => {
-        const grid = api.$("#s-rewards .reward-grid");
-        const groups = Array.from(grid.querySelectorAll(".reward-group"));
-        const pill = e.target.closest(".rw-scroll__pill");
-        const btn = e.target.closest("[data-scroll-dir]");
-        if (pill) scrollToGroup(+pill.dataset.group);
-        else if (btn) scrollToGroup(currentGroup(grid, groups) + +btn.dataset.scrollDir);
-      });
     }
 
     const claimBtn = api.bind("claimBtn");

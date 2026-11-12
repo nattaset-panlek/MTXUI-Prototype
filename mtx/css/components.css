@@ -203,8 +203,9 @@ body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed
 
 /* ---------- Scrollbar (Figma "Rectangle 11427/11428") ---------- */
 .scrollbar{position:absolute;width:7px}
-.scrollbar::before{content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:var(--line-2)}
-.scrollbar__thumb{position:absolute;left:0;width:7px;height:99px;border-radius:10px;background:var(--yellow-2);box-shadow:0 0 0 3px #141415;transition:top .15s}
+/* MTX / Scrollbar (Figma 719:78179): 7 px, square, 3 px track centred, 7 px thumb */
+.scrollbar::before{content:"";position:absolute;left:2px;top:0;bottom:0;width:3px;border-radius:0;background:var(--line-2)}
+.scrollbar__thumb{position:absolute;left:0;width:7px;height:99px;border-radius:0;background:var(--yellow-2);transition:top .15s}
 
 /* ---------- Divider ---------- */
 .divider{height:1px;background:var(--line-3);border:0;margin:0}

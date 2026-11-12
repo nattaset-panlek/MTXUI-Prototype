@@ -166,50 +166,27 @@
     updateScroller();
   }
 
-  // Scroller: one pill per section, the current one is long (same parts as Rewards)
+  // Scrollbar: shared .scrollbar look (MTX / Scrollbar). The list scrolls by transform, so the thumb is synced here.
   function scrollState() {
     const list = api.bind("storeList");
-    const sections = Array.from(list.querySelectorAll(".st-section"));
     const y = -(parseFloat(list.dataset.y) || 0);
     const max = Math.max(0, list.offsetHeight - list.parentElement.clientHeight);
-    let index = 0;
-    sections.forEach((s, i) => { if (s.offsetTop - 24 <= y) index = i; });
-    if (y >= max - 1) index = sections.length - 1;
-    return { list, sections, y, max, index };
+    return { list, y, max };
   }
 
   function updateScroller() {
-    const track = api.$("#s-store .rw-scroll__track");
-    if (!track) return;
-    const { sections, y, max, index } = scrollState();
-    if (track.children.length !== sections.length) {
-      track.innerHTML = sections.map((_, i) => `<i class="rw-scroll__pill" data-group="${i}"></i>`).join("");
-    }
-    Array.from(track.children).forEach((pill, i) => pill.classList.toggle("is-current", i === index));
-    api.$("#s-store [data-scroll-dir='-1']").classList.toggle("is-off", y <= 0);
-    api.$("#s-store [data-scroll-dir='1']").classList.toggle("is-off", y >= max - 1);
-  }
-
-  // Focus moves with the scroll, so the next stick move starts from what is on screen
-  function goToSection(i) {
-    const { sections } = scrollState();
-    const card = sections[Math.max(0, Math.min(sections.length - 1, i))]?.querySelector(".item-card");
-    if (!card) return;
-    api.setFocus(card);
-    const { list, max } = scrollState();
-    const y = Math.min(max, card.closest(".st-section").offsetTop);
-    list.dataset.y = -y;
-    list.style.transform = `translateY(${-y}px)`;
-    updateScroller();
+    const bar = api.bind("storeScroll"), thumb = api.bind("storeThumb");
+    if (!bar || !thumb || !api.bind("storeList")) return;
+    const { list, y, max } = scrollState();
+    bar.hidden = max <= 1;
+    if (bar.hidden) return;
+    const track = bar.clientHeight, view = list.parentElement.clientHeight;
+    const h = Math.max(48, Math.round(track * view / list.offsetHeight));
+    thumb.style.height = h + "px";
+    thumb.style.top = Math.round(y / max * (track - h)) + "px";
   }
 
   function bindScroller() {
-    api.$("#s-store .rewards__scroll")?.addEventListener("click", e => {
-      const pill = e.target.closest(".rw-scroll__pill");
-      const btn = e.target.closest("[data-scroll-dir]");
-      if (pill) goToSection(+pill.dataset.group);
-      else if (btn) goToSection(scrollState().index + +btn.dataset.scrollDir);
-    });
     api.$("#s-store .st-view")?.addEventListener("wheel", e => {
       e.preventDefault();
       const { list, y, max } = scrollState();

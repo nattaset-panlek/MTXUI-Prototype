@@ -219,9 +219,10 @@
 /* focus ring: the shared gradient ring, 10 px outside the thumbnail (Figma focus ring 328 × 194) */
 .tr-card.is-focused .tr-card__art{box-shadow:none}
 .tr-card.is-focused .tr-card__art::after{content:"";position:absolute;inset:-10px;border:3px solid;border-image:linear-gradient(90deg,#f3eed0,#e4b996,#766ab2,#5a8dc2,#8bcab2) 1;pointer-events:none}
-/* scrollbar (Figma 1860,200 · 6 × 800, track #2a2e37, yellow thumb) */
-.tr-sb{position:absolute;left:1860px;top:200px;width:6px;height:800px;background:#2a2e37}
-.tr-sb i{position:absolute;left:0;width:6px;background:#f6df2f;transition:top .2s ease}
+/* scrollbar: MTX / Scrollbar standard (Figma 719:78179), centred where the old 6 px bar was */
+.tr-sb{position:absolute;left:1859.5px;top:200px;width:7px;height:800px}
+.tr-sb::before{content:"";position:absolute;left:2px;top:0;bottom:0;width:3px;border-radius:0;background:var(--line-2)}
+.tr-sb i{position:absolute;left:0;width:7px;background:var(--yellow-2);transition:top .2s ease}
 
 /* Browse featured ticket card (Figma "MTX / Tournament Ticket Card" 467:34287), 1090 × 861 scaled to .929 at 60,196 */
 .tkc{position:absolute;left:64.6px;top:211px;width:1090px;height:861px;zoom:.929}   /* zoom, not transform: the screen motion animates transform on blocks */

@@ -11,7 +11,8 @@
     { id: "exit", title: "Exit game", sub: "Close Muay Thai Xtreme" },
   ];
   let root = null, open = false, focus = 0, hideT = 0;
-  const items = () => window.MTX_PREGAME?.() ? ITEMS.filter(it => it.id === "settings" || it.id === "exit") : ITEMS;   // before login: no Profile / Main menu
+  const items = () => window.MTX_PREGAME?.() ? ITEMS.filter(it => it.id === "settings" || it.id === "exit")
+    : api()?.getCur?.() === "charselect" ? ITEMS.filter(it => it.id !== "profile") : ITEMS;   // Character Select: no fighter picked yet, so no Profile   // before login: no Profile / Main menu
   const SLIDE_OUT_MS = 180;   // .op.is-closing in screens.css
   const api = () => window.MTX?.api;
   const G = b => window.MTX_UI?.glyph ? window.MTX_UI.glyph(b) : `<span class="glyph" data-btn="${b}"></span>`;

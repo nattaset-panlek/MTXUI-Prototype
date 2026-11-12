@@ -56,6 +56,12 @@
       const html = UI.hintItem(key, value, { itemAttrs: () => "data-hint-focus" });
       if (next) next.insertAdjacentHTML("beforebegin", html); else bar.insertAdjacentHTML("beforeend", html);
     }
+    // the screen may still be playing its enter motion (motion.js): the new hints copy a neighbour hint's animations, so they move in with the bar
+    const peer = bar.querySelector(":scope > .hint:not([data-hint-focus])"), runs = peer?.getAnimations?.() || [];
+    if (runs.length) bar.querySelectorAll(":scope > .hint[data-hint-focus]").forEach(h => runs.forEach(a => {
+      const fx = a.effect; if (!fx?.getKeyframes) return;
+      const copy = h.animate(fx.getKeyframes(), { ...fx.getTiming(), composite: fx.composite }); copy.currentTime = a.currentTime;
+    }));
   };
 
   UI.renderHintBars = (root = document) => {

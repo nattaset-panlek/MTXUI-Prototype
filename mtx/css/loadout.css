@@ -177,15 +177,23 @@
 .tl-info .hint-inline { display: flex; align-items: center; gap: 8px; font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5 }
 
 /* ---- transitions (screen-loadout.js animate): page / tab slide, hub -> submenu, slots <-> grid, info card */
-@keyframes tl-x { from { opacity: 0; transform: translateX(28px) } }
-@keyframes tl-in { from { opacity: 0; transform: scale(.985) } }
+@keyframes tl-x { from { opacity: 0 } }
+@keyframes tl-in { from { opacity: 0 } }
 @keyframes tl-fade { from { opacity: .55 } }
-@keyframes tl-pop { from { opacity: 0; transform: scale(1.04) } }
-@keyframes tl-card { from { opacity: 0; transform: translateX(24px) } }
+@keyframes tl-pop { from { opacity: 0 } }
+@keyframes tl-card { from { opacity: 0 } }
 .tl-anim-x :is(.tl-tbd, .tl-hub, .tl-list, .tl-grid, .tl-cl, .tl-detail, .tl-head, .tl-crumb) { animation: tl-x .2s ease-out both }
 .tl-anim-in :is(.tl-list, .tl-grid, .tl-cl, .tl-detail, .tl-head, .tl-crumb, .tl-tabs) { animation: tl-in .2s ease-out both }
 .tl-anim-mode :is(.tl-grid, .tl-list, .tl-cl, .tl-detail) { animation: tl-fade .15s ease-out both }
 .tl-anim-mode :is(.tl-focus, .tl-target, .tl-slot.is-focused > .tl-ring) { animation: tl-pop .12s ease-out both }
-.tl .tl-anim-info .skill-detail.tl-info { animation: tl-card .18s ease-out both }
+.tl .skill-detail.tl-info.is-in { animation: tl-card .18s ease-out both }
 .tl-hints .hint { transition: opacity .15s }
 @media (prefers-reduced-motion: reduce) { .tl *, .tl-slice, .tl-slice * { animation: none !important; transition: none !important } }
+
+/* persistent info card: lerps to the focused cell, text crossfades on a new item, effect crossfades on a new level */
+.tl .skill-detail.tl-info { transition: left .22s cubic-bezier(.2, .8, .2, 1) }
+@keyframes tl-swap { from { opacity: 0 } }
+.tl-info.is-swap :is([data-i], .tl-lv, .skill-detail__art img) { animation: tl-swap .2s ease-out both }
+.tl-info.is-lv :is([data-i="fx"], [data-i="draw"]) { animation: tl-swap .16s ease-out both }
+.tl-info [hidden] { display: none !important }
+.tl-info__equip.is-off { opacity: .4 }

@@ -140,7 +140,7 @@
         <section class="st-panel" aria-label="${esc(PAGES[tab][0])} settings"><div class="st-list">${list}</div><i class="st-scroll" aria-hidden="true"><em></em></i></section>
         ${cur ? `<aside class="st-desc" aria-live="polite"><h2>${esc(cur.label)}</h2><i class="st-desc__rule"></i><p>${esc(cur.desc)}</p>${values ? `<p class="st-desc__vals">${esc(values)}</p>` : ""}
           ${cur.pad ? (pad ? `<img class="st-desc__pad" src="mtx/assets/svg/pads/${pad}.svg" alt="">` : `<p class="st-desc__kb">Keyboard: W A S D move · Space confirm · Esc back · Q / E tabs · Tab options · F friends</p>`) : ""}</aside>` : ""}
-        ${window.MTX_UI.hintBar({ b: "Back", ...fieldHints(cur), y: "Restore", menu: dirty() ? "Save" : { label: "Saved", off: true } }, { cls: "st__hints" })}
+        ${window.MTX_UI.hintBar({ b: "Back", ...fieldHints(cur), y: "Restore", menu: dirty() ? { label: "Save", attrs: "data-st-save" } : { label: "Saved", off: true } }, { cls: "st__hints" })}
       </div>`;
     const el = root.querySelector(".st-row.is-focused"), box = root.querySelector(".st-list");
     if (el && box) { const t = el.offsetTop, bt = t + el.offsetHeight; if (bt > box.scrollTop + box.clientHeight) box.scrollTop = bt - box.clientHeight + 20; if (t < box.scrollTop) box.scrollTop = Math.max(0, t - 60); }

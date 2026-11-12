@@ -28,11 +28,11 @@
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
   <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
   <link rel="stylesheet" href="mtx/css/no-brand.css?v=8">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=sb14vp">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=sb16mh">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
-  <link rel="stylesheet" href="mtx/css/loadout.css?v=6">
+  <link rel="stylesheet" href="mtx/css/loadout.css?v=8">
 </head>
 
 <body>
@@ -641,11 +641,7 @@ board</h3>
           <div class="st-balance">
             <span class="st-balance__owned">Owned <b data-store-owned>0</b></span>
           </div>
-          <div class="rewards__scroll" data-figma="Rewards scroller">
-            <span class="rw-scroll__btn" data-scroll-dir="-1" role="button" aria-label="Previous group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <div class="rw-scroll__track"></div>
-            <span class="rw-scroll__btn" data-scroll-dir="1" role="button" aria-label="Next group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 2L10 10L18 2" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </div>
+          <div class="scrollbar store__scroll" data-bind="storeScroll" data-figma="MTX / Scrollbar 719:78179" aria-hidden="true"><span class="scrollbar__thumb" data-bind="storeThumb"></span></div>
           <div class="st-view"><div class="st-list" data-bind="storeList"></div></div>
           <div class="char3d" data-char3d data-char3d-off aria-hidden="true"></div>
           <img class="rewards__hero st-detail__hero" data-bind="storeHero" src="mtx/assets/img/store-seuxphen.webp" alt="">
@@ -709,11 +705,7 @@ Collection</h1>
         <div class="screen__safe">
           <h1 class="page-title tex-text rewards__title" data-figma="1:5113 rewards">Rewards</h1>
           <div class="reward-grid" data-figma="Reward grid (was 5 loose tile groups + 10 price pill groups)"></div>
-          <div class="rewards__scroll" data-figma="Rewards scroller">
-            <span class="rw-scroll__btn" data-scroll-dir="-1" role="button" aria-label="Previous group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 10L10 2L18 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <div class="rw-scroll__track"></div>
-            <span class="rw-scroll__btn" data-scroll-dir="1" role="button" aria-label="Next group"><svg width="20" height="12" viewBox="0 0 20 12" fill="none" aria-hidden="true"><path d="M2 2L10 10L18 2" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          </div>
+          <div class="scrollbar rewards__bar" data-bind="rewardsScroll" data-figma="MTX / Scrollbar 719:78179" aria-hidden="true"><span class="scrollbar__thumb" data-bind="rewardsThumb"></span></div>
 
           <div class="char3d" data-char3d data-char3d-off aria-hidden="true"></div>
           <img class="rewards__hero" data-bind="rewardHero" src="mtx/assets/img/glove1-hero.webp" alt=""
@@ -803,9 +795,8 @@ Collection</h1>
       <section class="screen" id="s-management" data-screen="management" data-first="mgr" data-y="go:collection"
         data-figma="2:427 Management">
         <div class="screen__bg">
-          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .75)"></div>
-          <div class="sim__fade" style="position:absolute"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>   <!-- same as Rewards -->
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
         <div class="screen__safe">
           <h1 class="page-title tex-text management__title">Management</h1>
@@ -1002,8 +993,8 @@ Collection</h1>
       <section class="screen" id="s-collection" data-screen="collection" data-first="mgr0" data-y="fn:compareCard"
         data-lt="fn:colPrevTab" data-rt="fn:colNextTab">
         <div class="screen__bg">
-          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .8)"></div>
+          <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>   <!-- same as Rewards -->
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
         <div class="screen__safe">
           <h1 class="page-title tex-text collection__title">Collection</h1>
@@ -1668,7 +1659,7 @@ Mention</h1>
   <script src="mtx/js/components/visual-keyboard.js?v=400"></script>
   <script src="mtx/js/components/motion.js?v=3"></script>
   <script src="mtx/js/components/glyph.js?v=400"></script>
-  <script src="mtx/js/components/hint-bar.js?v=pin1"></script>
+  <script src="mtx/js/components/hint-bar.js?v=pin2"></script>
   <script src="mtx/js/data/items.js?v=3"></script>
   <script src="mtx/js/components/item-card.js?v=1"></script>
   <script src="mtx/js/components/mode-card.js?v=8"></script>
@@ -1695,7 +1686,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-rewards.js?v=db1"></script>
   <script src="mtx/js/attr-data.js?v=400"></script>
   <script src="mtx/js/screens/screen-attributes.js?v=400"></script>
-  <script src="mtx/js/screens/screen-loadout.js?v=5"></script>
+  <script src="mtx/js/screens/screen-loadout.js?v=6"></script>
   <script src="mtx/js/screens/screen-customize.js?v=hb2"></script>
   <script src="mtx/js/screens/screen-store.js?v=db9"></script>
   <script src="mtx/js/screens/screen-leaderboard.js?v=402"></script>
@@ -1705,7 +1696,7 @@ Mention</h1>
   <script src="mtx/js/components/spotlight.js?v=hb1"></script>
   <script src="mtx/js/components/dialog.js?v=db5"></script>
   <script src="mtx/js/components/modal.js?v=hb3"></script>
-  <script src="mtx/js/screens/screen-settings.js?v=hb1"></script>
+  <script src="mtx/js/screens/screen-settings.js?v=hb2"></script>
   <script src="mtx/js/screens/screen-options.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-friends.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-tournament.js?v=hb3c"></script>

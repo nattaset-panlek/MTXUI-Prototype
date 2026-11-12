@@ -401,8 +401,7 @@
   margin: 0 0 0 -17px;
   font: 400 135px/1.42 var(--font-display);
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--style-color) 55%, var(--text-muted));
-  mix-blend-mode: color-dodge;
+  color: var(--style-color);   /* solid style colour, no blend: reads clearly over the background */
   white-space: nowrap;
   transform-origin: left center
 }
@@ -1634,56 +1633,9 @@
   transform: scale(1.03)
 }
 
-/* Scroller: one pill per Style Level group, the current one is long */
-.rewards__scroll {
-  position: absolute;
-  left: 66px;
-  top: 301px;
-  width: 44px;
-  height: 680px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px
-}
-
-.rw-scroll__btn {
-  flex: none;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgb(138 145 165 / .6);
-  color: #14161b;
-  cursor: pointer;
-  transition: opacity .15s
-}
-
-.rw-scroll__btn.is-off { opacity: .4; cursor: default }
-
-.rw-scroll__track {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px
-}
-
-.rw-scroll__pill {
-  flex: none;
-  width: 10px;
-  height: 18px;
-  box-sizing: border-box;
-  border: 1.5px solid rgb(255 255 255 / .5);
-  border-radius: 5px;
-  cursor: pointer
-}
-
-.rw-scroll__pill.is-current {
-  flex: 1;
-  border-color: #fff
-}
+/* Rewards / Store: shared .scrollbar (MTX / Scrollbar), right of the list */
+.rewards__bar { left: 815px; z-index: 2 }   /* top / height follow the grid (MTX_UI.syncScrollbar) */
+.rewards__bar[hidden], .store__scroll[hidden] { display: none }
 
 .rewards__page {
   position: absolute;
@@ -5607,15 +5559,14 @@ html body .attr__trigger .glyph[data-btn] {
 
 .cc-scroll {
   position: absolute;
-  left: 1697px;
+  left: 1696px;
   top: 140px;
-  width: 5px;
-  height: 840px;
-  border-radius: 10px;
-  background: var(--line-2)
+  width: 7px;
+  height: 840px
 }
+.cc-scroll::before { content:""; position:absolute; left:2px; top:0; bottom:0; width:3px; border-radius:0; background:var(--line-2) }
 
-.cc-scroll i { position: absolute; left: 0; width: 5px; border-radius: 10px; background: var(--yellow-2); transition: top .2s ease, height .2s ease }
+.cc-scroll i { position: absolute; left: 0; width: 7px; border-radius: 0; background: var(--yellow-2); transition: top .2s ease, height .2s ease }
 
 .cc-heading {
   margin: 18px 0 16px;
@@ -6269,8 +6220,9 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .cc-sp__sort b { font-weight: 600; color: var(--yellow-2) }
 .cc-sp__sort i { width: 15px; height: 13px; background: var(--yellow-2); clip-path: polygon(0 0, 100% 0, 50% 100%) }
 .cc-sp__grid { position: absolute; left: 47px; top: 75px; display: grid; grid-template-columns: repeat(4, 128px); gap: 41px 45px }
-.cc-sp__scroll { position: absolute; left: 740px; top: 75px; width: 5px; height: 470px; background: #4e4e4e }
-.cc-sp__scroll i { position: absolute; left: 0; top: 0; width: 5px; height: 65px; background: #f2df57 }
+.cc-sp__scroll { position: absolute; left: 739px; top: 75px; width: 7px; height: 470px }
+.cc-sp__scroll::before { content:""; position:absolute; left:2px; top:0; bottom:0; width:3px; border-radius:0; background:var(--line-2) }
+.cc-sp__scroll i { position: absolute; left: 0; top: 0; width: 7px; height: 65px; background: #f2df57 }
 .cc-sp__name { position: absolute; left: 47px; right: 95px; bottom: 16px; margin: 0; display: flex; align-items: center; gap: 16px; font: 400 18px/1 var(--font-display); text-transform: uppercase; color: var(--yellow-2) }
 .cc-sp__name > span:first-child { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
 .cc-sp__equip { display: inline-flex; align-items: center; gap: 8px; font: 700 15px/1 var(--font-ui); color: var(--text-muted) }
@@ -6354,7 +6306,7 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .lb__title { left: 123px; top: 267px; width: 477px; text-align: right; font-size: 45px; line-height: 40px }
 .lb__season { position: absolute; left: 123px; top: 307px; width: 477px; margin: 0; text-align: right; font: 600 18px/27px var(--font-ui); text-transform: uppercase; color: var(--text-muted) }
 
-/* yellow header bar: gold-orange gradient, scratch, fighters blended in */
+/* yellow header bar: solid yellow (no gradient), scratch, fighters blended in */
 .lb-head {
   position: relative;
   height: 55px;
@@ -6720,10 +6672,11 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .pe-nav__btn.is-active { color: #f2df57; box-shadow: inset 0 0 0 2px #f2df57 }
 .pe-panel { left: 227px; top: 257px; width: 779px; height: 554px; background: rgb(0 0 0 / .6) }
 .pe-panel > * { position: absolute }
-.pe-scroll { left: 733px; top: 65px; width: 6px; height: 389px; background: #4e4e4e }
+.pe-scroll { left: 732.5px; top: 65px; width: 7px; height: 389px }
+.pe-scroll::before { content:""; position:absolute; left:2px; top:0; bottom:0; width:3px; border-radius:0; background:var(--line-2) }
 .pe-scroll[hidden], .pe[data-sec="info"] .pe-scroll { display: none }
 .pe-grid { padding: 3px }
-.pe-scroll i { position: absolute; left: 0; top: 0; width: 6px; height: 70px; background: #f2df57 }
+.pe-scroll i { position: absolute; left: 0; top: 0; width: 7px; height: 70px; background: #f2df57 }
 .pe-count { right: 40px; bottom: 24px; margin: 0; font: 700 20px/1 var(--font-ui); text-transform: uppercase; color: #f6f1eb }
 .pe-count b { color: #f2df57 }
 .pe-owned { left: 227px; top: 823px; display: flex; align-items: center; gap: 10px; font: 700 16px/23px var(--font-ui); text-transform: uppercase; color: #f6f1eb; cursor: pointer }
@@ -7032,8 +6985,8 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .mh-col--score { left: 810px }
 .mh-col--damage { left: 930px }
 .mh-row { --res: var(--text-muted) }
-.mh-row.is-win { --res: #35d900 }
-.mh-row.is-loss { --res: #ed153f }
+.mh-row.is-win { --res: #f4dd2f }
+.mh-row.is-loss { --res: #ff0027 }
 .mh-row.is-draw { --res: #acacbb }
 .mh-row { --acc: var(--res) }
 .mh-row__result { left: 18px; font: 400 20px/1 var(--font-display); white-space: nowrap; color: var(--res) }
@@ -7053,8 +7006,8 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .mh-detail[hidden] { display: none }
 .mh-detail .lb-you__tier { white-space: normal }
 .mh-detail__tier { width: 303px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.mh-detail__result[data-result="win"] { color: #35d900 }
-.mh-detail__result[data-result="loss"] { color: #ed153f }
+.mh-detail__result[data-result="win"] { color: #f4dd2f }
+.mh-detail__result[data-result="loss"] { color: #ff0027 }
 .mh-detail__result[data-result="draw"] { color: #acacbb }
 
 
@@ -7134,15 +7087,15 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 
 /* ================= Match Detail (Figma 217:6954 Statistics · 217:7375 Loadout · 221:20525 / 221:20873 rounds) =================
    header + page tabs (Q / E) + round tabs (Z / C, Statistics only) + red / blue corner cards; body = stats rows or loadout cards */
-#s-matchdetail { --md-red: #ed153f; --md-blue: #0066ff; --md-red-t: #ff4060; --md-blue-t: #3d8bff }
+#s-matchdetail { --md-red: #ff0027; --md-blue: #0066ff; --md-red-t: #ff4060; --md-blue-t: #3d8bff }
 .md-head > *, .md-pages, .md-rounds, .md-fighter, .md-body { position: absolute; margin: 0 }
-.md-result { left: 98px; top: 150px; font: 400 84px/90px var(--font-display); text-transform: uppercase; color: #35d900 }
-.md-result[data-result="loss"] { color: #ed153f }
+.md-result { left: 98px; top: 150px; font: 400 84px/90px var(--font-display); text-transform: uppercase; color: #f4dd2f }
+.md-result[data-result="loss"] { color: #ff0027 }
 .md-result[data-result="draw"] { color: var(--text-muted) }
 .md-method { left: 330px; top: 166px; font: 600 22px/30px var(--font-ui); color: var(--text-1) }
 .md-meta { left: 330px; top: 200px; font: 600 18px/26px var(--font-ui); text-transform: uppercase; color: var(--text-muted); white-space: pre }
-.md-rp { left: 1600px; top: 164px; font: 400 40px/44px var(--font-display); text-transform: uppercase; color: #35d900 }
-.md-rp[data-result="loss"] { color: #ed153f }
+.md-rp { left: 1600px; top: 164px; font: 400 40px/44px var(--font-display); text-transform: uppercase; color: #f4dd2f }
+.md-rp[data-result="loss"] { color: #ff0027 }
 .md-rp[data-result="draw"] { color: var(--text-muted) }
 .md-rewards { left: 1600px; top: 214px; font: 600 18px/26px var(--font-ui); text-transform: uppercase; color: var(--text-muted); white-space: pre }
 .md-rule { left: 98px; top: 256px; width: 1724px; height: 1px; background: #4e4e4e }
@@ -7544,8 +7497,8 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .st-slider__track em { position: absolute; right: -1px; top: -1.5px; bottom: auto; left: auto; width: 1px; height: 16px; margin: 0; background: #fff7e1 }
 .st-row.is-off .st-slider__track i, .st-row.is-off .st-slider__track em { background: #6c6c6c }
 .st-scroll { left: 921px; top: 14px; width: 7px; height: 712px; background: none }
-.st-scroll::before { content: ""; position: absolute; left: 2px; top: 0; width: 3px; height: 100%; border-radius: 10px; background: #4e4e4e }
-.st-scroll em { left: 0; width: 7px; border-radius: 10px; background: #f2df57 }
+.st-scroll::before { content: ""; position: absolute; left: 2px; top: 0; width: 3px; height: 100%; border-radius: 0; background: #4e4e4e }
+.st-scroll em { left: 0; width: 7px; border-radius: 0; background: #f2df57 }
 .st-desc { left: 1152px; top: 274px; width: 506px }
 .st-desc h2 { margin: 0; font: 600 32px/48px var(--font-ui) }
 .st-desc__rule { display: block; width: 506px; height: 1px; margin: 21px 0 26px; background: #f6f1eb }
@@ -7608,8 +7561,8 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .cl-bars b { width: 7px; background: #4e4e4e } .cl-bars b:nth-child(1) { height: 8px } .cl-bars b:nth-child(2) { height: 15px } .cl-bars b:nth-child(3) { height: 22px }
 .cl-ping--3 .cl-bars b.on { background: #00fd86 } .cl-ping--2 .cl-bars b.on { background: #f4dd2f } .cl-ping--1 .cl-bars b.on { background: #ff6b5e }
 .cl-scroll { position: absolute; right: 24px; top: 70px; width: 7px; height: 490px }
-.cl-scroll::before { content: ""; position: absolute; left: 2px; top: 0; width: 3px; height: 100%; border-radius: 10px; background: #4e4e4e }
-.cl-scroll em { position: absolute; left: 0; top: 0; width: 7px; height: 360px; border-radius: 10px; background: #f2df57 }
+.cl-scroll::before { content: ""; position: absolute; left: 2px; top: 0; width: 3px; height: 100%; border-radius: 0; background: #4e4e4e }
+.cl-scroll em { position: absolute; left: 0; top: 0; width: 7px; height: 360px; border-radius: 0; background: #f2df57 }
 /* waiting room */
 .cl-corner { position: absolute; top: 170px; width: 520px; height: 790px; overflow: hidden }
 .cl-corner--red { left: 60px } .cl-corner--blue { left: 1340px; text-align: right }
@@ -7677,7 +7630,8 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .cl-md__panel--msg .cl-md__bot { padding: 36px 64px 44px; background: #0d1118 }
 /* time remaining */
 /* Time remaining (Figma 272:33254): scrim, small spaced title, 7-segment digit (SVG, glyph 170 x 336 at x 876 / y 380), two lines */
-.cl-timer { position: absolute; inset: 0; z-index: 6; background: none; pointer-events: none; text-align: center }   /* overlay only: the lobby stays visible behind the countdown */
+.cl-timer { position: absolute; inset: 0; z-index: 6; background: rgb(4 5 8 / .9); box-shadow: 0 0 0 1920px rgb(4 5 8 / .9); pointer-events: none; text-align: center }   /* full-screen dim (dialog scrim color); the lobby stays visible, darkened, behind the countdown; box-shadow covers past the 1920 safe area */
+.cl--timer .cl-sb3d__f { visibility: hidden }   /* no fighter mannequins / char-lobby placeholder under the countdown */
 .cl-timer__title { margin: 0; position: absolute; left: 0; right: 0; top: 82px; font: 400 24px/96px var(--font-display); letter-spacing: 6px; text-transform: uppercase; color: #f2df57 }
 .cl-led { position: absolute; left: 0; right: 0; top: 380px; height: 336px; display: flex; justify-content: center; gap: 40px }
 .cl-seg { width: 170px; height: 336px; fill: #f2df57 }
@@ -7871,7 +7825,7 @@ button.is-overlay { opacity: .45; cursor: default }
 #s-store .st-list { position: relative; left: 0; top: 0; width: auto; height: auto; overflow: visible; padding: 12px 24px 40px }
 #s-store .st-grid { grid-template-columns: repeat(4, 216px); grid-auto-rows: 216px; grid-auto-flow: dense; gap: 16px 11px }
 #s-store .st-section__title { font-size: 28px }
-#s-store .rewards__scroll { top: 209px; height: 720px }
+#s-store .store__scroll { left: 1022px; top: 252px; height: 700px; z-index: 2 }   /* between grid (ends 1012) and view edge; above the 1:2 hero */
 /* Preview size follows the item: only 1:2 fighters use the full height */
 #s-store .st-detail__hero { left: 1075px; top: 430px; width: 320px; height: 320px }
 #s-store .st-detail__hero[data-ratio="1:2"] { left: 1010px; top: 300px; width: 450px; height: 630px }
@@ -7892,7 +7846,7 @@ button.is-overlay { opacity: .45; cursor: default }
 
 /* Settings: greyed Saved hint, and a dot after the name of a row with an unsaved change */
 .st__hints .hint.is-off { opacity: .4 }
-.st-row.is-dirty .st-row__label::after { content: ""; display: inline-block; width: 8px; height: 8px; margin-left: 10px; border-radius: 50%; background: currentColor; vertical-align: middle }
+.st__hints .hint[data-st-save] > span:last-child { color: #f4dd2f }   /* unsaved changes: Save lights up (no dot on the changed rows) */
 
 /* Dialog price button */
 .dlg-price { display: inline-flex; align-items: center; justify-content: center; gap: 12px }
