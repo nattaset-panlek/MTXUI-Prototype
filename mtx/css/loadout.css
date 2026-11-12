@@ -50,18 +50,19 @@
 .tl-sw__name { position: absolute; left: 29px; top: 10px; height: 88px; display: flex; align-items: center; font: 700 58px/1 var(--font-ui); text-transform: uppercase; color: #f6f1eb; white-space: nowrap }
 .tl-sw__req { position: absolute; left: 31px; top: 66px; font: 600 14px/1 var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb }
 .tl-slices { position: absolute; left: 900px; top: 0; height: 96px; display: flex }
-.tl-slice { position: relative; flex: none; width: 150px; height: 96px; margin-right: -22px; transition: width .2s ease }
+.tl-slice { position: relative; flex: none; width: 150px; height: 96px; margin-right: -22px; transition: width .2s ease;
+  clip-path: polygon(28px 0, 100% 0, calc(100% - 28px) 100%, 0 100%) }   /* contents never spill onto the next slice while it resizes */
 .tl-slice__shape { position: absolute; inset: 0; background: rgb(255 255 255 / .1); clip-path: polygon(28px 0, 100% 0, calc(100% - 28px) 100%, 0 100%); opacity: 0; transition: opacity .2s ease }
 .tl-slice__icon { position: absolute; left: 53px; top: 26px; width: 44px; height: 44px; transition: left .2s ease, top .2s ease, width .2s ease, height .2s ease }
 .tl-slice__icon img { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .2s ease }
 .tl-slice__icon img.is-sel { opacity: 0 } .tl-slice.is-sel .tl-slice__icon img.is-sel { opacity: 1 }
 .tl-slice__name { position: absolute; left: 120px; top: 33px; height: 30px; font: 700 20px/30px var(--font-ui); text-transform: uppercase; white-space: nowrap; color: #f6f1eb; opacity: 0; transition: opacity .12s ease }
-.tl-slice__lock { position: absolute; left: 108px; top: 10px; width: 12px; height: 16px }
+.tl-slice__lock { position: absolute; left: 108px; top: 10px; width: 12px; height: 16px; transition: left .2s ease }
 .tl-slice.is-locked .tl-slice__icon { opacity: .35 }
 .tl-slice.is-sel { width: 330px }
 .tl-slice.is-sel .tl-slice__shape { opacity: 1 }
 .tl-slice.is-sel .tl-slice__icon { left: 46px; top: 18px; width: 60px; height: 60px }
-.tl-slice.is-sel .tl-slice__name { opacity: 1; transition-delay: .1s }
+.tl-slice.is-sel .tl-slice__name { opacity: 1; transition-delay: .18s }
 .tl-slice.is-sel .tl-slice__lock { left: 288px }
 
 .tl-vl { position: absolute; margin-top: 5px; font: 700 28px/42px var(--font-ui); text-transform: uppercase; white-space: nowrap }
@@ -129,7 +130,7 @@
 .tl-cell { position: absolute; width: 156px; height: 156px }
 .tl-cell__base { position: absolute; inset: 0; background: linear-gradient(0deg, rgb(154 158 168 / .27), rgb(154 158 168 / 0) 95%), #000; box-shadow: inset 0 0 0 1px #9a9ea8 }
 .tl-cell__corner { position: absolute; left: 1px; top: 80px; width: 154px; height: 48px }
-.tl-cell__bar { position: absolute; left: 1px; bottom: 1px; width: 154px; height: 28px; display: grid; place-items: center; background: #141619; border-radius: 0 0 5px 5px;
+.tl-cell__bar { position: absolute; left: 1px; bottom: 1px; width: 154px; height: 28px; display: grid; place-items: center; background: #141619; border-radius: 0;
   font: 700 12px/15px var(--font-ui); text-transform: uppercase; color: #f6f1eb; white-space: nowrap; overflow: hidden }
 .tl-cell__eq { position: absolute; inset: 0; box-shadow: inset 0 0 0 2px var(--tc, #f4dd2f) }
 .tl-cell__art { position: absolute; left: 78px; top: 64px }
@@ -197,3 +198,49 @@
 .tl-info.is-lv :is([data-i="fx"], [data-i="draw"]) { animation: tl-swap .16s ease-out both }
 .tl-info [hidden] { display: none !important }
 .tl-info__equip.is-off { opacity: .4 }
+
+/* 2026-11-12: effect numbers coloured; move detail panel gets the Flower Thai tile (228 px, opacity .07) */
+.tl .tl-num { font-weight: inherit; color: #3fd28b } .tl .tl-num--cond { color: #ffb547 }
+.tl-detail::before { content: ""; position: absolute; inset: 0; background: url(../assets/svg/loadout/flower-thai-tile.svg) 0 0 / 228px 228px repeat-x; opacity: .07; pointer-events: none }
+
+/* =========================================================== PROFILE (view only)
+   Figma Profile v2 C+ 727:82180, placed in the shell 719:28883 as 727:83049. Text boxes = Figma text node boxes. */
+.tl-pf { position: absolute; inset: 0; pointer-events: none }
+.tl-anim-x .tl-pf { animation: tl-x .2s ease-out both }
+.tl-pf__fighter { position: absolute; left: 668px; top: 149px; width: 584px; height: 1076px; object-fit: cover; object-position: top }
+.tl-pf__card, .tl-pf__panel { position: absolute; top: 150px; height: 828px; overflow: hidden; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1) }
+.tl-pf__card { left: 60px; width: 460px; background: rgb(0 0 0 / .5) }
+.tl-pf__panel { left: 1360px; width: 500px; background: rgb(0 0 0 / .45) }
+.tl-pf__tex { position: absolute; inset: 0; width: 100%; height: 100% }
+.tl-pf__rule { position: absolute; height: 1px; background: rgb(255 255 255 / .12) }
+.tl-pf__t { position: absolute; white-space: nowrap; color: #f6f1eb; font: 600 13px/13px var(--font-ui); text-transform: uppercase }
+.tl-pf__t.is-r { text-align: right } .tl-pf__t.is-c { text-align: center }
+.tl-pf__lbl { color: #9aa3ad }
+.tl-pf__name { font: 400 64px/45px var(--font-display); height: 46px }
+.tl-pf__title { font: 500 14px/22px var(--font-ui); letter-spacing: 2px; color: #9aa3ad }
+.tl-pf__ovr { font: 700 180px/190px var(--font-ui); color: #fde219 }
+.tl-pf__v24 { font: 700 24px/38px var(--font-ui); text-transform: none }
+.tl-pf__v32 { font: 700 32px/38px var(--font-ui) }
+.tl-pf__v22 { font: 700 22px/38px var(--font-ui) }
+.tl-pf__lv { font: 700 36px/42px var(--font-ui) }
+.tl-pf__head { font: 700 24px/13px var(--font-ui); color: #f5f5f5 }
+.tl-pf__rk.is-lg, .tl-pf__bl { font-size: 15px }
+/* style levels: segmented strip with E / S / R chips (727:82976) */
+.tl-pf__strip { position: absolute; left: 84px; top: 626px; width: 412px; height: 72px; background: rgb(255 255 255 / .04); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .18) }
+.tl-pf__chip { position: absolute; top: 644px; width: 36px; height: 36px; display: grid; place-items: center; font: 600 22px/1 var(--font-ui); font-style: normal; color: #f6f1eb }
+.tl-pf__chip.is-light { color: #16181f }
+.tl-pf__div { position: absolute; top: 640px; width: 1px; height: 44px; background: rgb(255 255 255 / .18) }
+/* championship belts: 74 px slots, belt bar 53 x 13 */
+.tl-pf__belt { position: absolute; top: 880px; width: 74px; height: 74px; background: rgb(0 0 0 / .25); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1) }
+.tl-pf__belt b { position: absolute; left: 10px; top: 30px; width: 53px; height: 13px }
+.tl-pf__badge { position: absolute; top: 396px; width: 64px; height: 64px; object-fit: contain }
+.tl-pf__ach { position: absolute; top: 526px; width: 76px; height: 76px }
+/* last fight card */
+.tl-pf__last { position: absolute; left: 1384px; top: 840px; width: 452px; height: 124px; background: rgb(255 255 255 / .06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1) }
+.tl-pf__last img { position: absolute; inset: 0; width: 100%; height: 100% }
+.tl-pf__lhead { font: 600 12px/18px var(--font-ui); color: #9aa3ad }
+.tl-pf__win { font: 600 38px/57px var(--font-ui); color: #f4dd2f }
+.tl-pf__ml { font: 600 11px/17px var(--font-ui); color: #9aa3ad }
+.tl-pf__mv { font: 600 18px/27px var(--font-ui) }
+/* Industry sits about .155 em higher in the browser than in Figma (measured on every text box); Modi Thorson matches */
+.tl-pf__t:not(.tl-pf__name) { padding-top: .155em } .tl-pf__chip { padding-top: 7px }

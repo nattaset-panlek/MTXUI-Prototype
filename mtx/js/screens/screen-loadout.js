@@ -33,7 +33,7 @@
     { name: "Fluid Evasion", kind: "defend", lv: 2, fx: ["Perfect Hop cuts the Stamina Cost of your next attack by 20% for 5 seconds.", "Perfect Hop cuts the Stamina Cost of your next attack by 30% and grants +10 Combo Efficiency for 5 seconds.", "Perfect Hop cuts the Stamina Cost of your next attack by 40% and grants +15 Combo Efficiency for 5 seconds."], draw: "Drawback: a missed Hop drains 10% Stamina" },
     { name: "Tiger Trap", kind: "attack", lv: 3, fx: ["Guard Cancel before an attack lowers the enemy Damage Reduction by 15% for 5 seconds.", "Guard Cancel before an attack lowers the enemy Damage Reduction by 20% and grants +10 Armor Shred Rate for 5 seconds.", "Guard Cancel before an attack lowers the enemy Damage Reduction by 30% and grants +15 Armor Shred Rate for 5 seconds."], draw: "Drawback: if that attack misses, you are slowed by 50% for 5 seconds" },
     { name: "Counter-Catch Pivot", kind: "defend", lv: 1, fx: ["Catching a kick and pivoting restores 5% Stamina.", "Catching a kick and pivoting restores 8% Stamina.", "Catching a kick and pivoting restores 12% Stamina and stuns briefly."], draw: "Drawback: a failed catch takes 20% more damage" },
-    { name: "Relentless Assault", kind: "sustain", lv: 1, fx: ["Landing a heavy move (Base Damage 13 or higher) restores 1 Max Stamina", "Landing a heavy move (Base Damage 13 or higher) restores 3 Max Stamina", "Landing a heavy move (Base Damage 13 or higher) restores 6 Max Stamina and grants +10% crit rate on heavy moves"], draw: "Drawback: each trigger also lowers Max HP by 1" },
+    { name: "Relentless Assault", kind: "sustain", lv: 1, fx: ["Landing a heavy move (Base Damage [[13]] or higher) restores 1 Max Stamina", "Landing a heavy move (Base Damage [[13]] or higher) restores 3 Max Stamina", "Landing a heavy move (Base Damage [[13]] or higher) restores 6 Max Stamina and grants +10% crit rate on heavy moves"], draw: "Drawback: each trigger also lowers Max HP by 1" },
     { name: "Steadfast Focus", kind: "sustain", lv: 3, fx: ["While HP regenerates, Max HP also regenerates 5% of missing Max HP per second.", "While HP regenerates, Max HP also regenerates 10% of missing Max HP per second.", "While HP regenerates, Max HP also regenerates 20% of missing Max HP per second."], draw: "Drawback: Movement Speed -40% while HP regenerates" },
     { name: "Defensive Breaker", kind: "attack", lv: 1, locked: true, fx: ["Hits on a guarding enemy deal +10% Guard Damage.", "Hits on a guarding enemy deal +15% Guard Damage.", "Hits on a guarding enemy deal +25% Guard Damage."], draw: "Drawback: your own guard recovers 20% slower" },
     { name: "Three-Step Pacing", kind: "sustain", lv: 1, locked: true, fx: ["Three steps without attacking restore 3% Stamina.", "Three steps without attacking restore 5% Stamina.", "Three steps without attacking restore 8% Stamina."], draw: "Drawback: the next attack is 10% slower" }
@@ -103,6 +103,9 @@
   const tileArt = (tid, i) => `${LO}${tid === "special" ? "sp" : "dc"}-tile-${(i % 2 === 0) === (tid === "special") ? "a" : "b"}.svg`;
   const slotArt = (tid, i) => `${LO}${tid === "special" ? "sp" : "dc"}-slot-${i % 2 ? "b" : "a"}.svg`;
   const rumble = (ms = 40, s = .2) => api?.rumble?.(ms, s);
+  // perk effect text: only the numbers are coloured (Figma 2026-11-12): benefit #3fd28b, condition [[n]] #ffb547
+  const fxHtml = t => esc(t).replace(/\[\[([^\]]+)\]\]|[+-]?\d+(?:\.\d+)?%?/g, (m, c) => c ? `<b class="tl-num tl-num--cond">${c}</b>` : `<b class="tl-num">${m}</b>`);
+  const plain = t => t.replace(/\[\[([^\]]+)\]\]/g, "$1");
   //#endregion
 
   //#region [Builders]
@@ -160,6 +163,49 @@
     return `<section class="tl-tbd" data-figma="719:32195 content TBD"><h2>${t[0]}</h2><p>${t[1]}</p></section>`;
   }
 
+  // ---------------------------------------------------------------- Profile (view only; Figma Profile v2 C+ 727:82180, in the shell as 727:83049)
+  // demo values from the Figma frame. Text boxes: [x, y, w] in frame px, line box = the Figma text node's line height.
+  const PF_DATA = {
+    name: "SX.MTX", title: "Lumpinee Rookie", tag: "SXMTX#1111", overall: 88, top: "TOP 12%", rank: "Ring Warrior III", season: "Season 01",
+    levels: [["E", 24, "#ff0027", 100], ["S", 18, "#6100ff", 237], ["R", 31, "#f5e5b5", 375]],
+    mastery: ["Phra Nakorn", "Lv 12", "Combo Emblem x7"],
+    belts: ["#c8102e", "#1f4fbf", "#3a3a3a", "#2a8a4a"], beltCount: "5 / 35",
+    record: [["Fights", "47", 1384, 202], ["W-L-D", "20-15-12", 1610, 202], ["K.O. Rate", "80%", 1384, 276], ["Win Rate", "43%", 1610, 276]],
+    ranks: [["ring-warrior-3", "Ring Warrior III", "Current", 1384, 15], ["muay-thai-god", "Muay Thai God", "Highest", 1620, 13]],
+    achCount: "4 / 35", ach: [[1385, "Wai Khru"], [1507, "First Step"], [1630, "Clinch King"], [1752, "Stadium Climber"]],
+    best: [["Fastest K.O.", "0:42", 674, 659], ["Win Streak", "9", 714, 700], ["Highest Combo", "14", 754, 751]],
+    last: { head: "Last fight · Ranked", result: "WIN", stats: [["Method", "K.O."], ["Round", "2"], ["Time", "1:42"]] }
+  };
+  function profileHtml() {
+    const D = PF_DATA, PI = IMG + "profile/";
+    const t = (cls, x, y, txt, w) => `<span class="tl-pf__t ${cls}" style="left:${x}px;top:${y}px${w ? `;width:${w}px` : ""}">${esc(txt)}</span>`;
+    const r = (x, y, w) => `<i class="tl-pf__rule" style="left:${x}px;top:${y}px;width:${w}px"></i>`;
+    const lbl = (x, y, txt) => t("tl-pf__lbl", x, y, txt);
+    const card = `<div class="tl-pf__card" data-figma="727:83051"><img class="tl-pf__tex" src="${PI}pf-card-tex.png" alt=""></div>
+      ${t("tl-pf__name", 84, 216, D.name)}${t("tl-pf__title", 84, 272, D.title)}${lbl(84, 298, D.tag)}
+      ${r(84, 338, 412)}${lbl(84, 358, "Overall")}${t("tl-pf__ovr", 84, 374, D.overall)}${t("tl-pf__v24", 334, 420, D.top)}${lbl(334, 462, D.rank)}${lbl(334, 482, D.season)}
+      ${r(84, 576, 412)}${lbl(84, 594, "Style levels")}
+      <div class="tl-pf__strip" data-figma="727:82976"></div>
+      ${D.levels.map(([k, v, c, x], i) => `<i class="tl-pf__chip${k === "R" ? " is-light" : ""}" style="left:${x}px;background:${c}">${k}</i>${t("tl-pf__lv", x + 48, 640, v)}${i < 2 ? `<i class="tl-pf__div" style="left:${[221, 359][i]}px"></i>` : ""}`).join("")}
+      ${r(84, 730, 412)}${lbl(84, 748, "Style mastery")}${t("tl-pf__v24", 84, 768, D.mastery[0])}${t("tl-pf__v24 is-r", 296, 768, D.mastery[1], 175)}${lbl(84, 808, D.mastery[2])}
+      ${r(84, 836, 412)}${lbl(84, 854, "Championship belts")}${t("tl-pf__cnt is-r", 369, 852, D.beltCount, 100)}
+      ${D.belts.map((c, i) => `<i class="tl-pf__belt" style="left:${84 + i * 88}px"><b style="background:${c}"></b></i>`).join("")}`;
+    const panel = `<div class="tl-pf__panel" data-figma="727:83100"><img class="tl-pf__tex" src="${PI}pf-panel-tex.png" alt=""></div>
+      ${t("tl-pf__head", 1384, 165, "Fight record")}
+      ${D.record.map(([l, v, x, y]) => lbl(x, y, l) + t("tl-pf__v32", x, y + 18, v)).join("")}
+      ${r(1384, 356, 452)}${lbl(1384, 372, "Competitive rank")}
+      ${D.ranks.map(([img, n, s, x, fs]) => `<img class="tl-pf__badge" src="${IMG}badges/${img}.webp" style="left:${x}px" alt="${esc(n)}">${t("tl-pf__rk" + (fs === 15 ? " is-lg" : ""), x + 76, 410, n)}${lbl(x + 76, 432, s)}`).join("")}
+      ${r(1384, 476, 452)}${lbl(1384, 492, "Achievements")}${t("tl-pf__cnt is-r", 1727, 490, D.achCount, 100)}
+      ${D.ach.map(([x, n], i) => `<img class="tl-pf__ach" src="${LO}pf-ach-${i + 1}.svg" style="left:${x}px" alt="${esc(n)}" title="${esc(n)}">`).join("")}
+      ${r(1384, 628, 452)}${lbl(1384, 644, "Career best")}
+      ${D.best.map(([l, v, y, vy], i) => (i ? r(1384, y - 16, 452) : "") + t("tl-pf__bl", 1384, y, l) + t("tl-pf__v22 is-r", 1725, vy, v, 100)).join("")}
+      ${r(1384, 790, 452)}${lbl(1384, 806, "Most played")}
+      <div class="tl-pf__last" data-figma="728:84155"><img src="${PI}pf-last-deco.png" alt=""></div>
+      ${t("tl-pf__lhead is-c", 1384, 849, D.last.head, 452)}${t("tl-pf__win is-c", 1384, 862, D.last.result, 452)}${r(1444, 918, 332)}
+      ${D.last.stats.map(([l, v], i) => t("tl-pf__ml is-c", Math.round(1444 + i * 110.5), 931, l, 50) + t("tl-pf__mv is-c", Math.round(1494 + i * 110.5), 926, v, 61)).join("")}`;
+    return `<section class="tl-pf" data-figma="727:83049 Profile content"><img class="tl-pf__fighter" src="${IMG}cc-character.webp" alt="Fighter">${card}${panel}</section>`;
+  }
+
   // ---------------------------------------------------------------- hub
   function switcherHtml() {
     const s = style();
@@ -179,7 +225,7 @@
       const art = v == null ? `${LO}${tid === "special" ? "sp" : "dc"}-slot-empty.svg` : slotArt(tid, v);
       const foc = opts.focus === si;
       return `<div class="tl-slot${foc ? " is-focused" : ""}" data-tl-slot="${si}" style="left:${d.x}px;top:${d.y}px">
-        <svg class="tl-ring" viewBox="0 0 188 188"><path d="${SLOT_PATH}" transform="translate(-438 -209)" fill="none" stroke="url(#tlPrism)" stroke-width="8"/></svg>
+        <svg class="tl-ring" viewBox="0 0 188 188"><path d="${SLOT_PATH}" transform="translate(93 94) scale(1.08) translate(-93 -94) translate(-438 -209)" fill="none" stroke="url(#tlPrism)" stroke-width="4" vector-effect="non-scaling-stroke"/></svg>
         <img src="${art}" alt="${v == null ? "Empty" : esc(MOVES[tid][v])}">
         <svg class="tl-dim" viewBox="0 0 188 188"><path d="${SLOT_PATH}" transform="translate(-438 -209)" fill="#000" fill-opacity=".7"/></svg></div>`;
     }).join("");
@@ -209,7 +255,7 @@
   function perkCardHtml(si) {
     const v = preset().perk[si], top = si * 210, choosing = mode === "grid";
     const focus = mode === "slots" && slot === si ? `<i class="tl-focus tl-focus--card"></i>` : "";
-    const target = choosing && slot === si ? `<i class="tl-target"><span class="tl-target__tag">Choosing</span></i>` : "";
+    const target = choosing && slot === si ? `<i class="tl-target"></i>` : "";
     if (v == null) return `<div class="tl-card is-empty${choosing && slot === si ? " is-target" : ""}" style="top:${top}px" data-tl-slot="${si}">
         <div class="tl-empty"><span class="tl-empty__slot">Slot 0${si + 1}</span><i class="tl-empty__box"></i><i class="tl-empty__plus"></i>
         <span class="tl-empty__t">Empty</span><span class="tl-empty__h">Select a perk from the collection</span></div>${target}${focus}</div>`;
@@ -218,7 +264,7 @@
       <div class="tl-card__art">${perkArt(v, "list")}</div>
       <span class="tl-card__kind" style="color:${kcol}">${kname}</span>
       <span class="tl-card__name">${esc(p.name)}</span><i class="tl-card__rule"></i>
-      <p class="tl-card__fx">${esc(p.fx[p.lv - 1])}</p>
+      <p class="tl-card__fx">${fxHtml(p.fx[p.lv - 1])}</p>
       ${p.lv === 3 ? `<p class="tl-card__draw">${esc(p.draw)}</p>` : ""}${target}${focus}</div>`;
   }
 
@@ -299,7 +345,7 @@
     el.style.setProperty("--tc", d.col);
     const q = k => el.querySelector(`[data-i="${k}"]`);
     q("kind").textContent = d.kind; q("badge").textContent = d.badge; q("name").textContent = d.name;
-    q("fx").textContent = d.fx; q("draw").textContent = d.draw; q("draw").hidden = !d.draw;
+    q("fx").innerHTML = d.levels ? fxHtml(d.fx) : esc(d.fx); q("draw").textContent = d.draw; q("draw").hidden = !d.draw;
     el.querySelectorAll("[data-i-lv]").forEach(n => { n.hidden = !d.levels; });
     el.querySelectorAll(".tl-lv span").forEach((n, k) => n.classList.toggle("is-on", k + 1 === d.lv));
     el.querySelector("[data-i-equip]").classList.toggle("is-off", !d.own);
@@ -325,7 +371,7 @@
     if (!root) return;
     const hub = page === 2 && view === "hub";
     let body = "";
-    if (page < 2 || view === "hub") body = tabsHtml(PAGES, page, x => x.w) + (page < 2 ? tbdHtml() : hubHtml());
+    if (page < 2 || view === "hub") body = tabsHtml(PAGES, page, x => x.w) + (page === 0 ? profileHtml() : page === 1 ? tbdHtml() : hubHtml());
     else body = subHtml();
     root.querySelector("[data-tl-hubart]").hidden = !hub;
     const sw = root.querySelector("[data-tl-sw]");

@@ -247,7 +247,7 @@
   }
   function settingsModal(md) {
     const rows = md.rows(), f = Math.min(md.focus, rows.length - 1);
-    return `<div class="cl-md"><div class="cl-md__scrim"></div><section class="cl-md__panel cl-md__panel--map">
+    return `<div class="cl-md cl-md--form"><div class="cl-md__scrim"></div><section class="cl-md__panel cl-md__panel--map">
       <div class="cl-md__map" data-cl-map="${esc(md.title())}">${MAP_IMG[md.title()] ? `<img src="${IMG}${MAP_IMG[md.title()]}" alt="">` : `<span class="cl-md__mapph">Map image pending</span>`}<i></i><b>${esc(md.title())}</b></div>
       <div class="cl-md__bot">${rows.map((r, i) => rowHtml(r, i, f)).join("")}
         <p class="cl-md__help${md.warn ? " is-warn" : ""}">${esc(md.help())}</p>

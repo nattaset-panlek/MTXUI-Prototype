@@ -43,7 +43,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font: 700 42px/36px var(--font-ui);   /* Industry Bold 42 */
+  font: 400 42px/36px var(--font-display);   /* Modi Thorson 42 */
   letter-spacing: -.01em;
   text-transform: uppercase;
   color: var(--text-1)
@@ -1437,6 +1437,7 @@
 .quest-rewards .item-card__art { left: 6px; top: 4px; width: 72px; height: 56px }
 .quest-rewards .reward-tile__corner { bottom: 21px; height: 26px }
 .quest-rewards .item-label { height: 21px; padding: 0 6px; font-size: 12px }
+.quest-rewards .item-card__dim { bottom: 22px }
 
 .quest-thumb--mp {
   --rar: var(--yellow);
@@ -1507,7 +1508,7 @@
 .reward-tile {
   --rar: #9a9ea8;
   position: relative;
-  border-radius: 5px;
+  border-radius: 0;
   background: #000;
   box-shadow: inset 0 0 0 1px var(--rar)
 }
@@ -1525,7 +1526,7 @@
 .reward-tile__glow {
   position: absolute;
   inset: 1px;
-  border-radius: 4px;
+  border-radius: 0;
   pointer-events: none;
   background: linear-gradient(to top, var(--rar), transparent 95%);
   opacity: .22
@@ -1554,7 +1555,7 @@
   align-items: center;
   justify-content: center;
   background: #141619;
-  border-radius: 0 0 4px 4px;
+  border-radius: 0;
   font: 700 20px/1 var(--font-ui);
   text-transform: uppercase;
   white-space: nowrap;
@@ -1569,7 +1570,7 @@
 .item-label--r { color: #f5e5b5 }
 .item-label--status { color: #0de673 }
 .item-label--timer { color: #ff594d }
-.item-label--name { font-size: 15px }
+.item-label--name { font-size: 20px }   /* Figma Type=Name 14.94 x 1.385 */
 .item-label--locked { justify-content: space-between; color: #9a9ea8 }
 
 .reward-tile__art { z-index: 1 }
@@ -1605,10 +1606,10 @@
 
 /* Card states: Figma MTX / Item Slot State */
 .reward-tile.focus-ring--out { --focus-w: 3px }
-.reward-tile.focus-ring--out::after { inset: -6px; border-radius: 11px }   /* global --grad-focus ring, 3px clear of the card */
+.reward-tile.focus-ring--out::after { inset: -8px; border-radius: 0 }   /* global --grad-focus ring, 3px clear of the card */
 .reward-tile__art { transition: opacity .15s ease }
 .reward-tile.is-focused .reward-tile__glow { opacity: .4 }
-.reward-tile.is-pressed { transform: scale(.98); filter: brightness(.85) }
+.reward-tile.is-pressed .item-card__dim { display: block; background: rgb(0 0 0 / .25) }
 .reward-tile.is-claimed .reward-tile__art { opacity: .5 }
 .reward-tile.is-claimed .reward-tile__corner,
 .reward-tile.is-claimed .reward-tile__glow { opacity: .35 }
@@ -1617,13 +1618,13 @@
 .reward-tile__new {
   position: absolute;
   z-index: 2;
-  left: 10px;
-  top: 10px;
-  height: 22px;
+  left: 14px;
+  top: 14px;
+  height: 28px;
   padding: 0 8px;
-  border-radius: 2px;
-  background: var(--yellow-2);
-  font: 700 13px/22px var(--font-ui);
+  border-radius: 0;
+  background: #f2df57;
+  font: 700 20px/28px var(--font-ui);
   color: var(--text-ink);
   text-transform: uppercase
 }
@@ -7603,6 +7604,7 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 /* modals */
 .cl-md { position: absolute; inset: 0; z-index: 5 }
 .cl-md__scrim { position: absolute; inset: 0; background: rgb(4 5 8 / .72) }
+.cl-md--form .cl-md__scrim { background: rgb(4 5 8 / .38); backdrop-filter: blur(3px) }   /* Create / Edit Lobby: lighter, the lobby stays visible behind */
 .cl-md__panel { position: absolute; left: 478px; top: 50%; width: 965px; transform: translateY(-50%); border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #3a3e4a }
 .cl-md__map { position: relative; height: 230px; overflow: hidden; border-bottom: 4px solid #232434 }
 .cl-md__map img { width: 100%; height: 100%; object-fit: cover }
@@ -7799,7 +7801,7 @@ button.is-overlay { opacity: .45; cursor: default }
 .item-card__art { left: 6.5%; top: 3.7%; width: 87%; height: 75% }
 .item-card--tall .item-card__art { height: 88% }
 .item-card--wide { grid-column: span 2 }
-.item-card--wide .item-card__art { left: 1px; top: 1px; width: calc(100% - 2px); height: calc(100% - 40px); object-fit: cover; border-radius: 4px 4px 0 0 }
+.item-card--wide .item-card__art { left: 1px; top: 1px; width: calc(100% - 2px); height: calc(100% - 40px); object-fit: cover; border-radius: 0 }
 .item-card__art--pair { left: 13%; top: 5.5%; width: 48%; height: 69% }
 .item-card__art--second { left: 42.6%; top: 10%; width: 44%; height: 64% }
 .item-card__hold { position: absolute; left: 1px; right: 1px; bottom: 1px; height: 4px; z-index: 4; opacity: 0; background: rgb(0 0 0 / .6) }
@@ -7813,9 +7815,10 @@ button.is-overlay { opacity: .45; cursor: default }
 }
 .item-card__timer img { width: 12px; height: 12px }
 
-/* Disabled (claimed, owned, locked): 70% black over the whole card */
-.item-card__dim { position: absolute; inset: 0; z-index: 3; border-radius: 5px; background: rgb(0 0 0 / .7); pointer-events: none; display: none }
+/* Figma MTX / Item Slot State: Veil over the card above the label bar. Pressed 25%, Claimed 45%, Disabled (locked) 65% */
+.item-card__dim { position: absolute; left: 0; right: 0; top: 0; bottom: 39px; z-index: 3; border-radius: 0; background: rgb(0 0 0 / .65); pointer-events: none; display: none }
 .item-card.is-claimed .item-card__dim, .item-card.is-locked .item-card__dim { display: block }
+.item-card.is-claimed .item-card__dim { background: rgb(0 0 0 / .45) }
 .item-card.is-claimed .reward-tile__art, .item-card.is-locked .reward-tile__art { opacity: 1; filter: none }
 .item-card.is-claimed .reward-tile__corner, .item-card.is-claimed .reward-tile__glow { opacity: 1 }
 .item-card.is-claimed .reward-tile__glow { opacity: .22 }
