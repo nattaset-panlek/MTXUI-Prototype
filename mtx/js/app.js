@@ -45,9 +45,9 @@
 
   /* ---------------------------------------------------------------- input glyphs */
   const GLYPHS = {
-    xbox: { a: "A", b: "B", x: "X", y: "Y", ls: "LS", rs: "RS", lb: "LB", rb: "RB", lt: "LT", rt: "RT", zl: "LT", zr: "RT", menu: "Menu", dl: "Left", dr: "Right", du: "Up", dd: "Down", dud: "Up / Down", dlr: "Left / Right", dall: "D-pad" },
-    ps:   { a: "✕", b: "○", x: "□", y: "△", ls: "L", rs: "R", lb: "L1", rb: "R1", lt: "L2", rt: "R2", zl: "L2", zr: "R2", menu: "Options", dl: "Left", dr: "Right", du: "Up", dd: "Down", dud: "Up / Down", dlr: "Left / Right", dall: "D-pad", view: "Share" },
-    kb:   { a: "Space", b: "Esc", x: "X", y: "Y", ls: "WASD", rs: "C", lb: "Q", rb: "E", lt: "Q", rt: "E", zl: "Z", zr: "C", menu: "Tab", dl: "A", dr: "D", du: "W", dd: "S", dud: "W/S", dlr: "A/D", dall: "WASD", view: "F" },
+    xbox: { a: "A", b: "B", x: "X", y: "Y", ls: "LS", rs: "RS", lb: "LB", rb: "RB", lt: "LB", rt: "RB", zl: "LT", zr: "RT", menu: "Menu", dl: "Left", dr: "Right", du: "Up", dd: "Down", dud: "Up / Down", dlr: "Left / Right", dall: "D-pad" },
+    ps:   { a: "✕", b: "○", x: "□", y: "△", ls: "L", rs: "R", lb: "L1", rb: "R1", lt: "L1", rt: "R1", zl: "L2", zr: "R2", menu: "Options", dl: "Left", dr: "Right", du: "Up", dd: "Down", dud: "Up / Down", dlr: "Left / Right", dall: "D-pad", view: "Share" },
+    kb:   { a: "Space", b: "Esc", x: "X", y: "Y", ls: "WASD", rs: "R", lb: "Q", rb: "E", lt: "Q", rt: "E", zl: "Z", zr: "C", menu: "Tab", dl: "A", dr: "D", du: "W", dd: "S", dud: "W/S", dlr: "A/D", dall: "WASD", view: "F" },
   };
   // PlayStation glyphs come in two icon sets (assets/img/pad/ps5 | ps4); body[data-pad] picks one
   let device = "kb", deviceLock = store.get("device", "auto"), psModel = "ps5";
@@ -151,8 +151,10 @@
   }
   //#endregion
 
-  function show(key, push = true) {
+  function show(key, push = true, viaWipe = false) {
     if (push && key === "main" && cur !== "main" && findLeaveGuard(() => show(key, push), true)) return;
+    // video screen transitions (components/screen-wipe.js, e.g. Main <-> Ultimate Fight): the change runs under the video full cover
+    if (!viaWipe && window.MTX_UI?.wipe?.route(cur, key, () => show(key, push, true), screens[key])) return;
     if (cur) {
       remembered[cur] = focused && focused.dataset.id;
       if (cur !== key) window.MTX_UI?.motion?.leave(screens[cur]);
@@ -278,10 +280,39 @@
   }
 
   /* ---------------------------------------------------------------- feedback */
+  // rumble guard: at most one effect per 90 ms, each <= 300 ms, nothing while the page is hidden;
+  // stopRumble() resets the motor (page hidden / blur / dev panel) so a pad can never keep shaking
+  // runaway: more than 8 calls in 1 s = something repeats every frame -> motor off for 3 s + console warning with the caller
+  let lastRumble = 0, rumbleHits = [], rumbleMuteUntil = 0;
   function rumble(ms, mag) {
+    const now = performance.now();
+    if (document.hidden || now < rumbleMuteUntil || String(store.get("rumble", "true")) === "false") return;
+    rumbleHits = rumbleHits.filter(t => now - t < 1000); rumbleHits.push(now);
+    if (rumbleHits.length > 8) {
+      rumbleMuteUntil = now + 3000; rumbleHits = []; stopRumble();
+      console.warn("[rumble] runaway, muted 3 s. Caller:", new Error().stack);
+      return;
+    }
+    if (now - lastRumble < 90) return;
+    lastRumble = now;
     const gp = activePad(), a = gp && gp.vibrationActuator;
-    try { a && a.playEffect && a.playEffect("dual-rumble", { duration: ms, strongMagnitude: mag, weakMagnitude: mag * .6 }); } catch (e) {}
+    try { a && a.playEffect && a.playEffect("dual-rumble", { duration: Math.min(300, ms), strongMagnitude: Math.min(.6, mag), weakMagnitude: Math.min(.6, mag) * .6 }); } catch (e) {}
   }
+  function stopRumble() {
+    for (const gp of (navigator.getGamepads ? navigator.getGamepads() : [])) {
+      try { gp?.vibrationActuator?.reset?.(); } catch (e) {}
+    }
+  }
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stopRumble(); });
+  addEventListener("blur", stopRumble);
+  addEventListener("pagehide", stopRumble);
+  // watchdog: a motor still running 0.5 s after the last request is stopped (a stuck effect can never keep shaking)
+  let rumbleIdleReset = false;
+  setInterval(() => {
+    if (performance.now() - lastRumble > 500) { if (!rumbleIdleReset) { stopRumble(); rumbleIdleReset = true; } }
+    else rumbleIdleReset = false;
+  }, 250);
+  stopRumble();
   let idleT, uiHidden = store.get("ui_hidden", "0") === "1";
   function setUiHidden(hide) {
     uiHidden = hide;
@@ -322,7 +353,7 @@
 
   function act(a, label, dev) {
     if (window.MTX_SHADER?.isOpen?.()) return;   // Shader Preload (first launch): no input
-    if (window.MTX_LOADING?.isOpen?.() || window.MTX_MATCH_FOUND?.isPlaying?.()) return;   // load screen / Match Found video: no input
+    if (window.MTX_LOADING?.isOpen?.() || window.MTX_MATCH_FOUND?.isPlaying?.() || window.MTX_UI?.wipe?.isPlaying?.()) return;   // load screen / Match Found video / screen wipe: no input
     if (window.MTX_MATCH_RESULT?.isOpen?.()) { if (dev) setDevice(dev); window.MTX_MATCH_RESULT.input(a); return; }   // Match Result after a fight: A / LT / RT
     if (window.MTX_MODE_CARD?.isLocked?.()) { if (a === "a" || a === "back") window.MTX_MODE_CARD.cancelFind(); return; }   // locked Match Find (Main Quick Fight): only A / B work, they cancel
     if (dev) setDevice(dev);
@@ -365,6 +396,7 @@
         if (a === "a" && scrSkill.isHoldToUnlockReady?.()) return;
         ({ a: () => scrSkill.detailPrimary?.(),
            x: () => scrSkill.detailSecondary?.(),
+           rs: () => scrSkill.detailLevel?.(),
            back: () => scrSkill.closeDetail?.(),
            y: () => scrSkill.closeDetail?.() })[a]?.();
         return;
@@ -390,7 +422,7 @@
 
   /* ---------------------------------------------------------------- keyboard / mouse */
   const KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right",
-    Enter: "a", " ": "a", Escape: "back", Backspace: "back", y: "y", x: "x", q: "lt", e: "rt", c: "rs", f: "view", Tab: "menu" };
+    Enter: "a", " ": "a", Escape: "back", Backspace: "back", y: "y", x: "x", q: "lt", e: "rt", z: "zl", c: "zr", r: "rs", f: "view", Tab: "menu" };   // Q / E = L1 / R1 (lt / rt) · Z / C = L2 / R2 (zl / zr)
   let editing = false;
   addEventListener("keydown", e => {
     if (wireMode && e.key === "Escape") { e.preventDefault(); setNavEdit(false); return; }   // leave navigation editing, not the screen
@@ -494,7 +526,7 @@
   });
   stage.addEventListener("click", e => {
     if (editing || layoutEditing) return;
-    if (window.MTX_SHADER?.isOpen?.()) return;
+    if (window.MTX_SHADER?.isOpen?.() || window.MTX_UI?.wipe?.isPlaying?.()) return;
     if (!started) { setDevice("kb"); startGame(); logIn("Click"); return; }
     const scrSkill = window.MTX_SCREENS?.skilltree;
     if (cur === "skilltree" && scrSkill?.isDetailOpen?.()) {
@@ -509,6 +541,8 @@
         return;
       }
       if (e.target.closest('[data-bind="sdSecondary"]')) { logIn("Click"); scrSkill.detailSecondary?.(); return; }
+      const lvTab = e.target.closest(".skill-detail .tl-lv span");
+      if (lvTab) { logIn("Click"); scrSkill.setViewLevel?.([...lvTab.parentNode.children].indexOf(lvTab) + 1); return; }
       if (!e.target.closest(".skill-detail") && !e.target.closest(".tnode")) scrSkill.closeDetail?.();
       return;
     }
@@ -547,7 +581,7 @@
   });
   // Clickable key hints: a hint (hint bar, social bar button, lobby CTA) presses its key, so it does what its label says.
   // Press on pointerdown / release on pointerup: holds (hold to buy / unlock / leave) work with a long press too.
-  const HINT_KEY = { a: " ", b: "Escape", x: "x", y: "y", lb: "q", rb: "e", lt: "q", rt: "e", zl: "z", zr: "c", rs: "c",
+  const HINT_KEY = { a: " ", b: "Escape", x: "x", y: "y", lb: "q", rb: "e", lt: "q", rt: "e", zl: "z", zr: "c", rs: "r",
     menu: "Tab", view: "f", dl: "ArrowLeft", dr: "ArrowRight", dlr: "ArrowRight", du: "ArrowUp", dd: "ArrowDown" };
   // CTAs press their key the same way, so a click does what the pad does (Login has its own row handling)
   const HINT_SEL = ".hint, .social-bar__btn, [data-cl-btn], .btn-cta:not([data-login-row]):not([data-dlg])";
@@ -609,7 +643,7 @@
     padIndex = null; const c = $("#padChip"); c.classList.remove("on"); c.textContent = "Controller disconnected"; wake();
   });
   // 9 = Menu / Options: only the Character Customize overlay uses it (Profile -> Customization), like keyboard Tab
-  const BTN = { 0: "a", 1: "back", 2: "x", 3: "y", 4: "lt", 5: "rt", 6: "lt", 7: "rt", 8: "view", 9: "menu", 11: "rs", 12: "up", 13: "down", 14: "left", 15: "right" };
+  const BTN = { 0: "a", 1: "back", 2: "x", 3: "y", 4: "lt", 5: "rt", 6: "zl", 7: "zr", 8: "view", 9: "menu", 11: "rs", 12: "up", 13: "down", 14: "left", 15: "right" };
   const DIRS = ["up", "down", "left", "right"], DELAY = 380, RATE = 120, DEAD = .55;
   function press(key, down, action, label, now) {
     // Character Customize overlay: View toggles it; while open it takes every button (it tells LB from LT by key)
@@ -636,7 +670,7 @@
       prev[key] = down;
       return;
     }
-    // LT / RT (triggers): a screen with a second tab row (onTrigger) takes them; otherwise they act as Q / E
+    // L2 / R2 (triggers, = Z / C): a screen with a second tab row (onTrigger) takes them; otherwise they are zl / zr, never the L1 / R1 action
     if ((key === "b6" || key === "b7") && window.MTX_SCREENS?.[cur]?.onTrigger) {
       if (down && !prev[key]) { setDevice(padType); logIn(label); window.MTX_SCREENS[cur].onTrigger(key === "b6" ? -1 : 1); }
       prev[key] = down;
@@ -796,6 +830,24 @@
       window.MTX_SCREENS?.skilltree?.setUnlockInput?.(unlockInputSel.value);
       toast(`Mastery unlock: ${unlockInputSel.value === "confirm" ? "modal confirm" : "hold"}`);
     });
+  }
+  // Skill tree glow on / off (store key treeGlow, default on): .no-glow on the Mastery screen drops every glow
+  const treeGlowChk = $("#treeGlow");
+  const applyTreeGlow = on => screens.skilltree?.classList.toggle("no-glow", !on);
+  if (treeGlowChk) {
+    treeGlowChk.checked = String(store.get("treeGlow", "true")) !== "false";
+    applyTreeGlow(treeGlowChk.checked);
+    treeGlowChk.addEventListener("change", () => {
+      store.set("treeGlow", treeGlowChk.checked);
+      applyTreeGlow(treeGlowChk.checked);
+      toast(`Tree glow: ${treeGlowChk.checked ? "on" : "off"}`);
+    });
+  }
+  // Dev > Rumble on / off (store key rumble)
+  const rumbleChk = $("#rumbleOn");
+  if (rumbleChk) {
+    rumbleChk.checked = String(store.get("rumble", "true")) !== "false";
+    rumbleChk.addEventListener("change", () => { store.set("rumble", rumbleChk.checked); if (!rumbleChk.checked) stopRumble(); toast(`Rumble: ${rumbleChk.checked ? "on" : "off"}`); });
   }
   const ruleSel = $("#unlockRule");
   if (ruleSel) {
@@ -2043,7 +2095,7 @@
   if (own && window.MTX_SCREENS?.skilltree) {
     const scr = window.MTX_SCREENS.skilltree;
     own[1].split(",").forEach(id => {
-      if (scr.canUnlock?.(id) && scr.getSkillPts?.() > 0) scr.getOwned?.()?.add(id);
+      scr.addLevel?.(id);   // repeat an id to buy more levels (#own=pn2_block,pn_fin,pn_fin)
     });
     scr.updateTree?.();
   }

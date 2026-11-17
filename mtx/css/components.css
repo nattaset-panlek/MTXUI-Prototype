@@ -434,6 +434,15 @@ html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dr"]{--pad-img:url(
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dl"]{--pad-img:url(../assets/img/pad/ps4/dpad-left.webp)}
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dr"]{--pad-img:url(../assets/img/pad/ps4/dpad-right.webp)}
 html body[data-device="ps"] .glyph[data-btn="dl"],html body[data-device="ps"] .glyph[data-btn="dr"]{--g:28px}
+/* D-pad up / down (same assets, Loadout slot tags 2026-11-13) */
+html body[data-device="xbox"] .glyph[data-btn="du"],html body[data-device="xbox"] .glyph[data-btn="dd"]{--g:26px;width:var(--g);min-width:0;padding:0;font-size:0;box-shadow:none;border-radius:0;background:center/contain no-repeat}
+html body[data-device="xbox"] .glyph[data-btn="du"]{background-image:url(../assets/svg/pad/dpad-up.svg)}
+html body[data-device="xbox"] .glyph[data-btn="dd"]{background-image:url(../assets/svg/pad/dpad-down.svg)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="du"]{--pad-img:url(../assets/img/pad/ps5/dpad-up.webp)}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="dd"]{--pad-img:url(../assets/img/pad/ps5/dpad-down.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="du"]{--pad-img:url(../assets/img/pad/ps4/dpad-up.webp)}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="dd"]{--pad-img:url(../assets/img/pad/ps4/dpad-down.webp)}
+html body[data-device="ps"] .glyph[data-btn="du"],html body[data-device="ps"] .glyph[data-btn="dd"]{--g:28px}
 
 /* keyboard key inside a CTA = the hint-bar keycap (21 px tall, 11 px text, 1 px edge, darker bottom line) with 10 px side padding */
 html body[data-device="kb"] .btn-cta .glyph {
@@ -576,6 +585,9 @@ body[data-device="kb"] .btn-cta .glyph{font:800 13px/1 var(--font-ui)}
 
 /* ---------- Match Found video (components/match-found.js) ---------- */
 .mtx-match-found { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 9001; pointer-events: none; background: transparent }
+/* ---------- Main <-> Ultimate Fight video wipe (components/screen-wipe.js) ---------- */
+.mtx-wipe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 9002; background: transparent; pointer-events: none; visibility: hidden }
+.mtx-wipe.is-on { visibility: visible; pointer-events: auto }
 
 /* Match Find strip (Figma MTX / Find Strip 670:66464): top edge of every screen while a find runs.
    Layout = Figma auto layout: content row (padding 0 64) -> left (fill, mode) · time (hug, centred) · right (fill, estimate) */

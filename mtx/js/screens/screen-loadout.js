@@ -4,13 +4,18 @@
      TSP 01 Hub 726:39699, Perk 02 719:28292, 03 719:82179, 04 719:82698, 05 719:83182, 06 719:87481, 06b 719:88261,
      Special 07 719:30065 / 08 719:84264, Decisive 09 719:42859 / 10 719:84710.
 
-     Top tabs Profile / Inventory / Tactical Loadout: LT / RT (keyboard Q / E).
-     Hub: LB / RB (keyboard Z / C) switch the tactical style (one preset per style; locked styles show their
-          unlock levels and can't be opened). A opens the submenu (Perk first).
-     Submenu: LT / RT switch Perk / Special Move / Decisive Move. Focus starts on the slots (left).
-          A on a slot -> the grid (Choosing); A in the grid equips into that slot and returns to it, B cancels.
-          X removes the slot's item. Y opens the info card (Perk) next to the grid cell; RS / R pages its levels.
-          B from the slots -> hub. No toasts. */
+     2026-11-12: hub = "TSP Hub B · Move selected flow (Perk)" section 740:109350 (frames 740:109351 left slot,
+     740:110461 grid, 740:111571 Y info, 740:114293 Special, 740:115977 Decisive, 740:117661 Signature).
+     The old Perk / Special / Decisive submenus are gone: every category is picked on the hub itself.
+
+     Top tabs Profile / Inventory / Loadout: LT / RT (keyboard Q / E).
+     Hub: LB / RB (keyboard Z / C) switch the tactical style (one preset per style; locked styles can't be edited).
+          Left: Special (green D-pad), Decisive (red D-pad), Signature Move (silver diamonds), Perk (diamond group).
+          Arrows / LS move the focus over all 16 slots; keyboard 1-4 pick that slot of the focused category.
+          The right side follows the focused category: 5 x 5 grid (3 rows visible, scrollable) + info panel.
+          A on a slot -> the grid; A in the grid equips into that slot and returns to it, B cancels.
+          X removes the slot's item. Y opens the info card next to the grid cell; RS / R pages its levels.
+          B on the left closes. No toasts. */
 
   //#region [Variables/Fields]
   const SV = "mtx/assets/svg/", LO = SV + "loadout/", IMG = "mtx/assets/img/";
@@ -36,7 +41,13 @@
     { name: "Relentless Assault", kind: "sustain", lv: 1, fx: ["Landing a heavy move (Base Damage [[13]] or higher) restores 1 Max Stamina", "Landing a heavy move (Base Damage [[13]] or higher) restores 3 Max Stamina", "Landing a heavy move (Base Damage [[13]] or higher) restores 6 Max Stamina and grants +10% crit rate on heavy moves"], draw: "Drawback: each trigger also lowers Max HP by 1" },
     { name: "Steadfast Focus", kind: "sustain", lv: 3, fx: ["While HP regenerates, Max HP also regenerates 5% of missing Max HP per second.", "While HP regenerates, Max HP also regenerates 10% of missing Max HP per second.", "While HP regenerates, Max HP also regenerates 20% of missing Max HP per second."], draw: "Drawback: Movement Speed -40% while HP regenerates" },
     { name: "Defensive Breaker", kind: "attack", lv: 1, locked: true, fx: ["Hits on a guarding enemy deal +10% Guard Damage.", "Hits on a guarding enemy deal +15% Guard Damage.", "Hits on a guarding enemy deal +25% Guard Damage."], draw: "Drawback: your own guard recovers 20% slower" },
-    { name: "Three-Step Pacing", kind: "sustain", lv: 1, locked: true, fx: ["Three steps without attacking restore 3% Stamina.", "Three steps without attacking restore 5% Stamina.", "Three steps without attacking restore 8% Stamina."], draw: "Drawback: the next attack is 10% slower" }
+    { name: "Three-Step Pacing", kind: "sustain", lv: 1, locked: true, fx: ["Three steps without attacking restore 3% Stamina.", "Three steps without attacking restore 5% Stamina.", "Three steps without attacking restore 8% Stamina."], draw: "Drawback: the next attack is 10% slower" },
+    // row 3 (Hub B grid, all locked); names + art from Figma, effects are mock text
+    { name: "Alternating Breaker", kind: "attack", lv: 1, locked: true, fx: ["Alternating high and low strikes deal +5% damage.", "Alternating high and low strikes deal +10% damage.", "Alternating high and low strikes deal +15% damage."], draw: "Drawback: repeating a level deals 10% less damage" },
+    { name: "Against All Odds", kind: "sustain", lv: 1, locked: true, fx: ["Below 30% HP, Stamina regenerates 10% faster.", "Below 30% HP, Stamina regenerates 15% faster.", "Below 30% HP, Stamina regenerates 25% faster."], draw: "Drawback: above 70% HP, Stamina regenerates 10% slower" },
+    { name: "Flawless Execution", kind: "attack", lv: 1, locked: true, fx: ["A full combo without being hit deals +10% damage on its last hit.", "A full combo without being hit deals +15% damage on its last hit.", "A full combo without being hit deals +25% damage on its last hit."], draw: "Drawback: a broken combo costs 10% Stamina" },
+    { name: "Warcry", kind: "attack", lv: 1, locked: true, fx: ["After a knockdown, gain +5 Strike Speed for 5 seconds.", "After a knockdown, gain +10 Strike Speed for 5 seconds.", "After a knockdown, gain +15 Strike Speed for 8 seconds."], draw: "Drawback: Guard is 15% weaker for the same time" },
+    { name: "Block Gauge", kind: "defend", lv: 1, locked: true, fx: ["Blocked hits fill the gauge 10% faster.", "Blocked hits fill the gauge 15% faster.", "Blocked hits fill the gauge 25% faster."], draw: "Drawback: a full gauge drains in 5 seconds" }
   ];
   // grid / list / hub frame + icon sizes per level (Figma perk-frame instances), centred on one point
   const PF = {
@@ -45,21 +56,42 @@
     hub: { 1: [152, 152, 120, 118], 2: [149, 146, 120, 118], 3: [160, 155, 104, 102] }
   };
   const LIST_ICON = { 0: "perk-licon-1", 3: "perk-licon-2", 4: "perk-licon-3" };
+  // 15 per grid (Hub B frames 740:114293 / 740:115977 / 740:117661); decisive row 3 repeats Kwang Liao Lang as in Figma
   const MOVES = {
-    special: ["Jumping Knee", "Spinning Elbow", "Superman Punch", "Flying Kick", "Clinch Sweep", "Cartwheel Kick", "Axe Kick", "Question Mark Kick", "Spinning Back Fist", "Step-up Knee"],
-    decisive: ["Mon Yan Lak", "Salab Fan Pla", "Erawan Soei Nga", "Hak Nguang", "Chawa Sad Hok", "Inao Thang Krit", "Pak Look Thoy", "Ta Then Kham Fak", "Yo Khao Phra Sumen", "Kwang Liao Lang"]
+    special: ["Jumping Knee", "Spinning Elbow", "Superman Punch", "Flying Kick", "Clinch Sweep", "Cartwheel Kick", "Axe Kick", "Question Mark Kick", "Spinning Back Fist", "Step-up Knee", "Spin Push Kick", "Spin Punch", "Flying Knee", "Face Teep", "Tornado Kick"],
+    decisive: ["Mon Yan Lak", "Salab Fan Pla", "Erawan Soei Nga", "Hak Nguang", "Chawa Sad Hok", "Inao Thang Krit", "Pak Look Thoy", "Ta Then Kham Fak", "Yo Khao Phra Sumen", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang"],
+    signature: ["TBD", "TBD", "Super Hook", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD"]
   };
   const MOVE_DESC = {
     special: ["A rising knee that jumps in from mid range.", "A spinning elbow that turns through the guard.", "A leaping cross that closes distance in one step.", "A flying kick launched off the back foot.", "A clinch sweep that drops the opponent to the canvas.", "A cartwheel kick that comes over the guard.", "An axe kick that drops onto the head.", "A kick that feints low and lands high.", "A spinning back fist that punishes a step in.", "A step-up knee off the opponent's thigh."],
     decisive: ["A finishing knee that drives through the centre.", "A spinning elbow that cuts across the brow.", "A rising knee off the clinch that lifts the opponent and breaks their guard.", "A crocodile spin that throws the opponent off balance.", "A six-strike flurry that ends with an elbow.", "A long-range knee that splits the guard.", "A sweeping counter that catches a kick.", "A jumping kick that lands on the shoulder.", "A knee climb that strikes down on the head.", "A deer-turn kick that comes from behind."]
   };
   const OWNED_MOVES = 4;
+  const C_SIGNATURE = "#9aa0ab";
   const TYPES = [
-    { id: "perk", label: "Perk", tab: 128, slots: "Perk slots", grid: "Perk", crumb: "Perk" },
-    { id: "special", label: "Special Move", tab: 304, slots: "Special move slots", grid: "Special move", crumb: "Special Move", color: C_SPECIAL },
-    { id: "decisive", label: "Decisive Move", tab: 326, slots: "Decisive move slots", grid: "Decisive move", crumb: "Decisive Move", color: C_DECISIVE }
+    { id: "perk", label: "Perk", grid: "Perk" },
+    { id: "special", label: "Special Move", grid: "Special move", color: C_SPECIAL },
+    { id: "decisive", label: "Decisive Move", grid: "Decisive move", color: C_DECISIVE },
+    { id: "signature", label: "Signature Move", grid: "Signature move", color: C_SIGNATURE }
   ];
-  const PAGES = [{ label: "Profile", w: 194 }, { label: "Inventory", w: 238 }, { label: "Tactical Loadout", w: 520 }];
+  const PAGES = [{ label: "Profile", w: 260 }, { label: "Inventory", w: 260 }, { label: "Loadout", w: 260 }];
+  const GRID_N = 15;           // items per grid; cells 16-25 are null slots (rows 4-5, scrolled into view)
+  const ART = { special: "sp", decisive: "dc", signature: "sg" };
+  // Hub B slot centres (frame px) in slot order 1-4 + the focus ring's diamond size (Selected Prismatic, 5 px out).
+  // Special / Decisive = the D-pad cluster at scale .72 (MTX / Loadout Special Move 740:123018 at 168,290 / 583,290),
+  // Signature = MTX / Loadout Signature Move 740:123560 at 2,533, Perk = MTX / Loadout Perk 740:123901 at 398,572.
+  const dpadC = (ox, oy) => [[ox + 96.5, oy + 203], [ox + 203, oy + 96.5], [ox + 309, oy + 203], [ox + 203, oy + 309]];
+  // group focus (Figma "Loadout · group first, then slot" 741:60422): Selected Prismatic diamond round the whole group
+  // centred on the group slots (Figma frames sit 27 px / 18 px low and cut through the top slot; user asked to fix)
+  const GROUP_GEO = { special: { c: [371, 493], s: 390 }, decisive: { c: [786, 493], s: 390 }, signature: { c: [205, 763.5], s: 360 }, perk: { c: [584, 740], s: 410 } };
+  // slot A opens on: the first empty one, top first (D-pad / signature: up, left, right, down; perk: top, right, left, bottom)
+  const ENTRY_ORDER = { special: [1, 0, 2, 3], decisive: [1, 0, 2, 3], signature: [1, 0, 2, 3], perk: [0, 1, 2, 3] };
+  const SLOT_GEO = {
+    special: { c: dpadC(168, 290), ring: 139 },
+    decisive: { c: dpadC(583, 290), ring: 139 },
+    signature: { c: dpadC(2, 560.5), ring: 139 },   // D-pad cluster template (user 2026-11-13), centre 205,763.5
+    perk: { c: [[583, 652], [671.5, 741], [496, 740.5], [583, 828]], ring: 156 }
+  };
   // D-pad slots in slot order (number key 1-4): left, up, right, down; frame px inside the 563 x 640 cluster
   const DPAD = [
     { dir: "left", x: 40, y: 188, key: [220, 263] }, { dir: "up", x: 188, y: 40, key: [263, 220] },
@@ -71,19 +103,21 @@
 
   // one preset per style. perk: 4 slots (PERKS index | null); special / decisive: 4 D-pad slots (MOVES index | null)
   const DEFAULT_PRESETS = {
-    phranakhon: { perk: [0, 3, 4, null], special: [null, 0, 1, null], decisive: [null, 0, 1, null] },
-    south: { perk: [5, null, null, null], special: [null, 2, null, null], decisive: [null, 3, null, null] }
+    phranakhon: { perk: [0, 3, 4, null], special: [null, 0, 1, null], decisive: [null, 0, 1, null], signature: [null, null, null, null] },
+    south: { perk: [5, null, null, null], special: [null, 2, null, null], decisive: [null, 3, null, null], signature: [null, null, null, null] }
   };
 
   let api = null, root = null, open = false;
-  let presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
-  let page = 2;                // 0 Profile, 1 Inventory, 2 Tactical Loadout
+  let presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));   // working copy (what the hub shows / edits)
+  let saved = JSON.parse(JSON.stringify(DEFAULT_PRESETS));     // last saved loadouts; leaving with a difference asks first
+  let page = 2;                // 0 Profile, 1 Inventory, 2 Loadout
   let styleIdx = 0;
-  let view = "hub";            // hub | sub
-  let type = 0;                // TYPES index
-  let mode = "slots";          // slots | grid
+  let view = "hub";            // always "hub" since Hub B (kept for the open() / set() API)
+  let type = 0;                // TYPES index of the focused category
+  let mode = "group";          // group (level 1: pick a group) | slots (level 2: a slot in it) | grid (level 3: right side)
   let slot = 0, cell = 0;
-  let info = null;             // { lv } while the perk info card is open
+  let info = null;             // { lv } while the info card is open
+  let gscroll = 0;             // grid scrollTop (kept across re-renders)
   let lastFocus = null;
   //#endregion
 
@@ -92,16 +126,37 @@
   const glyph = b => window.MTX_UI?.glyph?.(b) || `<span class="glyph" data-btn="${b}">${b.toUpperCase()}</span>`;
   const device = () => api?.getDevice?.() || "kb";
   const style = () => STYLES[styleIdx];
-  const preset = () => presets[style().id] || (presets[style().id] = { perk: [null, null, null, null], special: [null, null, null, null], decisive: [null, null, null, null] });
+  const preset = () => {
+    const p = presets[style().id] || (presets[style().id] = {});
+    TYPES.forEach(t => { if (!p[t.id]) p[t.id] = [null, null, null, null]; });
+    return p;
+  };
   const T = () => TYPES[type];
+  const entrySlot = tid => { const l = preset()[tid]; return ENTRY_ORDER[tid].find(i => l[i] == null) ?? ENTRY_ORDER[tid][0]; };
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const dirty = () => { const id = style().id; return JSON.stringify(preset()) !== JSON.stringify(saved[id] || { perk: [null, null, null, null], special: [null, null, null, null], decisive: [null, null, null, null], signature: [null, null, null, null] }); };
+  const saveLoadout = () => { saved[style().id] = clone(preset()); rumble(60, .25); };
+  const discardLoadout = () => { const id = style().id; if (saved[id]) presets[id] = clone(saved[id]); else delete presets[id]; };
+  // unsaved changes: ask before the action that leaves this loadout (close, other tab, other style)
+  function guard(action) {
+    if (!dirty() || !window.MTX_UI?.dialog) { action(); return; }
+    window.MTX_UI.dialog.open({
+      title: "Save changes?", body: `Your ${style().name} loadout has unsaved changes.`,
+      primary: "Save", secondary: "Discard", closeHint: "Keep editing",
+      onPrimary: () => { saveLoadout(); action(); },
+      onSecondary: () => { discardLoadout(); action(); },
+      onClose: () => {}
+    });
+  }
   const isLocked = s => !!s.req;
   const count = arr => arr.filter(v => v != null).length;
-  const owned = (tid, i) => tid === "perk" ? !PERKS[i].locked : i < OWNED_MOVES;
+  const owned = (tid, i) => i < itemCount(tid) && (tid === "perk" ? !PERKS[i].locked : i < OWNED_MOVES);
   const itemCount = tid => tid === "perk" ? PERKS.length : MOVES[tid].length;
   const itemName = (tid, i) => tid === "perk" ? PERKS[i].name : MOVES[tid][i];
+  const moveDesc = (tid, i) => MOVE_DESC[tid]?.[i] || (tid === "signature" ? "Signature move details not defined yet." : "Move details not defined yet.");
   // move art: grid tile / D-pad slot (two boxer poses, as in the Figma frames)
-  const tileArt = (tid, i) => `${LO}${tid === "special" ? "sp" : "dc"}-tile-${(i % 2 === 0) === (tid === "special") ? "a" : "b"}.svg`;
-  const slotArt = (tid, i) => `${LO}${tid === "special" ? "sp" : "dc"}-slot-${i % 2 ? "b" : "a"}.svg`;
+  const tileArt = (tid, i) => `${LO}${ART[tid]}-tile-${(i % 2 === 0) === (tid !== "decisive") ? "a" : "b"}.svg`;
+  const slotArt = (tid, i) => `${LO}${ART[tid]}-slot-${i % 2 ? "b" : "a"}.svg`;
   const rumble = (ms = 40, s = .2) => api?.rumble?.(ms, s);
   // perk effect text: only the numbers are coloured (Figma 2026-11-12): benefit #3fd28b, condition [[n]] #ffb547
   const fxHtml = t => esc(t).replace(/\[\[([^\]]+)\]\]|[+-]?\d+(?:\.\d+)?%?/g, (m, c) => c ? `<b class="tl-num tl-num--cond">${c}</b>` : `<b class="tl-num">${m}</b>`);
@@ -115,8 +170,12 @@
     return `<img src="${LO}perk-${where === "list" ? "l" : ""}frame-${p.lv}.svg" width="${fw}" height="${fh}" alt=""><img src="${LO}${icon}.svg" width="${iw}" height="${ih}" alt="">`;
   }
 
+  const PAGE_ORDER = [0, 2, 1];   // tab order (user 2026-11-13): Profile / Loadout / Inventory
+  const stepPage = a => PAGE_ORDER[(PAGE_ORDER.indexOf(page) + (a === "lt" ? -1 : 1) + 3) % 3];
+  // landing on Loadout always starts at group select (level 1), never inside a group
+  function goPage(p) { page = p; info = null; if (p === 2) { mode = "group"; slot = entrySlot(T().id); } render(); }
   function tabsHtml(list, active, tabW) {
-    const tabs = list.map((t, i) => `<span class="tl-tab${i === active ? " is-active" : ""}" data-tl-tab="${i}" style="width:${tabW(t)}px">${esc(t.label)}</span>`).join("");
+    const tabs = PAGE_ORDER.map(i => [list[i], i]).map(([t, i]) => `<span class="tl-tab${i === active ? " is-active" : ""}" data-tl-tab="${i}" style="width:${tabW(t)}px">${esc(t.label)}</span>`).join("");
     return `<nav class="tl-tabs" role="tablist">${glyph("lt")}${tabs}${glyph("rt")}</nav>`;
   }
 
@@ -131,29 +190,34 @@
     window.MTX_PLAYER?.render?.();
   }
 
-  // every key the state supports, in the Figma order; keys with nothing behind them yet are greyed (off)
+  // hint bar per state, as in the Hub B frames (Figma order, not the standard sort)
   function hintsHtml() {
-    const kb = device() === "kb";
-    const styleKeys = kb ? "zl+zr" : "lb+rb";   // keyboard: Z / C switch style (Q / E are the tab keys)
+    const styleKeys = "zl+zr";   // Z / C = L2 / R2 switch style (Q / E = L1 / R1 are the tab keys)
     const tabKeys = "lt+rt";
     let h;
     if (page < 2) h = page === 0
-      ? [["b", "Close"], ["a", { label: "Select", off: true }], ["y", "History"], ["x", { label: "Edit", off: true }], [tabKeys, "Tab"]]
-      : [["b", "Close"], ["a", { label: "Select", off: true }], [tabKeys, "Tab"]];
-    else if (view === "hub") h = [["b", "Close"], ["a", { label: isLocked(style()) ? "Locked" : "Open", off: isLocked(style()) }], [styleKeys, "Style"], [tabKeys, "Tab"]];
-    else if (info) { h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["ls", "Move"], ["y", "Info"]]; if (T().id === "perk") h.push(["rs", "Level"]); }
-    else if (mode === "grid") {
-      const tid = T().id;
-      h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(tid, cell) }], ["ls", "Move"]];
-      h.push(["y", "Info"]);
-    } else {
-      const filled = preset()[T().id][slot] != null;
-      h = [["b", "Back"], ["a", "Select"], ["ls", "Move"], [tabKeys, "Switch"]];
-      if (filled) h.push(["x", "Remove"]);
-      if (filled) h.push(["y", "Info"]);
+      ? [["b", "Close"], ["a", { label: "Select", off: true }], ["y", "History"], ["x", { label: "Edit", off: true }], [tabKeys, "Tab"], ["menu", "Options"], ["view", "Friends"]]
+      : [["b", "Close"], ["a", { label: "Select", off: true }], [tabKeys, "Tab"], ["menu", "Options"], ["view", "Friends"]];
+    else if (info) {                                                                                     // 740:111571 + every key it uses
+      h = [["b", "Close"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["dall", "Move"]];
+      if (T().id === "perk") h.push(["rs", "Level"]);
+      h.push(["y", "Close info"], ["menu", "Options"], ["view", "Friends"]);
     }
-    h.push(["menu", "Options"], ["view", "Friends"]);
-    return `<nav class="hint-bar tl-hints">${h.map(([k, v]) => window.MTX_UI.hintItem(k, v)).join("")}</nav>`;   // Figma order, not the standard sort
+    else if (mode === "grid") h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["dall", "Move"], ["y", { label: "Info", off: cell >= itemCount(T().id) }], ["menu", "Options"], ["view", "Friends"]];   // 740:110461
+    else if (mode === "group") {                                                                         // 741:60423 + every key it uses
+      const locked = isLocked(style());
+      h = [["b", "Close"], ["a", { label: locked ? "Locked" : "Open", off: locked }], ["dall", "Move"], ["rs", { label: "Save", off: !dirty() }], [styleKeys, "Style"], [tabKeys, "Tab"], ["menu", "Options"], ["view", "Friends"]];
+    }
+    else {                                                                                               // 741:61711 + every key it uses
+      const locked = isLocked(style()), filled = preset()[T().id][slot] != null;
+      h = [["b", "Back"], ["a", { label: "Select", off: locked }], ["dall", "Move"]];
+      if (device() === "kb") h.push(["n1-4", "Slot"]);
+      h.push(["x", { label: "Remove", off: locked || !filled }], ["y", { label: "Info", off: locked }], ["rs", { label: "Save", off: !dirty() }], ["menu", "Options"], ["view", "Friends"]);
+    }
+    const item = ([k, v]) => k === "n1-4"   // keyboard number keys: no glyph in the set, plain keycap text
+      ? `<span class="hint" data-hint-key="n1-4"><span class="glyph" aria-hidden="true">1-4</span><span>${esc(v)}</span></span>`
+      : window.MTX_UI.hintItem(k, v);
+    return `<nav class="hint-bar tl-hints">${h.map(item).join("")}</nav>`;
   }
 
   function tbdHtml() {
@@ -218,109 +282,165 @@
       <div class="tl-slices">${slices}</div></div>`;
   }
 
-  function clusterHtml(tid, x, y, scale, opts = {}) {
+  // Special / Decisive D-pad cluster (563 x 640 art box, drawn at .72 on the hub). The centre hint is
+  // MTX / D-pad Keys 740:131190 (num-pad 88 px at 158,158 of the .72 box), placed by hubHtml().
+  function clusterHtml(tid, x, y, scale) {
     const loadout = preset()[tid];
     const slots = DPAD.map((d, si) => {
       const v = loadout[si];
-      const art = v == null ? `${LO}${tid === "special" ? "sp" : "dc"}-slot-empty.svg` : slotArt(tid, v);
-      const foc = opts.focus === si;
-      return `<div class="tl-slot${foc ? " is-focused" : ""}" data-tl-slot="${si}" style="left:${d.x}px;top:${d.y}px">
-        <svg class="tl-ring" viewBox="0 0 188 188"><path d="${SLOT_PATH}" transform="translate(93 94) scale(1.08) translate(-93 -94) translate(-438 -209)" fill="none" stroke="url(#tlPrism)" stroke-width="4" vector-effect="non-scaling-stroke"/></svg>
-        <img src="${art}" alt="${v == null ? "Empty" : esc(MOVES[tid][v])}">
-        <svg class="tl-dim" viewBox="0 0 188 188"><path d="${SLOT_PATH}" transform="translate(-438 -209)" fill="#000" fill-opacity=".7"/></svg></div>`;
+      const art = v == null ? `${LO}${ART[tid]}-slot-empty.svg` : slotArt(tid, v);
+      return `<div class="tl-slot" data-tl-type="${TYPES.findIndex(t => t.id === tid)}" data-tl-slot="${si}" style="left:${d.x}px;top:${d.y}px">
+        <img src="${art}" alt="${v == null ? "Empty" : esc(MOVES[tid][v])}"></div>`;
     }).join("");
-    const keys = DPAD.map((d, si) => `<span class="tl-key" style="left:${d.key[0]}px;top:${d.key[1]}px">${si + 1}</span>`).join("");
-    return `<div class="tl-cl${opts.choosing ? " is-choosing" : ""}" style="left:${x}px;top:${y}px;transform:scale(${scale})">
-      <img class="tl-cl__dpad" src="${LO}${tid === "special" ? "sp" : "dc"}-dpad.svg" alt="">${keys}${slots}</div>`;
+    return `<div class="tl-cl" style="left:${x}px;top:${y}px;transform:scale(${scale})">
+      <img class="tl-cl__dpad" src="${LO}${ART[tid]}-dpad.svg" alt="">${slots}</div>`;
+  }
+
+  // level 1: group focus ring (741:67733 / 741:68070 / 741:68407: 5 px stroke, white 4 % fill, 4 px inset).
+  // After A the group ring goes; the slot ring shows on level 2 and stays on the slot being filled on level 3 (user).
+  function ringHtml() {
+    if (page !== 2) return "";
+    if (mode === "group") {
+      const { c: [gx, gy], s: gs } = GROUP_GEO[T().id], gh = gs / 2;
+      return `<svg class="tl-dring tl-gring" data-k="g${type}" style="left:${gx - gh}px;top:${gy - gh}px" width="${gs}" height="${gs}" viewBox="0 0 ${gs} ${gs}">
+        <path d="M${gh} 4L${gs - 4} ${gh}L${gh} ${gs - 4}L4 ${gh}Z" fill="#fff" fill-opacity=".04" stroke="url(#tlPrism)" stroke-width="5"/></svg>`;
+    }
+    const g = SLOT_GEO[T().id], [cx, cy] = g.c[slot], s = g.ring + 4, h = s / 2;
+    return `<svg class="tl-dring" data-k="s${type}-${slot}" style="left:${cx - h}px;top:${cy - h}px" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">
+      <path d="M${h} 2L${s - 2} ${h}L${h} ${s - 2}L2 ${h}Z" fill="none" stroke="url(#tlPrism)" stroke-width="4"/></svg>`;
+  }
+
+  // black 70 % diamond over every slot except the one being filled, only while choosing in the grid
+  const DIM_SIZE = { special: 135, decisive: 135, signature: 135, perk: 152 };
+  function dimHtml() {
+    if (mode !== "grid") return "";   // only while a slot was picked (A) and the grid is choosing for it
+    return TYPES.map((t, ti) => SLOT_GEO[t.id].c.map(([cx, cy], si) => {
+      if (ti !== type || si === slot) return "";   // other groups are faded to 30 % instead (741:62919)
+      const d = DIM_SIZE[t.id];
+      return `<i class="tl-sdim" style="left:${cx - d / 2}px;top:${cy - d / 2}px;width:${d}px;height:${d}px"></i>`;
+    }).join("")).join("");
+  }
+
+  function numPadHtml(x, y) {
+    const kb = device() === "kb";
+    return `<img class="tl-numpad" src="${LO}dpad-keys-${kb ? "kb" : "pad"}.svg" style="left:${x}px;top:${y}px" width="88" height="88" alt="${kb ? "Keys 1-4" : "D-pad"}" data-figma="740:131190 ${kb ? "Device=Keyboard" : "Device=Controller"}">`;
   }
 
   function hubHtml() {
-    const p = preset(), locked = isLocked(style());
-    // perk cluster centres: slot 1 top, 2 right, 3 left, 4 bottom (Figma Group 1244834502)
-    const C = [[589, 590], [677.5, 679], [502, 678.5], [589, 766]];
-    const perks = p.perk.map((v, i) => v == null
-      ? `<div class="tl-pc" style="left:${C[i][0]}px;top:${C[i][1]}px"><img src="${LO}hub-empty-diamond.svg" width="152" height="152" alt="Empty"></div>`
-      : `<div class="tl-pc" style="left:${C[i][0]}px;top:${C[i][1]}px">${perkArt(v, "hub")}</div>`).join("");
+    const p = preset(), locked = isLocked(style()), pi = TYPES.findIndex(t => t.id === "perk");
+    const perks = p.perk.map((v, i) => {
+      const [cx, cy] = SLOT_GEO.perk.c[i];
+      return `<div class="tl-pc" data-tl-type="${pi}" data-tl-slot="${i}" style="left:${cx}px;top:${cy}px">${v == null
+        ? `<img src="${LO}hub-empty-diamond.svg" width="152" height="152" alt="Empty">` : perkArt(v, "hub")}</div>`;
+    }).join("");
+    const t = T();
+    // levels 2-3: the other three groups drop to 30 % (741:61711 / 741:62919)
+    const grp = (id, html) => `<div class="tl-grp${mode !== "group" && id !== t.id ? " is-faded" : ""}" data-g="${id}">${html}</div>`;
     return `<div class="tl-hub${locked ? " is-locked" : ""}"><div class="tl-hub__body">
-      ${clusterHtml("special", 168, 290, .72)}
-      ${clusterHtml("decisive", 589, 267, .72)}
-      ${perks}
+      ${grp("special", clusterHtml("special", 168, 290, .72) + numPadHtml(326, 448))}
+      ${grp("decisive", clusterHtml("decisive", 583, 290, .72) + numPadHtml(741, 448))}
+      ${grp("signature", clusterHtml("signature", 2, 560.5, .72))}
+      ${grp("perk", perks)}
       <div class="tl-vl" style="left:92px;top:290px;color:${C_SPECIAL}">Special Move<small>${count(p.special)} / 4 equipped</small></div>
       <div class="tl-vl" style="left:513px;top:290px;color:${C_DECISIVE}">Decisive Move<small>${count(p.decisive)} / 4 equipped</small></div>
-      <div class="tl-vl" style="left:387px;top:869px;width:404px;text-align:center;color:#f6f1eb">Perk<small style="margin-top:-2px">${count(p.perk)} / 4 equipped</small></div>
-    </div></div>`;
+      <div class="tl-vl tl-vl--sg" style="left:289px;top:880px;color:${C_SIGNATURE}">Signature Move<small>${count(p.signature)} / 4 equipped</small></div>
+      <div class="tl-vl tl-vl--pk" style="left:499px;top:880px;width:404px;text-align:center;color:#f6f1eb">Perk<small>${count(p.perk)} / 4 equipped</small></div>
+      ${dimHtml()}${ringHtml()}
+    </div>
+    <div class="tl-head tl-ghead" data-tl-right><b>${esc(t.grid)}</b></div>
+    <div class="tl-gv${mode === "grid" ? "" : " is-idle"}" data-tl-gv data-tl-right data-figma="grid-col (3 rows visible, scrolls)">${gridHtml()}</div>
+    <div class="scrollbar tl-gsb" data-tl-gsb aria-hidden="true"><span class="scrollbar__thumb"></span></div>
+    ${t.id === "perk" ? perkPanelHtml() : detailHtml()}</div>`;
   }
 
-  // ---------------------------------------------------------------- submenu
-  function perkCardHtml(si) {
-    const v = preset().perk[si], top = si * 210, choosing = mode === "grid";
-    const focus = mode === "slots" && slot === si ? `<i class="tl-focus tl-focus--card"></i>` : "";
-    const target = choosing && slot === si ? `<i class="tl-target"></i>` : "";
-    if (v == null) return `<div class="tl-card is-empty${choosing && slot === si ? " is-target" : ""}" style="top:${top}px" data-tl-slot="${si}">
+  // ---------------------------------------------------------------- right side
+  // perk card (old list card 942 x 198; the Hub B panel 1032,800 828 x 174 is the same card at .879)
+  function perkCardHtml(v, si) {
+    if (v == null) return `<div class="tl-card is-empty" data-tl-slot="${si}">
         <div class="tl-empty"><span class="tl-empty__slot">Slot 0${si + 1}</span><i class="tl-empty__box"></i><i class="tl-empty__plus"></i>
-        <span class="tl-empty__t">Empty</span><span class="tl-empty__h">Select a perk from the collection</span></div>${target}${focus}</div>`;
+        <span class="tl-empty__t">Empty</span><span class="tl-empty__h">Select a perk from the collection</span></div></div>`;
     const p = PERKS[v], [kname, kcol] = KIND[p.kind];
-    return `<div class="tl-card${choosing && slot === si ? " is-target" : ""}" style="top:${top}px" data-tl-slot="${si}">
+    return `<div class="tl-card">
       <div class="tl-card__art">${perkArt(v, "list")}</div>
       <span class="tl-card__kind" style="color:${kcol}">${kname}</span>
       <span class="tl-card__name">${esc(p.name)}</span><i class="tl-card__rule"></i>
       <p class="tl-card__fx">${fxHtml(p.fx[p.lv - 1])}</p>
-      ${p.lv === 3 ? `<p class="tl-card__draw">${esc(p.draw)}</p>` : ""}${target}${focus}</div>`;
+      ${p.lv === 3 ? `<p class="tl-card__draw">${esc(p.draw)}</p>` : ""}</div>`;
+  }
+  function perkPanelHtml() {
+    const v = mode === "grid" ? (cell < PERKS.length ? cell : null) : preset().perk[slot];
+    return `<div class="tl-ppanel" data-tl-right data-figma="Perk panel 1032,800 (740:113115 / 740:114115)">${perkCardHtml(v, slot)}</div>`;
+  }
+
+  // ---------------------------------------------------------------- slot tag on equipped grid cells (top right, 32 x 32)
+  // Special / Decisive: the D-pad with the slot's arm lit (gamepad) or its number key 1-4 (keyboard, as D-pad Keys).
+  // Signature and Perk (no button of their own): the 4-diamond position chip with the slot lit (user 2026-11-13).
+  // Perk (passive, no button): the 4-diamond group with the slot's diamond lit (top / right / left / bottom).
+  const PERK_POS = ["top", "right", "left", "bottom"];
+  const DIR_BTN = { up: "du", left: "dl", right: "dr", down: "dd" };   // D-pad glyphs of the hint bar component
+  // Perk has no button: a white key-shaped chip in the same cut-out style, the slot's diamond knocked out of it
+  // position chip (Perk and Signature): pos = top | right | left | bottom
+  function posIcon(pos) {
+    const si = PERK_POS.indexOf(pos);
+    const c = { top: [12, 5.5], right: [18.5, 12], left: [5.5, 12], bottom: [12, 18.5] };
+    return `<svg class="tl-tag__perk" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><defs><mask id="tlPm${si}"><rect width="24" height="24" fill="#fff"/>${PERK_POS.map((p, i) => { const [x, y] = c[p];
+      return i === si ? `<path d="M${x} ${y - 4.2}L${x + 4.2} ${y}L${x} ${y + 4.2}L${x - 4.2} ${y}Z" fill="#000"/>` : `<path d="M${x} ${y - 3.6}L${x + 3.6} ${y}L${x} ${y + 3.6}L${x - 3.6} ${y}Z" fill="none" stroke="#000" stroke-width="1.3"/>`; }).join("")}</mask></defs>
+      <rect width="24" height="24" rx="3" fill="#f6f1eb" mask="url(#tlPm${si})"/></svg>`;
+  }
+  function slotTag(tid, si) {
+    const kb = device() === "kb", dir = DPAD[si].dir;
+    let icon, label;
+    if (tid === "perk") { icon = posIcon(PERK_POS[si]); label = `Perk slot ${si + 1} (${PERK_POS[si]})`; }
+    else if (tid === "signature") { icon = posIcon({ up: "top", down: "bottom" }[dir] || dir); label = `Signature ${DIR_NAME[dir]}`; }   // same chip as Perk (user 2026-11-13)
+    else { icon = glyph(kb ? String(si + 1) : DIR_BTN[dir]); label = `${DIR_NAME[dir]} (${si + 1})`; }
+    return `<span class="tl-tag" title="Equipped on ${label}" aria-label="Equipped on ${label}">${icon}</span>`;
   }
 
   function gridHtml() {
-    const tid = T().id, loadout = preset()[tid], n = itemCount(tid), choosing = mode === "grid";
+    const tid = T().id, loadout = preset()[tid], n = itemCount(tid), choosing = mode === "grid", kb = device() === "kb";
     let cells = "";
     for (let i = 0; i < 25; i++) {
       const x = (i % 5) * 168, y = Math.floor(i / 5) * 168;
-      if (i >= n) { cells += `<div class="tl-cell tl-cell--null" style="left:${x}px;top:${y}px"></div>`; continue; }
+      if (i >= n) { cells += `<div class="tl-cell tl-cell--null" style="left:${x}px;top:${y}px" data-tl-cell="${i}">${choosing && cell === i ? `<i class="tl-focus tl-focus--cell" data-k="c${type}-${i}"></i>` : ""}</div>`; continue; }
       const lock = !owned(tid, i), eq = loadout.indexOf(i);
       const art = tid === "perk"
         ? `<div class="tl-cell__art">${perkArt(i, "grid")}</div>`
         : `<img class="tl-cell__move" src="${tileArt(tid, i)}" alt="">`;
+      const mark = eq >= 0 ? slotTag(tid, eq) : "";   // which slot it is equipped on (user 2026-11-13)
       cells += `<div class="tl-cell${lock ? " is-locked" : ""}" style="left:${x}px;top:${y}px" data-tl-cell="${i}">
         <i class="tl-cell__base"></i><svg class="abs" style="inset:0" viewBox="0 0 156 156"><path d="M1 124.5H155V127.5H1Z M155 124.5H99.74C129.15 124.5 155 104.6 155 80V124.5Z" fill="#9a9ea8"/></svg>
         <span class="tl-cell__bar">${esc(itemName(tid, i))}</span>
         ${eq >= 0 ? `<i class="tl-cell__eq" style="--tc:${T().color || C_GOLD}"></i>` : ""}
         ${lock ? `<i class="tl-cell__dim"></i>` : ""}${art}
-        ${lock ? `<img class="tl-cell__lock" src="${LO}lock.svg" alt="Locked">` : ""}
-        ${eq >= 0 && tid !== "perk" ? `<span class="tl-key tl-cell__num">${eq + 1}</span>` : ""}
-        ${choosing && cell === i ? `<i class="tl-focus tl-focus--cell"></i>` : ""}</div>`;
+        ${lock ? `<img class="tl-cell__lock" src="${LO}lock.svg" alt="Locked">` : ""}${mark}
+        ${choosing && cell === i ? `<i class="tl-focus tl-focus--cell" data-k="c${type}-${i}"></i>` : ""}</div>`;
     }
-    return `<div class="tl-grid${choosing ? "" : " is-idle"}">${cells}</div>`;
+    return `<div class="tl-grid">${cells}</div>`;
   }
 
+  // move panel (detail 740:119765 / 740:118193): glow in the category colour + Flower Thai tile (.07)
   function detailHtml() {
-    const tid = T().id, loadout = preset()[tid];
+    const t = T(), tid = t.id, loadout = preset()[tid], dir = DIR_NAME[DPAD[slot].dir];
+    const where = tid === "signature" ? dir : `${dir} (${slot + 1})`;
     let name, text, v;
-    if (mode === "grid") { v = cell; name = MOVES[tid][v]; text = MOVE_DESC[tid][v]; }
-    else {
+    if (mode === "grid") {
+      v = cell < itemCount(tid) ? cell : null;
+      name = v == null ? "Locked" : MOVES[tid][v]; text = v == null ? "Not available yet." : moveDesc(tid, v);
+    } else {
       v = loadout[slot];
-      name = v == null ? "Empty" : MOVES[tid][v];
-      text = v == null ? "Select a move from the collection" : `Equipped on ${DIR_NAME[DPAD[slot].dir]} (${slot + 1})`;
+      name = v == null ? "Empty slot" : MOVES[tid][v];
+      text = v == null ? `${where}. Press A to choose a ${t.label}.` : `Equipped on ${where}`;
     }
-    const icon = v == null ? `${LO}${tid === "special" ? "sp" : "dc"}-slot-empty.svg` : v % 2 ? slotArt(tid, v) : `${LO}${tid === "special" ? "sp" : "dc"}-detail.svg`;
-    return `<section class="tl-detail" style="--tc:${T().color}"><img src="${icon}" alt=""><h3>${esc(name)}</h3><p>${esc(text)}</p></section>`;
+    const icon = v == null ? slotArt(tid, 0) : tid !== "signature" && v % 2 === 0 ? `${LO}${ART[tid]}-detail.svg` : slotArt(tid, v);
+    return `<section class="tl-mdet" data-tl-right style="--tc:${t.color}" data-figma="detail 1032,800 828 x 200"><img src="${icon}" alt=""><h3>${esc(name)}</h3><p>${esc(text)}</p></section>`;
   }
 
   // Info card (MTX / Perk Info Card 719:89368): ONE persistent element, built once in build(). While it is open,
   // moving to another cell lerps it to that cell (CSS transition on left) and swaps its text in place with a crossfade.
-  // Perks show the level pager (RS); Special / Decisive moves show kind, name and description.
+  // Perks show the level pager (RS); moves show kind, name and description.
   let infoItem = "", infoLv = 0;
   function infoShellHtml() {
-    return `<aside class="skill-detail tl-info" data-tl-info hidden data-figma="719:89368 MTX / Perk Info Card">
-      <p class="skill-detail__kind" data-i="kind"></p>
-      <div class="skill-detail__card">
-        <div class="skill-detail__art"><img src="${IMG}card-art.webp" alt=""></div>
-        <span class="skill-detail__score"><img src="${SV}icon-check-circle.svg" alt=""><span data-i="badge"></span></span>
-        <div class="skill-detail__title"><div><h2 class="tex-text" data-i="name"></h2></div></div>
-        <div class="skill-detail__desc">
-          <div class="tl-lv" data-i-lv><span>Lv 1</span><span>Lv 2</span><span>Lv 3</span></div><div class="tl-lv__sr" data-i-lv>${glyph("rs")}<span>Level</span></div>
-          <p class="tl-info__fx" data-i="fx"></p><p class="tl-info__draw" data-i="draw"></p>
-        </div>
-        <div class="skill-detail__actions"><span class="tl-info__equip" data-i-equip><i></i><span>Equip</span></span>
-          <span class="hint-inline">${glyph("b")}<span>Close</span></span></div>
-      </div></aside>`;
+    return window.MTX_UI.skillInfo.html({ attrs: "data-tl-info hidden", primary: "Equip", cta: true });   // Equip = Accept Button / 06 Pill (740:114191)   // shared component (components/skill-info.js)
   }
 
   function infoData() {
@@ -330,14 +450,14 @@
       return { kind, col, badge: p.locked ? "Locked" : "Owned Lv" + p.lv, name: p.name, levels: true, lv: info.lv, fx: p.fx[info.lv - 1], draw: info.lv === 3 ? p.draw : "", own: !p.locked };
     }
     const own = owned(tid, cell);
-    return { kind: T().grid, col: T().color, badge: own ? "Owned" : "Locked", name: MOVES[tid][cell], levels: false, lv: 0, fx: MOVE_DESC[tid][cell], draw: "", own };
+    return { kind: T().grid, col: T().color, badge: own ? "Owned" : "Locked", name: MOVES[tid][cell], levels: false, lv: 0, fx: moveDesc(tid, cell), draw: "", own };
   }
 
   const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
   function syncInfo() {
     const el = root?.querySelector("[data-tl-info]");
     if (!el) return;
-    if (!(info && page === 2 && view === "sub" && mode === "grid")) { el.hidden = true; infoItem = ""; return; }
+    if (!(info && page === 2 && mode === "grid" && cell < itemCount(T().id))) { el.hidden = true; infoItem = ""; return; }
     const d = infoData(), left = 1032 + (cell % 5) * 168 - 16 - 513, item = T().id + ":" + cell, opening = el.hidden;
     el.hidden = false;
     if (opening) { el.style.transition = "none"; el.style.left = left + "px"; void el.offsetWidth; el.style.transition = ""; restart(el, "is-in"); }
@@ -354,45 +474,79 @@
     infoItem = item; infoLv = d.lv;
   }
 
-  function subHtml() {
-    const t = T(), loadout = preset()[t.id], s = style();
-    const crumb = `<div class="tl-crumb">Tactical Loadout<b>&gt;</b>${esc(s.name)}<b>&gt;</b><em>${esc(t.crumb)}</em></div>`;
-    const heads = `<div class="tl-head" style="left:60px"><b>${t.slots}</b><span>${count(loadout)} / 4 equipped</span></div>
-      <div class="tl-head" style="left:1032px"${info ? " hidden" : ""}><b>${t.grid}</b></div>`;
-    let left;
-    if (t.id === "perk") left = `<div class="tl-list${mode === "grid" ? " is-choosing" : ""}">${[0, 1, 2, 3].map(perkCardHtml).join("")}</div>`;
-    else left = clusterHtml(t.id, 250, 169, 1, { focus: slot, choosing: mode === "grid" }) + detailHtml();
-    return crumb + tabsHtml(TYPES, type, x => x.tab) + heads + gridHtml() + left;
+  // grid scroll: keep the position across re-renders, bring the focused row into view, keep the scrollbar in sync
+  function syncGrid(prevType) {
+    const gv = root.querySelector("[data-tl-gv]"), bar = root.querySelector("[data-tl-gsb]");
+    if (!gv) return;
+    if (prevType !== type) gscroll = 0;
+    gv.scrollTop = gscroll;
+    const sync = () => { gscroll = gv.scrollTop; window.MTX_UI?.syncScrollbar?.(gv, bar, { side: "right", gap: 0 }); };
+    gv.addEventListener("scroll", sync, { passive: true });
+    if (mode === "grid") {
+      const top = Math.floor(cell / 5) * 168, want = top < gv.scrollTop ? top : top + 168 > gv.scrollTop + gv.clientHeight ? top + 168 - gv.clientHeight : gv.scrollTop;   // row + its 6 px focus margin
+      if (want !== gv.scrollTop) gv.scrollTo({ top: want, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+    sync();
   }
   //#endregion
 
   //#region [Render]
   function render() {
     if (!root) return;
-    const hub = page === 2 && view === "hub";
-    let body = "";
-    if (page < 2 || view === "hub") body = tabsHtml(PAGES, page, x => x.w) + (page === 0 ? profileHtml() : page === 1 ? tbdHtml() : hubHtml());
-    else body = subHtml();
+    const hub = page === 2;
+    const body = tabsHtml(PAGES, page, x => x.w) + (page === 0 ? profileHtml() : page === 1 ? tbdHtml() : hubHtml());
     root.querySelector("[data-tl-hubart]").hidden = !hub;
     const sw = root.querySelector("[data-tl-sw]");
     sw.hidden = !hub;
     if (hub && !sw.firstChild) sw.innerHTML = switcherHtml();
+    const oldRings = ringSnapshot();
     root.querySelector("[data-tl-view]").innerHTML = body + hintsHtml();
+    animateRings(oldRings);
+    const prevType = lastType;
     animate();
+    if (hub) syncGrid(prevType);
     syncInfo();
     updateHubArt();
+    lastDevice = device();
   }
 
-  // enter transitions: a new page / tab / view slides in, a mode change (slots <-> grid) fades, the info card slides
-  let lastKey = "", lastMode = "", lastInfo = false;
+  // focus ring move = Skill Tree focus (.tnode__focus): the new ring grows 90 -> 100 % and fades in, the old one
+  // shrinks and fades out, both .14 s ease-out (CSS tl-ring-in / tl-ring-out)
+  function ringSnapshot() {
+    return [...root.querySelectorAll("[data-tl-view] [data-k]")].map(el => {
+      const cell = el.classList.contains("tl-focus--cell") ? el.parentElement : null;
+      return { k: el.dataset.k, el: el.cloneNode(true), left: cell ? cell.offsetLeft - 5 : null, top: cell ? cell.offsetTop - 5 : null };
+    });
+  }
+  let quietRings = false;   // dev set(): jump without the ring animation (captures)
+  function animateRings(old) {
+    if (quietRings) return;
+    const now = [...root.querySelectorAll("[data-tl-view] [data-k]")], keys = new Set(now.map(el => el.dataset.k));
+    if (!old.length && !now.length) return;
+    now.forEach(el => { if (!old.some(o => o.k === el.dataset.k)) el.classList.add("is-in"); });
+    old.forEach(o => {
+      if (keys.has(o.k)) return;
+      const isCell = o.left != null, host = root.querySelector(isCell ? "[data-tl-view] .tl-grid" : "[data-tl-view] .tl-hub__body");
+      if (!host) return;
+      const g = o.el; g.classList.remove("is-in"); g.classList.add("is-out"); g.removeAttribute("data-k");
+      if (isCell) Object.assign(g.style, { left: o.left + "px", top: o.top + "px", right: "auto", bottom: "auto", width: "166px", height: "166px" });
+      host.appendChild(g);
+      g.addEventListener("animationend", () => g.remove(), { once: true });
+      setTimeout(() => g.remove(), 400);
+    });
+  }
+
+  // opacity-only, and only when the view changes: a new page fades in, a new category fades the right side,
+  // slots <-> grid fades the grid + panel. Plain focus moves re-render without any animation.
+  let lastPage = -1, lastType = -1, lastMode = "", lastDevice = "";
   function animate() {
-    const v = root.querySelector("[data-tl-view]"), key = page + "|" + view + "|" + type, m = view + mode;
-    v.classList.remove("tl-anim-view", "tl-anim-in", "tl-anim-x", "tl-anim-mode", "tl-anim-info");
+    const v = root.querySelector("[data-tl-view]");
+    v.classList.remove("tl-anim-x", "tl-anim-cat", "tl-anim-mode");
     void v.offsetWidth;   // restart the keyframes
-    if (key !== lastKey) v.classList.add("tl-anim-view", view === "sub" && lastKey.includes("|hub|") ? "tl-anim-in" : "tl-anim-x");
-    else if (m !== lastMode) v.classList.add("tl-anim-mode");
-    if (info && !lastInfo) v.classList.add("tl-anim-info");
-    lastKey = key; lastMode = m; lastInfo = !!info;
+    if (page !== lastPage) v.classList.add("tl-anim-x");
+    else if (page === 2 && type !== lastType) v.classList.add("tl-anim-cat");
+    else if (page === 2 && mode !== lastMode) v.classList.add("tl-anim-mode");
+    lastPage = page; lastType = type; lastMode = mode;
   }
 
   function updateHubArt() {
@@ -415,23 +569,56 @@
   //#endregion
 
   //#region [Input]
+  // left side: move inside the focused group first (D-pad / diamond neighbours), and only at its edge jump to the
+  // nearest slot of the next group in that direction (Special <-> Decisive on top, Signature <-> Perk below).
+  // level 1: move between the four groups (centre of each group, 45 deg cone)
+  function moveGroups(dir) {
+    const [cx, cy] = GROUP_GEO[T().id].c, v = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir];
+    let best = -1, bestScore = Infinity;
+    TYPES.forEach((t, ti) => {
+      const [x, y] = GROUP_GEO[t.id].c, along = (x - cx) * v[0] + (y - cy) * v[1], side = Math.abs((x - cx) * v[1] + (y - cy) * v[0]);
+      if (ti === type || along < 8 || side > along) return;
+      if (along + side * 2 < bestScore) { bestScore = along + side * 2; best = ti; }
+    });
+    if (best >= 0) { type = best; slot = entrySlot(T().id); }
+  }
+
+  // level 2: move between the slots of the opened group only
   function moveSlots(dir) {
-    if (T().id === "perk") {
-      if (dir === "up" || dir === "down") slot = Math.max(0, Math.min(3, slot + (dir === "up" ? -1 : 1)));
-      return;
+    const [cx, cy] = SLOT_GEO[T().id].c[slot];
+    const v = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir];
+    const pick = (same, cone) => {
+      let best = null, bestScore = Infinity;
+      TYPES.forEach((t, ti) => {
+        if ((ti === type) !== same) return;
+        SLOT_GEO[t.id].c.forEach(([x, y], si) => {
+          const dx = x - cx, dy = y - cy, along = dx * v[0] + dy * v[1], side = Math.abs(dx * v[1] + dy * v[0]);
+          if (along < 8 || side > along * cone) return;   // only slots inside the cone of that direction
+          const score = along + side * 2;
+          if (score < bestScore) { bestScore = score; best = [ti, si]; }
+        });
+      });
+      return best;
+    };
+    let best = pick(true, 1.2);
+    if (false) {   // cross-group jumps retired: groups are picked on level 1   // edge of the group: the next group in a 45 deg cone, landing on its slot nearest to this one
+      const g = pick(false, 1);
+      if (g) {
+        const c = SLOT_GEO[TYPES[g[0]].id].c;
+        let d = Infinity;
+        c.forEach(([x, y], si) => { const dd = Math.hypot(x - cx, y - cy); if (((x - cx) * v[0] + (y - cy) * v[1]) > 0 && dd < d) { d = dd; best = [g[0], si]; } });
+      }
     }
-    const target = DPAD.findIndex(d => d.dir === dir);   // D-pad: a direction picks that slot
-    if (target >= 0) slot = target;
+    if (best) [type, slot] = best;
   }
 
   function moveGrid(dir) {
-    const n = itemCount(T().id);
     let c = cell;
     if (dir === "left" && c % 5 > 0) c--;
-    else if (dir === "right" && c % 5 < 4 && c + 1 < n) c++;
+    else if (dir === "right" && c % 5 < 4) c++;
     else if (dir === "up" && c >= 5) c -= 5;
-    else if (dir === "down" && c + 5 < n) c += 5;
-    if (c !== cell) { cell = c; if (info) info.lv = T().id === "perk" ? PERKS[c].lv : 0; }
+    else if (dir === "down" && c + 5 < 25) c += 5;
+    if (c !== cell) { cell = c; if (info) info.lv = T().id === "perk" && c < PERKS.length ? PERKS[c].lv : 0; }
   }
 
   function enterGrid() {
@@ -450,60 +637,66 @@
     return true;
   }
 
+  const DIRS = ["up", "down", "left", "right"];
   function handle(a) {
     if (a === "menu") { window.MTX_OPTIONS?.open?.(); return; }   // Start / Tab: Options, everywhere
     if (a === "view") { window.MTX_FRIENDS?.open?.(); return; }   // View / F: Friends, everywhere
-    // ---- top level: Profile / Inventory / hub
-    if (page < 2 || view === "hub") {
-      if (a === "lt" || a === "rt") { page = (page + (a === "lt" ? -1 : 1) + 3) % 3; view = "hub"; render(); return; }
-      if (page < 2) {
-        if (a === "lb" || a === "rb") { page = (page + (a === "lb" ? -1 : 1) + 3) % 3; render(); return; }
-        if (a === "back") close();
-        else if (a === "y" && page === 0) { close(); api?.getScreen?.("history")?.openFromProfile?.(); }   // Match History; its Back reopens Profile
-        return;
-      }
-      if (a === "lb" || a === "rb") { setStyle(styleIdx + (a === "lb" ? -1 : 1)); return; }
-      if (a === "a") {
-        if (isLocked(style())) { rumble(80, .4); return; }
-        view = "sub"; type = 0; mode = "slots"; slot = 0; info = null; render(); return;
-      }
-      if (a === "back") close();
+    // ---- Profile / Inventory
+    if (page < 2) {
+      if (a === "lt" || a === "rt") goPage(stepPage(a));
+      else if (a === "back") close();
+      else if (a === "y" && page === 0) { close(); api?.getScreen?.("history")?.openFromProfile?.(); }   // Match History; its Back reopens Profile
       return;
     }
-    // ---- submenu
+    // ---- hub: info card open
     if (info) {
       if (a === "back" || a === "y") info = null;
-      else if ((a === "rs" || a === "rb") && T().id === "perk") info.lv = info.lv % 3 + 1;   // keyboard RS glyph is C (= rb here)
+      else if (a === "rs" && T().id === "perk") info.lv = info.lv % 3 + 1;   // RS (keyboard R)
       else if (a === "a") { if (equip()) { info = null; mode = "slots"; } }
-      else if (["up", "down", "left", "right"].includes(a)) moveGrid(a);
-      render(); return;
-    }
-    if (mode === "grid") {
-      if (["up", "down", "left", "right"].includes(a)) moveGrid(a);
-      else if (a === "back") mode = "slots";
-      else if (a === "a") { if (equip()) mode = "slots"; }
-      else if (a === "y") info = { lv: T().id === "perk" ? PERKS[cell].lv : 0 };
+      else if (DIRS.includes(a)) moveGrid(a);
       else return;
       render(); return;
     }
-    if (["up", "down", "left", "right"].includes(a)) moveSlots(a);
-    else if (a === "lt" || a === "rt") { type = (type + (a === "lt" ? -1 : 1) + 3) % 3; slot = T().id === "perk" ? 0 : 1; }
-    else if (a === "a") enterGrid();
-    else if (a === "x") { if (preset()[T().id][slot] == null) return; preset()[T().id][slot] = null; rumble(40, .2); }
-    else if (a === "y") {
-      const v = preset()[T().id][slot];
-      if (v == null) return;
-      cell = v; mode = "grid"; info = { lv: T().id === "perk" ? PERKS[v].lv : 0 };
+    // ---- hub: grid
+    if (mode === "grid") {
+      if (DIRS.includes(a)) moveGrid(a);
+      else if (a === "back") mode = "slots";
+      else if (a === "a") { if (equip()) mode = "slots"; }
+      else if (a === "y") { if (cell >= itemCount(T().id)) return; info = { lv: T().id === "perk" ? PERKS[cell].lv : 0 }; }
+      else return;
+      render(); return;
     }
-    else if (a === "back") { view = "hub"; info = null; }
+    // ---- hub level 1: group select
+    if (mode === "group") {
+      if (a === "lt" || a === "rt") { guard(() => goPage(stepPage(a))); return; }
+      if (a === "lb" || a === "rb") { guard(() => setStyle(styleIdx + (a === "lb" ? -1 : 1))); return; }
+      if (a === "rs") { if (dirty()) { saveLoadout(); render(); } return; }
+      if (DIRS.includes(a)) moveGroups(a);
+      else if (a === "a") { if (isLocked(style())) { rumble(80, .4); return; } mode = "slots"; slot = entrySlot(T().id); }
+      else if (a === "back") { guard(close); return; }
+      else return;
+      render(); return;
+    }
+    // ---- hub level 2: slots of the opened group
+    if (a === "rs") { if (dirty()) { saveLoadout(); render(); } return; }   // RS / keyboard R: save this loadout
+    if (DIRS.includes(a)) moveSlots(a);
+    else if (/^n[1-4]$/.test(a)) slot = +a[1] - 1;                 // keyboard 1-4 = that slot of the focused category
+    else if (a === "a") { if (isLocked(style())) { rumble(80, .4); return; } enterGrid(); }
+    else if (a === "x") { if (isLocked(style()) || preset()[T().id][slot] == null) return; preset()[T().id][slot] = null; rumble(40, .2); }
+    else if (a === "y") {
+      if (isLocked(style())) return;
+      enterGrid(); info = { lv: T().id === "perk" ? PERKS[cell].lv : 0 };
+    }
+    else if (a === "back") mode = "group";                         // B: back to group select, same group
     else return;
     render();
   }
 
-  // keyboard: Z / C = LB / RB (style), Q / E = LT / RT (tabs), R = RS (info level)
+  // keyboard: Z / C = LB / RB (style), Q / E = LT / RT (tabs), R = RS (info level), 1-4 = slot
   const KEYMAP = {
     ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right",
-    Enter: "a", " ": "a", Escape: "back", Backspace: "back", x: "x", y: "y", f: "view", z: "lb", c: "rb", q: "lt", e: "rt", r: "rs", Tab: "menu"
+    Enter: "a", " ": "a", Escape: "back", Backspace: "back", x: "x", y: "y", f: "view", z: "lb", c: "rb", q: "lt", e: "rt", r: "rs", Tab: "menu",
+    1: "n1", 2: "n2", 3: "n3", 4: "n4"
   };
   // Friends / Options / dialogs opened from here sit above (z 996) and take the keys themselves
   const otherOpen = () => window.MTX_FRIENDS?.isOpen?.() || window.MTX_OPTIONS?.isOpen?.() || window.MTX_SETTINGS?.isOpen?.() || window.MTX_UI?.modal?.isOpen?.() || window.MTX_UI?.dialog?.isOpen?.();
@@ -517,20 +710,25 @@
   }
   // gamepad (app.js press): b4 LB, b5 RB, b6 LT, b7 RT, b11 RS
   function pad(key, action) {
-    const map = { b4: "lb", b5: "rb", b6: "lt", b7: "rt", b11: "rs", b8: "view" };
+    const map = { b4: "lt", b5: "rt", b6: "lb", b7: "rb", b11: "rs", b8: "view" };   // L1 / R1 = tabs (Q / E), L2 / R2 = style (Z / C)
     handle(map[key] || action);
   }
   function onClick(e) {
     const t = e.target.closest("[data-tl-tab],[data-tl-style],[data-tl-slot],[data-tl-cell]");
     if (!t) return;
-    if (t.dataset.tlTab != null) {
-      const i = +t.dataset.tlTab;
-      if (page < 2 || view === "hub") { page = i; view = "hub"; } else { type = i; mode = "slots"; slot = T().id === "perk" ? 0 : 1; info = null; }
-    } else if (t.dataset.tlStyle != null) { setStyle(+t.dataset.tlStyle); return; }
-    else if (t.dataset.tlSlot != null && view === "sub") { slot = +t.dataset.tlSlot; info = null; enterGrid(); }
+    if (t.dataset.tlTab != null) { const i = +t.dataset.tlTab; if (i === page) return; (page === 2 ? guard : f => f())(() => goPage(i)); return; }
+    else if (t.dataset.tlStyle != null) { const i = +t.dataset.tlStyle; if (i !== styleIdx) guard(() => setStyle(i)); return; }
+    else if (t.dataset.tlSlot != null && t.dataset.tlType != null && page === 2) {
+      if (isLocked(style())) return;
+      type = +t.dataset.tlType; slot = +t.dataset.tlSlot; info = null; enterGrid();
+    }
     else if (t.dataset.tlCell != null && mode === "grid") { cell = +t.dataset.tlCell; if (equip()) { mode = "slots"; info = null; } }
+    else return;
     render();
   }
+  // the D-pad Keys hint and the equipped marks follow the input device (body[data-device], set by app.js)
+  if (document.body) new MutationObserver(() => { if (open && page === 2 && device() !== lastDevice) render(); })
+    .observe(document.body, { attributes: true, attributeFilter: ["data-device"] });
   //#endregion
 
   //#region [Open / close]
@@ -540,7 +738,7 @@
     root.id = "tlOverlay";
     root.hidden = true;
     root.setAttribute("role", "dialog");
-    root.setAttribute("aria-label", "Tactical Loadout");
+    root.setAttribute("aria-label", "Loadout");
     root.innerHTML = `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
         <linearGradient id="tlPrism" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#F3EED0"/><stop offset=".209" stop-color="#E4B996"/><stop offset=".525" stop-color="#766AB2"/><stop offset=".783" stop-color="#5A8DC2"/><stop offset="1" stop-color="#8BCAB2"/></linearGradient></defs></svg>
       <div class="tl-bg"></div>
@@ -557,8 +755,8 @@
     if (!root) build();
     lastFocus = document.activeElement;
     open = true;
-    page = opts.page ?? 2; view = opts.view || "hub"; type = opts.type || 0; mode = "slots";
-    slot = opts.slot ?? (type === 0 ? 0 : 1); info = null;
+    page = opts.page ?? 2; view = "hub"; type = opts.type ?? 1; mode = "group";
+    slot = opts.slot ?? entrySlot(T().id); info = null;
     root.hidden = false;
     render();
   }
@@ -577,8 +775,9 @@
     open: openOverlay, close, isOpen: () => open, pad, handle,
     // dev / compare helpers
     state: () => ({ page, styleIdx, view, type, mode, slot, cell, info, presets }),
-    set: o => { ({ page = page, styleIdx = styleIdx, view = view, type = type, mode = mode, slot = slot, cell = cell } = o); if ("info" in o) info = o.info; if (o.presets) presets = o.presets; if (root?.querySelector("[data-tl-sw]")) root.querySelector("[data-tl-sw]").innerHTML = ""; render(); },
-    reset: () => { presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS)); styleIdx = 0; }
+    set: o => { ({ page = page, styleIdx = styleIdx, view = view, type = type, mode = mode, slot = slot, cell = cell } = o); if ("info" in o) info = o.info; if ("scroll" in o) { gscroll = o.scroll; lastType = type; } if (o.presets) { presets = o.presets; saved = clone(o.presets); } if (root?.querySelector("[data-tl-sw]")) root.querySelector("[data-tl-sw]").innerHTML = ""; quietRings = true; render(); quietRings = false; },
+    reset: () => { presets = clone(DEFAULT_PRESETS); saved = clone(DEFAULT_PRESETS); styleIdx = 0; },
+    isDirty: () => dirty()
   };
   //#endregion
 })();

@@ -31,10 +31,10 @@ html body[data-device="xbox"] .glyph[data-btn="a"],html body[data-device="xbox"]
 html body[data-device="xbox"] .glyph[data-btn="b"],html body[data-device="xbox"] .cc-key--b{--key-svg:url(../assets/svg/key/xbox/b.svg);--ar:1}
 html body[data-device="xbox"] .glyph[data-btn="x"],html body[data-device="xbox"] .cc-key--x{--key-svg:url(../assets/svg/key/xbox/x.svg);--ar:1}
 html body[data-device="xbox"] .glyph[data-btn="y"],html body[data-device="xbox"] .cc-key--y{--key-svg:url(../assets/svg/key/xbox/y.svg);--ar:1}
-html body[data-device="xbox"] .glyph[data-btn="lb"],html body[data-device="xbox"] .cc-key--lb{--key-svg:url(../assets/svg/key/xbox/lb.svg);--ar:1.75}
-html body[data-device="xbox"] .glyph[data-btn="rb"],html body[data-device="xbox"] .cc-key--rb{--key-svg:url(../assets/svg/key/xbox/rb.svg);--ar:1.75}
-html body[data-device="xbox"] .glyph[data-btn="lt"],html body[data-device="xbox"] .glyph[data-btn="zl"],html body[data-device="xbox"] .cc-key--lt{--key-svg:url(../assets/svg/key/xbox/lt.svg);--ar:1}
-html body[data-device="xbox"] .glyph[data-btn="rt"],html body[data-device="xbox"] .glyph[data-btn="zr"],html body[data-device="xbox"] .cc-key--rt{--key-svg:url(../assets/svg/key/xbox/rt.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="lb"],html body[data-device="xbox"] .glyph[data-btn="lt"],html body[data-device="xbox"] .cc-key--lb{--key-svg:url(../assets/svg/key/xbox/lb.svg);--ar:1.75}
+html body[data-device="xbox"] .glyph[data-btn="rb"],html body[data-device="xbox"] .glyph[data-btn="rt"],html body[data-device="xbox"] .cc-key--rb{--key-svg:url(../assets/svg/key/xbox/rb.svg);--ar:1.75}
+html body[data-device="xbox"] .glyph[data-btn="zl"],html body[data-device="xbox"] .cc-key--lt{--key-svg:url(../assets/svg/key/xbox/lt.svg);--ar:1}
+html body[data-device="xbox"] .glyph[data-btn="zr"],html body[data-device="xbox"] .cc-key--rt{--key-svg:url(../assets/svg/key/xbox/rt.svg);--ar:1}
 html body[data-device="xbox"] .glyph[data-btn="ls"],html body[data-device="xbox"] .cc-key--ls{--key-svg:url(../assets/svg/key/xbox/ls.svg);--ar:1}
 html body[data-device="xbox"] .glyph[data-btn="rs"],html body[data-device="xbox"] .cc-key--rs{--key-svg:url(../assets/svg/key/xbox/rs.svg);--ar:1}
 html body[data-device="xbox"] .glyph[data-btn="menu"],html body[data-device="xbox"] .cc-key--menu{--key-svg:url(../assets/svg/key/xbox/menu.svg);--ar:1}
@@ -45,10 +45,10 @@ html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="a"],html body[data-
 html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="b"],html body[data-device="ps"][data-pad="ps5"] .cc-key--b{--key-svg:url(../assets/svg/key/ps5/b.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="x"],html body[data-device="ps"][data-pad="ps5"] .cc-key--x{--key-svg:url(../assets/svg/key/ps5/x.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="y"],html body[data-device="ps"][data-pad="ps5"] .cc-key--y{--key-svg:url(../assets/svg/key/ps5/y.svg);--ar:1}
-html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lb{--key-svg:url(../assets/svg/key/ps5/lb.svg);--ar:1.476}
-html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rb{--key-svg:url(../assets/svg/key/ps5/rb.svg);--ar:1.476}
-html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="zl"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lt{--key-svg:url(../assets/svg/key/ps5/lt.svg);--ar:1}
-html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="zr"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rt{--key-svg:url(../assets/svg/key/ps5/rt.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lb{--key-svg:url(../assets/svg/key/ps5/lb.svg);--ar:1.476}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rb{--key-svg:url(../assets/svg/key/ps5/rb.svg);--ar:1.476}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="zl"],html body[data-device="ps"][data-pad="ps5"] .cc-key--lt{--key-svg:url(../assets/svg/key/ps5/lt.svg);--ar:1}
+html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="zr"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rt{--key-svg:url(../assets/svg/key/ps5/rt.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="ls"],html body[data-device="ps"][data-pad="ps5"] .cc-key--ls{--key-svg:url(../assets/svg/key/ps5/ls.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="rs"],html body[data-device="ps"][data-pad="ps5"] .cc-key--rs{--key-svg:url(../assets/svg/key/ps5/rs.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps5"] .glyph[data-btn="menu"],html body[data-device="ps"][data-pad="ps5"] .cc-key--menu{--key-svg:url(../assets/svg/key/ps5/menu.svg);--ar:1.2}
@@ -59,10 +59,10 @@ html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="a"],html body[data-
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="b"],html body[data-device="ps"][data-pad="ps4"] .cc-key--b{--key-svg:url(../assets/svg/key/ps4/b.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="x"],html body[data-device="ps"][data-pad="ps4"] .cc-key--x{--key-svg:url(../assets/svg/key/ps4/x.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="y"],html body[data-device="ps"][data-pad="ps4"] .cc-key--y{--key-svg:url(../assets/svg/key/ps4/y.svg);--ar:1}
-html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lb{--key-svg:url(../assets/svg/key/ps4/lb.svg);--ar:1.619}
-html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rb{--key-svg:url(../assets/svg/key/ps4/rb.svg);--ar:1.619}
-html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="zl"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lt{--key-svg:url(../assets/svg/key/ps4/lt.svg);--ar:0.964}
-html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="zr"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rt{--key-svg:url(../assets/svg/key/ps4/rt.svg);--ar:0.964}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lb"],html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="lt"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lb{--key-svg:url(../assets/svg/key/ps4/lb.svg);--ar:1.619}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rb"],html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rt"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rb{--key-svg:url(../assets/svg/key/ps4/rb.svg);--ar:1.619}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="zl"],html body[data-device="ps"][data-pad="ps4"] .cc-key--lt{--key-svg:url(../assets/svg/key/ps4/lt.svg);--ar:0.964}
+html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="zr"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rt{--key-svg:url(../assets/svg/key/ps4/rt.svg);--ar:0.964}
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="ls"],html body[data-device="ps"][data-pad="ps4"] .cc-key--ls{--key-svg:url(../assets/svg/key/ps4/ls.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="rs"],html body[data-device="ps"][data-pad="ps4"] .cc-key--rs{--key-svg:url(../assets/svg/key/ps4/rs.svg);--ar:1}
 html body[data-device="ps"][data-pad="ps4"] .glyph[data-btn="menu"],html body[data-device="ps"][data-pad="ps4"] .cc-key--menu{--key-svg:url(../assets/svg/key/ps4/menu.svg);--ar:1.267}

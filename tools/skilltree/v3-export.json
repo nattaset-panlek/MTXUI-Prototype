@@ -1,0 +1,1511 @@
+{
+ "nodes": [
+  {
+   "id": "pn1_root",
+   "label": "DSM Default",
+   "type": "root",
+   "base": true,
+   "x": 0,
+   "y": 0,
+   "icon": "mtx/assets/svg/skill/thai_root.svg",
+   "extras": {},
+   "desc": "จุดเริ่มต้นสาย พระนคร (Phra Nakorn)"
+  },
+  {
+   "id": "pn2_block",
+   "label": "Block Gauge",
+   "type": "stat",
+   "base": false,
+   "x": -200,
+   "y": 140,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "BLOCK": 10
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn3_maxsta",
+   "label": "Max Stamina",
+   "type": "stat",
+   "base": false,
+   "x": 200,
+   "y": 140,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "STA": 10
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn4_crit",
+   "label": "Critical Damage",
+   "type": "stat",
+   "base": false,
+   "x": -375,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "CRIT_DMG": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn5_staregen",
+   "label": "Stamina Regeneration",
+   "type": "stat",
+   "base": false,
+   "x": -375,
+   "y": 400,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "STA_REGEN": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn6_dsmA1",
+   "label": "มอญยันหลัก DSM A Tier 1",
+   "type": "dsm",
+   "base": false,
+   "x": -375,
+   "y": 520,
+   "icon": "mtx/assets/svg/skill/thai_dsm_a.svg",
+   "extras": {
+    "DSM_A": 1
+   },
+   "desc": "DSM node"
+  },
+  {
+   "id": "pn7_fin1",
+   "label": "Finesse Counter Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "COUNTER": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn8_fin2",
+   "label": "Finesse Counter Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 400,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "COUNTER": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn9_fin3",
+   "label": "Finesse Counter Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 520,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "COUNTER": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn10_rest1",
+   "label": "Restorative Breath Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "STA_REGEN": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn11_rest2",
+   "label": "Restorative Breath Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 400,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "STA_REGEN": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn12_rest3",
+   "label": "Restorative Breath Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 520,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "STA_REGEN": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn13_maxstaeff",
+   "label": "Max Stamina Efficiency",
+   "type": "stat",
+   "base": false,
+   "x": 375,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "STA_EFF": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn14_sgm1",
+   "label": "SGM",
+   "type": "sgm",
+   "base": false,
+   "x": 375,
+   "y": 400,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg",
+   "extras": {
+    "SGM": 1
+   },
+   "desc": "SGM node"
+  },
+  {
+   "id": "pn15_dsmB1",
+   "label": "สลับฟันปลา DSM B Tier 1",
+   "type": "dsm",
+   "base": false,
+   "x": 375,
+   "y": 520,
+   "icon": "mtx/assets/svg/skill/thai_dsm_b.svg",
+   "extras": {
+    "DSM_B": 1
+   },
+   "desc": "DSM node"
+  },
+  {
+   "id": "pn16_combosta",
+   "label": "Combo Stamina Efficiency",
+   "type": "stat",
+   "base": false,
+   "x": -200,
+   "y": 680,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "COMBO_STA": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn17_hopsta",
+   "label": "Hop Stamina Efficiency",
+   "type": "stat",
+   "base": false,
+   "x": 200,
+   "y": 680,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "HOP_STA": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn18_combopow",
+   "label": "Combo Power",
+   "type": "stat",
+   "base": false,
+   "x": -375,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "COMBO_POW": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn19_sgm2",
+   "label": "SGM",
+   "type": "sgm",
+   "base": false,
+   "x": -375,
+   "y": 940,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg",
+   "extras": {
+    "SGM": 1
+   },
+   "desc": "SGM node"
+  },
+  {
+   "id": "pn20_dsmA2",
+   "label": "มอญยันหลัก DSM A Tier 2",
+   "type": "dsm",
+   "base": false,
+   "x": -375,
+   "y": 1060,
+   "icon": "mtx/assets/svg/skill/thai_dsm_a.svg",
+   "extras": {
+    "DSM_A": 2
+   },
+   "desc": "DSM node"
+  },
+  {
+   "id": "pn21_trip1",
+   "label": "Triple Rhythm Press Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "COMBO": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn22_trip2",
+   "label": "Triple Rhythm Press Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 940,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "COMBO": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn23_trip3",
+   "label": "Triple Rhythm Press Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 1060,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "COMBO": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn24_fluid1",
+   "label": "Fluid Evasion Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "EVADE": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn25_fluid2",
+   "label": "Fluid Evasion Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 940,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "EVADE": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn26_fluid3",
+   "label": "Fluid Evasion Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 1060,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "EVADE": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn27_knee",
+   "label": "Knee Power",
+   "type": "stat",
+   "base": false,
+   "x": 375,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "KNEE_POW": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn28_spe1",
+   "label": "SPE",
+   "type": "spe",
+   "base": false,
+   "x": 375,
+   "y": 940,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg",
+   "extras": {
+    "SPE": 1
+   },
+   "desc": "SPE node"
+  },
+  {
+   "id": "pn29_dsmC1",
+   "label": "จระเข้ฟาดหาง DSM C Tier 1",
+   "type": "dsm",
+   "base": false,
+   "x": 375,
+   "y": 1060,
+   "icon": "mtx/assets/svg/skill/thai_dsm_c.svg",
+   "extras": {
+    "DSM_C": 1
+   },
+   "desc": "DSM node"
+  },
+  {
+   "id": "pn30_punch",
+   "label": "Punch Power",
+   "type": "stat",
+   "base": false,
+   "x": -200,
+   "y": 1220,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "PUNCH_POW": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn31_sgm3",
+   "label": "SGM",
+   "type": "sgm",
+   "base": false,
+   "x": 200,
+   "y": 1220,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg",
+   "extras": {
+    "SGM": 1
+   },
+   "desc": "SGM node"
+  },
+  {
+   "id": "pn32_tiger1",
+   "label": "Tiger Trap Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": -300,
+   "y": 1360,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "TRAP": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn33_tiger2",
+   "label": "Tiger Trap Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": -300,
+   "y": 1480,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "TRAP": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn34_tiger3",
+   "label": "Tiger Trap Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": -300,
+   "y": 1600,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "TRAP": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn35_spe2",
+   "label": "SPE",
+   "type": "spe",
+   "base": false,
+   "x": -300,
+   "y": 1720,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg",
+   "extras": {
+    "SPE": 1
+   },
+   "desc": "SPE node"
+  },
+  {
+   "id": "pn36_cc1",
+   "label": "Counter-Catch Pivot Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 0,
+   "y": 1360,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "COUNTER": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn37_cc2",
+   "label": "Counter-Catch Pivot Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 0,
+   "y": 1480,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "COUNTER": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn38_cc3",
+   "label": "Counter-Catch Pivot Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 0,
+   "y": 1600,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "COUNTER": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn39_dsmB2",
+   "label": "สลับฟันปลา DSM B Tier 2",
+   "type": "dsm",
+   "base": false,
+   "x": 0,
+   "y": 1720,
+   "icon": "mtx/assets/svg/skill/thai_dsm_b.svg",
+   "extras": {
+    "DSM_B": 2
+   },
+   "desc": "DSM node"
+  },
+  {
+   "id": "pn40_rel1",
+   "label": "Relentless Assault Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 300,
+   "y": 1360,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "PRESSURE": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn41_rel2",
+   "label": "Relentless Assault Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 300,
+   "y": 1480,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "PRESSURE": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn42_rel3",
+   "label": "Relentless Assault Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 300,
+   "y": 1600,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "PRESSURE": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn43_dsmC2",
+   "label": "จระเข้ฟาดหาง DSM C Tier 2",
+   "type": "dsm",
+   "base": false,
+   "x": 300,
+   "y": 1720,
+   "icon": "mtx/assets/svg/skill/thai_dsm_c.svg",
+   "extras": {
+    "DSM_C": 2
+   },
+   "desc": "DSM node"
+  },
+  {
+   "id": "pn44_sgm4",
+   "label": "SGM",
+   "type": "sgm",
+   "base": false,
+   "x": -200,
+   "y": 1880,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg",
+   "extras": {
+    "SGM": 1
+   },
+   "desc": "SGM node"
+  },
+  {
+   "id": "pn45_elbow",
+   "label": "Elbow Power",
+   "type": "stat",
+   "base": false,
+   "x": 200,
+   "y": 1880,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg",
+   "extras": {
+    "ELBOW_POW": 5
+   },
+   "desc": "STAT node"
+  },
+  {
+   "id": "pn46_stead1",
+   "label": "Steadfast Focus Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": -300,
+   "y": 2020,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "FOCUS": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn47_stead2",
+   "label": "Steadfast Focus Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": -300,
+   "y": 2140,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "FOCUS": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn48_stead3",
+   "label": "Steadfast Focus Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": -300,
+   "y": 2260,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "FOCUS": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn49_dsmA3",
+   "label": "สลับฟันปลา DSM A Tier 3",
+   "type": "dsm",
+   "base": false,
+   "x": -300,
+   "y": 2380,
+   "icon": "mtx/assets/svg/skill/thai_dsm_a.svg",
+   "extras": {
+    "DSM_A": 3
+   },
+   "desc": "ใน mockup เขียน 'สลับฟันปลา DSM A Tier 3'"
+  },
+  {
+   "id": "pn50_def1",
+   "label": "Defensive Breaker Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 0,
+   "y": 2020,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "GUARD_BREAK": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn51_def2",
+   "label": "Defensive Breaker Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 0,
+   "y": 2140,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "GUARD_BREAK": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn52_def3",
+   "label": "Defensive Breaker Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 0,
+   "y": 2260,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "GUARD_BREAK": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn53_dsmB3",
+   "label": "มอญยันหลัก DSM B Tier 3",
+   "type": "dsm",
+   "base": false,
+   "x": 0,
+   "y": 2380,
+   "icon": "mtx/assets/svg/skill/thai_dsm_b.svg",
+   "extras": {
+    "DSM_B": 3
+   },
+   "desc": "ใน mockup เขียน 'มอญยันหลัก DSM B Tier 3'"
+  },
+  {
+   "id": "pn54_three1",
+   "label": "Three-Step Pacing Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 300,
+   "y": 2020,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "FOOTWORK": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn55_three2",
+   "label": "Three-Step Pacing Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 300,
+   "y": 2140,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "FOOTWORK": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn56_three3",
+   "label": "Three-Step Pacing Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 300,
+   "y": 2260,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "FOOTWORK": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn57_spe3",
+   "label": "SPE",
+   "type": "spe",
+   "base": false,
+   "x": 300,
+   "y": 2380,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg",
+   "extras": {
+    "SPE": 1
+   },
+   "desc": "SPE node"
+  },
+  {
+   "id": "pn58_alt1",
+   "label": "Alternating Breaker Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": -375,
+   "y": 2560,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "BREAK": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn59_alt2",
+   "label": "Alternating Breaker Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": -375,
+   "y": 2680,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "BREAK": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn60_alt3",
+   "label": "Alternating Breaker Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": -375,
+   "y": 2800,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "BREAK": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn61_odds1",
+   "label": "Against All Odds Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 2560,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "COMEBACK": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn62_odds2",
+   "label": "Against All Odds Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 2680,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "COMEBACK": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn63_odds3",
+   "label": "Against All Odds Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": -125,
+   "y": 2800,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "COMEBACK": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn64_spe4",
+   "label": "SPE",
+   "type": "spe",
+   "base": false,
+   "x": -250,
+   "y": 2960,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg",
+   "extras": {
+    "SPE": 1
+   },
+   "desc": "SPE node"
+  },
+  {
+   "id": "pn65_war1",
+   "label": "Warcry Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 2560,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "WARCRY": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn66_war2",
+   "label": "Warcry Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 2680,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "WARCRY": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn67_war3",
+   "label": "Warcry Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 125,
+   "y": 2800,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "WARCRY": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn68_flaw1",
+   "label": "Flawless Execution Tier 1",
+   "type": "tier",
+   "base": false,
+   "x": 375,
+   "y": 2560,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg",
+   "extras": {
+    "EXECUTE": 2
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn69_flaw2",
+   "label": "Flawless Execution Tier 2",
+   "type": "tier",
+   "base": false,
+   "x": 375,
+   "y": 2680,
+   "icon": "mtx/assets/svg/skill/thai_tier2.svg",
+   "extras": {
+    "EXECUTE": 4
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn70_flaw3",
+   "label": "Flawless Execution Tier 3",
+   "type": "tier",
+   "base": false,
+   "x": 375,
+   "y": 2800,
+   "icon": "mtx/assets/svg/skill/thai_tier3.svg",
+   "extras": {
+    "EXECUTE": 6
+   },
+   "desc": "TIER node"
+  },
+  {
+   "id": "pn71_dsmC3",
+   "label": "จระเข้ฟาดหาง DSM C Tier 3",
+   "type": "dsm",
+   "base": false,
+   "x": 250,
+   "y": 2960,
+   "icon": "mtx/assets/svg/skill/thai_dsm_c.svg",
+   "extras": {
+    "DSM_C": 3
+   },
+   "desc": "DSM node"
+  }
+ ],
+ "edges": [
+  {
+   "id": "pe1",
+   "from": "pn1_root",
+   "to": "pn2_block",
+   "style": "curve",
+   "hx": -200,
+   "hy": 40
+  },
+  {
+   "id": "pe2",
+   "from": "pn1_root",
+   "to": "pn3_maxsta",
+   "style": "curve",
+   "hx": 200,
+   "hy": 40
+  },
+  {
+   "id": "pe3",
+   "from": "pn2_block",
+   "to": "pn4_crit",
+   "style": "curve",
+   "hx": -375,
+   "hy": 180
+  },
+  {
+   "id": "pe4",
+   "from": "pn4_crit",
+   "to": "pn5_staregen",
+   "style": "straight"
+  },
+  {
+   "id": "pe5",
+   "from": "pn5_staregen",
+   "to": "pn6_dsmA1",
+   "style": "straight"
+  },
+  {
+   "id": "pe6",
+   "from": "pn3_maxsta",
+   "to": "pn10_rest1",
+   "style": "curve",
+   "hx": 125,
+   "hy": 180
+  },
+  {
+   "id": "pe7",
+   "from": "pn10_rest1",
+   "to": "pn7_fin1",
+   "style": "curve"
+  },
+  {
+   "id": "pe8",
+   "from": "pn7_fin1",
+   "to": "pn8_fin2",
+   "style": "straight"
+  },
+  {
+   "id": "pe9",
+   "from": "pn8_fin2",
+   "to": "pn9_fin3",
+   "style": "straight"
+  },
+  {
+   "id": "pe10",
+   "from": "pn10_rest1",
+   "to": "pn11_rest2",
+   "style": "straight"
+  },
+  {
+   "id": "pe11",
+   "from": "pn11_rest2",
+   "to": "pn12_rest3",
+   "style": "straight"
+  },
+  {
+   "id": "pe12",
+   "from": "pn3_maxsta",
+   "to": "pn13_maxstaeff",
+   "style": "curve",
+   "hx": 375,
+   "hy": 180
+  },
+  {
+   "id": "pe13",
+   "from": "pn13_maxstaeff",
+   "to": "pn14_sgm1",
+   "style": "straight"
+  },
+  {
+   "id": "pe14",
+   "from": "pn14_sgm1",
+   "to": "pn15_dsmB1",
+   "style": "straight"
+  },
+  {
+   "id": "pe15",
+   "from": "pn6_dsmA1",
+   "to": "pn16_combosta",
+   "style": "curve",
+   "hx": -200,
+   "hy": 570
+  },
+  {
+   "id": "pe16",
+   "from": "pn9_fin3",
+   "to": "pn16_combosta",
+   "style": "curve",
+   "hx": -200,
+   "hy": 570
+  },
+  {
+   "id": "pe17",
+   "from": "pn12_rest3",
+   "to": "pn17_hopsta",
+   "style": "curve",
+   "hx": 200,
+   "hy": 570
+  },
+  {
+   "id": "pe18",
+   "from": "pn15_dsmB1",
+   "to": "pn17_hopsta",
+   "style": "curve",
+   "hx": 200,
+   "hy": 570
+  },
+  {
+   "id": "pe19",
+   "from": "pn16_combosta",
+   "to": "pn18_combopow",
+   "style": "curve",
+   "hx": -375,
+   "hy": 720
+  },
+  {
+   "id": "pe20",
+   "from": "pn16_combosta",
+   "to": "pn21_trip1",
+   "style": "curve",
+   "hx": -125,
+   "hy": 720
+  },
+  {
+   "id": "pe21",
+   "from": "pn21_trip1",
+   "to": "pn24_fluid1",
+   "style": "curve"
+  },
+  {
+   "id": "pe22",
+   "from": "pn17_hopsta",
+   "to": "pn27_knee",
+   "style": "curve",
+   "hx": 375,
+   "hy": 720
+  },
+  {
+   "id": "pe23",
+   "from": "pn18_combopow",
+   "to": "pn19_sgm2",
+   "style": "straight"
+  },
+  {
+   "id": "pe24",
+   "from": "pn19_sgm2",
+   "to": "pn20_dsmA2",
+   "style": "straight"
+  },
+  {
+   "id": "pe25",
+   "from": "pn21_trip1",
+   "to": "pn22_trip2",
+   "style": "straight"
+  },
+  {
+   "id": "pe26",
+   "from": "pn22_trip2",
+   "to": "pn23_trip3",
+   "style": "straight"
+  },
+  {
+   "id": "pe27",
+   "from": "pn24_fluid1",
+   "to": "pn25_fluid2",
+   "style": "straight"
+  },
+  {
+   "id": "pe28",
+   "from": "pn25_fluid2",
+   "to": "pn26_fluid3",
+   "style": "straight"
+  },
+  {
+   "id": "pe29",
+   "from": "pn27_knee",
+   "to": "pn28_spe1",
+   "style": "straight"
+  },
+  {
+   "id": "pe30",
+   "from": "pn28_spe1",
+   "to": "pn29_dsmC1",
+   "style": "straight"
+  },
+  {
+   "id": "pe31",
+   "from": "pn20_dsmA2",
+   "to": "pn30_punch",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1110
+  },
+  {
+   "id": "pe32",
+   "from": "pn23_trip3",
+   "to": "pn30_punch",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1110
+  },
+  {
+   "id": "pe33",
+   "from": "pn26_fluid3",
+   "to": "pn31_sgm3",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1110
+  },
+  {
+   "id": "pe34",
+   "from": "pn29_dsmC1",
+   "to": "pn31_sgm3",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1110
+  },
+  {
+   "id": "pe35",
+   "from": "pn30_punch",
+   "to": "pn32_tiger1",
+   "style": "curve",
+   "hx": -300,
+   "hy": 1260
+  },
+  {
+   "id": "pe36",
+   "from": "pn30_punch",
+   "to": "pn36_cc1",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1260
+  },
+  {
+   "id": "pe37",
+   "from": "pn31_sgm3",
+   "to": "pn36_cc1",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1260
+  },
+  {
+   "id": "pe38",
+   "from": "pn31_sgm3",
+   "to": "pn40_rel1",
+   "style": "curve",
+   "hx": 300,
+   "hy": 1260
+  },
+  {
+   "id": "pe39",
+   "from": "pn32_tiger1",
+   "to": "pn33_tiger2",
+   "style": "straight"
+  },
+  {
+   "id": "pe40",
+   "from": "pn33_tiger2",
+   "to": "pn34_tiger3",
+   "style": "straight"
+  },
+  {
+   "id": "pe41",
+   "from": "pn34_tiger3",
+   "to": "pn35_spe2",
+   "style": "straight"
+  },
+  {
+   "id": "pe42",
+   "from": "pn36_cc1",
+   "to": "pn37_cc2",
+   "style": "straight"
+  },
+  {
+   "id": "pe43",
+   "from": "pn37_cc2",
+   "to": "pn38_cc3",
+   "style": "straight"
+  },
+  {
+   "id": "pe44",
+   "from": "pn38_cc3",
+   "to": "pn39_dsmB2",
+   "style": "straight"
+  },
+  {
+   "id": "pe45",
+   "from": "pn40_rel1",
+   "to": "pn41_rel2",
+   "style": "straight"
+  },
+  {
+   "id": "pe46",
+   "from": "pn41_rel2",
+   "to": "pn42_rel3",
+   "style": "straight"
+  },
+  {
+   "id": "pe47",
+   "from": "pn42_rel3",
+   "to": "pn43_dsmC2",
+   "style": "straight"
+  },
+  {
+   "id": "pe48",
+   "from": "pn35_spe2",
+   "to": "pn44_sgm4",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1770
+  },
+  {
+   "id": "pe49",
+   "from": "pn39_dsmB2",
+   "to": "pn44_sgm4",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1770
+  },
+  {
+   "id": "pe50",
+   "from": "pn39_dsmB2",
+   "to": "pn45_elbow",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1770
+  },
+  {
+   "id": "pe51",
+   "from": "pn43_dsmC2",
+   "to": "pn45_elbow",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1770
+  },
+  {
+   "id": "pe52",
+   "from": "pn44_sgm4",
+   "to": "pn46_stead1",
+   "style": "curve",
+   "hx": -300,
+   "hy": 1920
+  },
+  {
+   "id": "pe53",
+   "from": "pn44_sgm4",
+   "to": "pn50_def1",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1920
+  },
+  {
+   "id": "pe54",
+   "from": "pn45_elbow",
+   "to": "pn50_def1",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1920
+  },
+  {
+   "id": "pe55",
+   "from": "pn45_elbow",
+   "to": "pn54_three1",
+   "style": "curve",
+   "hx": 300,
+   "hy": 1920
+  },
+  {
+   "id": "pe56",
+   "from": "pn46_stead1",
+   "to": "pn47_stead2",
+   "style": "straight"
+  },
+  {
+   "id": "pe57",
+   "from": "pn47_stead2",
+   "to": "pn48_stead3",
+   "style": "straight"
+  },
+  {
+   "id": "pe58",
+   "from": "pn48_stead3",
+   "to": "pn49_dsmA3",
+   "style": "straight"
+  },
+  {
+   "id": "pe59",
+   "from": "pn50_def1",
+   "to": "pn51_def2",
+   "style": "straight"
+  },
+  {
+   "id": "pe60",
+   "from": "pn51_def2",
+   "to": "pn52_def3",
+   "style": "straight"
+  },
+  {
+   "id": "pe61",
+   "from": "pn52_def3",
+   "to": "pn53_dsmB3",
+   "style": "straight"
+  },
+  {
+   "id": "pe62",
+   "from": "pn54_three1",
+   "to": "pn55_three2",
+   "style": "straight"
+  },
+  {
+   "id": "pe63",
+   "from": "pn55_three2",
+   "to": "pn56_three3",
+   "style": "straight"
+  },
+  {
+   "id": "pe64",
+   "from": "pn56_three3",
+   "to": "pn57_spe3",
+   "style": "straight"
+  },
+  {
+   "id": "pe65",
+   "from": "pn49_dsmA3",
+   "to": "pn58_alt1",
+   "style": "curve",
+   "hx": -375,
+   "hy": 2430
+  },
+  {
+   "id": "pe66",
+   "from": "pn49_dsmA3",
+   "to": "pn61_odds1",
+   "style": "curve",
+   "hx": -125,
+   "hy": 2430
+  },
+  {
+   "id": "pe67",
+   "from": "pn53_dsmB3",
+   "to": "pn61_odds1",
+   "style": "curve",
+   "hx": -125,
+   "hy": 2430
+  },
+  {
+   "id": "pe68",
+   "from": "pn53_dsmB3",
+   "to": "pn65_war1",
+   "style": "curve",
+   "hx": 125,
+   "hy": 2430
+  },
+  {
+   "id": "pe69",
+   "from": "pn57_spe3",
+   "to": "pn65_war1",
+   "style": "curve",
+   "hx": 125,
+   "hy": 2430
+  },
+  {
+   "id": "pe70",
+   "from": "pn57_spe3",
+   "to": "pn68_flaw1",
+   "style": "curve",
+   "hx": 375,
+   "hy": 2430
+  },
+  {
+   "id": "pe71",
+   "from": "pn58_alt1",
+   "to": "pn59_alt2",
+   "style": "straight"
+  },
+  {
+   "id": "pe72",
+   "from": "pn59_alt2",
+   "to": "pn60_alt3",
+   "style": "straight"
+  },
+  {
+   "id": "pe73",
+   "from": "pn61_odds1",
+   "to": "pn62_odds2",
+   "style": "straight"
+  },
+  {
+   "id": "pe74",
+   "from": "pn62_odds2",
+   "to": "pn63_odds3",
+   "style": "straight"
+  },
+  {
+   "id": "pe75",
+   "from": "pn65_war1",
+   "to": "pn66_war2",
+   "style": "straight"
+  },
+  {
+   "id": "pe76",
+   "from": "pn66_war2",
+   "to": "pn67_war3",
+   "style": "straight"
+  },
+  {
+   "id": "pe77",
+   "from": "pn68_flaw1",
+   "to": "pn69_flaw2",
+   "style": "straight"
+  },
+  {
+   "id": "pe78",
+   "from": "pn69_flaw2",
+   "to": "pn70_flaw3",
+   "style": "straight"
+  },
+  {
+   "id": "pe79",
+   "from": "pn60_alt3",
+   "to": "pn64_spe4",
+   "style": "curve",
+   "hx": -250,
+   "hy": 2850
+  },
+  {
+   "id": "pe80",
+   "from": "pn63_odds3",
+   "to": "pn64_spe4",
+   "style": "curve",
+   "hx": -250,
+   "hy": 2850
+  },
+  {
+   "id": "pe81",
+   "from": "pn67_war3",
+   "to": "pn71_dsmC3",
+   "style": "curve",
+   "hx": 250,
+   "hy": 2850
+  },
+  {
+   "id": "pe82",
+   "from": "pn70_flaw3",
+   "to": "pn71_dsmC3",
+   "style": "curve",
+   "hx": 250,
+   "hy": 2850
+  },
+  {
+   "id": "e182",
+   "from": "pn17_hopsta",
+   "to": "pn24_fluid1",
+   "style": "curve",
+   "hx": 126.12096614624213,
+   "hy": 719.6942960530072
+  },
+  {
+   "id": "e184",
+   "from": "pn2_block",
+   "to": "pn7_fin1",
+   "style": "curve",
+   "hx": -124.08768638030054,
+   "hy": 181.58490982718973
+  }
+ ]
+}

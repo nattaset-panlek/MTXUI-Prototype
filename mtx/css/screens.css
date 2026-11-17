@@ -8021,3 +8021,92 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* the Ready ring scales past the corner box: the corners hold no fighter image here, so nothing needs clipping */
 .cl--waiting .cl-corner, .cl--timer .cl-corner, .cl--standby .cl-corner { overflow: visible }
 .ng-links{margin:0 4px 6px;padding-left:14px;font:11px/1.4 var(--font-ui);color:#cfcfcf}
+
+/* ---- Skill tree v4: one node per Perk (Lv 1-3) ----
+   Owned perk face = MTX / Perk Frame 719:80514 art, user order Lv 1 copper, Lv 2 silver, Lv 3 gold + perk icon; locked / ready keep the lock / star faces.
+   Detail panel for a perk = MTX / Perk Info Card 719:89368: level tabs, RS = Level, Lv 3 drawback. */
+.tnode>span.tnode__perk { display: none; width: 80px; height: 80px }
+.tnode__perk img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) }
+/* before unlock a perk looks like any node (lock / ready quatrefoil); once owned the quatrefoil gives way to the level frame */
+.tnode--perk.is-owned>span.node { display: none }
+.tnode.is-owned>span.tnode__perk { display: block; filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--lvc, #e08a4e) 55%, transparent)) }
+.tnode[data-lv="2"] { --lvc: #d4d4d4 }
+.tnode[data-lv="3"] { --lvc: #f4dd2f }
+.tnode.is-focused>span.tnode__perk, .tnode--perk:hover>span.tnode__perk { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
+.tnode__lv { font-style: normal; color: #f4dd2f }
+.tnode[data-lv="1"] .tnode__lv { color: #e08a4e }
+.tnode[data-lv="2"] .tnode__lv { color: #d4d4d4 }
+.tnode.is-upgradable .tnode__lv::after { content: " +"; color: var(--style-color) }
+
+/* DSM / SPE: normal node face until unlocked, then the Tactical Loadout slot art (Decisive red, Special lime) */
+.tnode>span.tnode__move { display: none; width: 84px; height: 84px }
+.tnode__move img { width: 84px; height: 84px; display: block }
+.tnode--dsm.is-owned>span.node, .tnode--spe.is-owned>span.node { display: none }
+.tnode--dsm.is-owned>span.tnode__move, .tnode--spe.is-owned>span.tnode__move { display: block; filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--mvc) 55%, transparent)) }
+.tnode--dsm { --mvc: #ff4060 }
+.tnode--spe { --mvc: #c7f029 }
+.tnode.is-focused>span.tnode__move, .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
+
+/* ---- Tree focus = Selected Prismatic outline in the node's own shape (no glow, no scale) ----
+   .tnode__focus is a 3 px line ring: the face silhouette as a mask, minus the same silhouette 6 px smaller. */
+.tnode>span.tnode__focus { display: none; z-index: 3; pointer-events: none; background: var(--grad-focus);
+  --fs: url(../assets/svg/node-shape.svg); width: 98px; height: 97px;
+  -webkit-mask: var(--fs) center/100% 100% no-repeat, var(--fs) center/calc(100% - 6px) calc(100% - 6px) no-repeat;
+  -webkit-mask-composite: xor; mask: var(--fs) center/100% 100% no-repeat, var(--fs) center/calc(100% - 6px) calc(100% - 6px) no-repeat; mask-composite: exclude }
+.tnode.is-focused>span.tnode__focus, .tnode:hover>span.tnode__focus { display: block }
+/* locked face: diamond */
+.tnode:not(.is-ready):not(.is-owned)>span.tnode__focus, .tnode--root>span.tnode__focus { --fs: linear-gradient(#000 0 0); width: 54px; height: 54px;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; padding: 3px; box-sizing: border-box }
+.tnode--root>span.tnode__focus { width: 116px; height: 116px; display: none; z-index: 3 }
+.tnode--root.is-focused>span.tnode__focus, .tnode--root:hover>span.tnode__focus { display: block }
+/* owned perk / DSM / SPE: the frame or slot art outline */
+.tnode--perk.is-owned>span.tnode__focus { --fs: var(--fm); width: 106px; height: 104px }
+.tnode--perk.is-owned[data-lv="3"]>span.tnode__focus { width: 112px; height: 109px }
+.tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus { --fs: var(--fm); width: 100px; height: 100px }
+/* no glow / scale on focus any more */
+.tnode.is-focused .tnode__lock, .tnode:hover .tnode__lock { transform: translate(-50%, -50%) scale(1.18); filter: none }
+.tnode.is-focused .tnode__lock::before, .tnode:hover .tnode__lock::before { box-shadow: inset 0 0 0 4px #141414, inset 0 0 0 6px #3b3b3b, 0 0 0 3px #050505 }
+.tnode.is-focused>span.node, .tnode:hover>span.node { transform: translate(-50%, -50%) scale(calc(var(--k) * 1.22)); filter: none }
+.tnode.is-focused .node__ring, .tnode:hover .node__ring { background: var(--ring); filter: none }
+.tnode.is-focused .node__glow, .tnode:hover .node__glow { filter: blur(6px) !important; opacity: inherit !important }
+.tnode.is-focused>span.tnode__perk, .tnode--perk:hover>span.tnode__perk { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--lvc, #e08a4e) 55%, transparent)) }
+.tnode.is-focused>span.tnode__move, .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--mvc) 55%, transparent)) }
+.tnode--root.is-focused .node-core__diamond { box-shadow: none }
+
+/* Dev > Skill tree > Tree glow off: no node / frame / link / core glow (focus ring and shapes stay) */
+#s-skilltree.no-glow .node__glow, #s-skilltree.no-glow .tnode__star .glow { display: none }
+#s-skilltree.no-glow .tree__links .lit { filter: none }
+#s-skilltree.no-glow .tnode>span.tnode__perk, #s-skilltree.no-glow .tnode>span.tnode__move { filter: none !important }
+#s-skilltree.no-glow .tnode--root .node-core__diamond { box-shadow: none !important }
+#s-skilltree.no-glow .skill__glow { display: none }
+
+/* smooth focus move: the face scales up and the prismatic ring grows + fades in with it (.14s), instead of popping */
+.tnode>span.node, .tnode>span.tnode__perk, .tnode>span.tnode__move, .tnode .tnode__lock { transition: transform .14s ease-out, filter .14s }
+.tnode>span.tnode__focus { display: block; opacity: 0; --fz: 1; --fr: 0deg; transform: translate(-50%, -50%) rotate(var(--fr)) scale(calc(var(--fz) * .9)); transition: opacity .14s ease-out, transform .14s ease-out }
+.tnode.is-focused>span.tnode__focus, .tnode:hover>span.tnode__focus { opacity: 1; transform: translate(-50%, -50%) rotate(var(--fr)) scale(var(--fz)) }
+.tnode.is-ready>span.tnode__focus, .tnode.is-owned>span.tnode__focus { --fz: 1.22 }
+.tnode--perk.is-owned>span.tnode__focus, .tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus { --fz: 1.18 }
+.tnode:not(.is-ready):not(.is-owned)>span.tnode__focus { --fz: 1.18; --fr: 45deg }
+.tnode--root>span.tnode__focus, .tnode--root.is-focused>span.tnode__focus, .tnode--root:hover>span.tnode__focus { display: block; --fz: 1; --fr: 45deg }
+
+
+/* Skill tree detail = shared skill info card (.tl-info, components/skill-info.js) */
+#s-skilltree .skill-detail.tl-info { z-index: 5 }
+#s-skilltree .tl-info .skill-detail__desc { height: 180px; overflow: hidden }
+#s-skilltree .tl-info .tl-lv span { cursor: pointer }
+#s-skilltree .tl-info .tl-lv span.is-owned:not(.is-on) { color: #f4f1ea; box-shadow: inset 0 0 0 1px #f4f1ea }
+#s-skilltree .tl-info .tl-lv span:not(.is-on):hover { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }
+#s-skilltree .tl-info:not(.is-perk) .tl-info__fx { top: 14px !important }
+#s-skilltree .tl-info:not(.is-perk) .tl-info__stats { top: 90px }
+.tl-info__stats { position: absolute; left: 21px; top: 160px; display: flex; gap: 16px; margin: 0; font: 600 13px/1 var(--font-ui); text-transform: uppercase }
+.tl-info__stats div { display: flex; gap: 6px }
+.tl-info__stats dt { color: #8a8f99 }
+.tl-info__stats dd { margin: 0; color: #3fd28b }
+/* Unlock pill: hold fills it left to right (--hold-p from MTX_UI.createHold) */
+#s-skilltree .tl-info__equip { cursor: pointer; overflow: hidden }
+#s-skilltree .tl-info__equip::before { content: ""; position: absolute; inset: 0; width: var(--hold-p, 0%); background: var(--style-color); opacity: .35; border-radius: inherit }
+#s-skilltree .tl-info__equip.is-ready-unlock { box-shadow: inset 0 0 0 1px #f4dd2f }
+#s-skilltree .tl-info__equip.is-ready-unlock span { color: #f4dd2f }
+#s-skilltree .tl-info__equip.is-locked { opacity: .4 }
+#s-skilltree .tl-info__equip.is-done i { background-color: #3fd28b }
+#s-skilltree .tl-info__equip.is-done span { color: #f4f1ea }

@@ -15,7 +15,7 @@
 .tl-shade { position: absolute; left: -160px; top: 720px; width: 2240px; height: 360px; background: linear-gradient(rgb(21 23 30 / 0), rgb(21 23 30 / .95)) }
 .tl-hubart { position: absolute; inset: 0; pointer-events: none }
 .tl-hubart__icon { position: absolute; left: -620px; top: -14px; width: 1580px; height: 1580px; opacity: .1 }
-.tl-hubart__fighter { position: absolute; left: 1163px; top: 263px; width: 556px; height: 1026px; object-fit: cover; object-position: top }
+.tl-hubart__fighter { display: none; position: absolute; left: 1163px; top: 263px; width: 556px; height: 1026px; object-fit: cover; object-position: top }
 
 /* ---- breadcrumb (60,14) */
 .tl-crumb { position: absolute; left: 60px; top: 14px; height: 23px; display: flex; gap: 12px; align-items: center; font: 600 15px/23px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb; white-space: nowrap }
@@ -244,3 +244,69 @@
 .tl-pf__mv { font: 600 18px/27px var(--font-ui) }
 /* Industry sits about .155 em higher in the browser than in Figma (measured on every text box); Modi Thorson matches */
 .tl-pf__t:not(.tl-pf__name) { padding-top: .155em } .tl-pf__chip { padding-top: 7px }
+
+/* =========================================================== HUB B (TSP Hub B 740:109350): categories picked on the hub
+   Left: Special 168,290 / Decisive 583,290 (D-pad clusters at .72), Signature 2,533, Perk 398,572.
+   Right: grid header 1032,262, grid 1032,296 (5 x 5 cells, 3 rows visible, scrolls), panel 1032,800. */
+.tl-numpad, .tl-sg, .tl-dring { position: absolute }
+.tl-numpad { pointer-events: none }
+.tl-dring { z-index: 3; pointer-events: none; overflow: visible }
+.tl-hub .tl-slot, .tl-pc, .tl-sg { cursor: pointer }
+.tl-vl--sg { font-size: 24px; line-height: 36px }
+.tl-vl--pk small { margin-top: -4px }
+.tl-head.tl-ghead { left: 1032px; top: 262px }
+/* grid viewport: 6 px margin all round so the focus ring (5 px out) is not clipped; 2 rows of scroll */
+.tl-gv { position: absolute; left: 1026px; top: 290px; width: 840px; height: 504px; overflow: hidden auto; scrollbar-width: none; overscroll-behavior: contain }
+.tl-gv::-webkit-scrollbar { display: none }
+.tl-gv > .tl-grid { position: relative; left: auto; top: auto; margin: 6px }
+.tl-gv.is-idle { opacity: .4 }
+.tl .scrollbar.tl-gsb { z-index: 2 }
+.tl-cell__pad { position: absolute; left: 120px; top: 12px }
+/* perk panel = the list card at 828 / 942 */
+.tl-ppanel { position: absolute; left: 1032px; top: 800px; width: 942px; height: 198px; transform: scale(.87898); transform-origin: 0 0 }
+.tl-ppanel .tl-card { top: 0 }
+/* move panel (detail 740:119765 / 740:118193): 18 % glow in the category colour, Flower Thai tile .07 */
+.tl-mdet { position: absolute; left: 1032px; top: 800px; width: 828px; height: 200px; overflow: hidden;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 18%, transparent), transparent 60%), rgb(0 0 0 / .72); box-shadow: inset 0 0 0 1px rgb(255 255 255 / .08) }
+.tl-mdet::before { content: ""; position: absolute; inset: 0; background: url(../assets/svg/loadout/flower-thai-tile.svg) 0 0 / 200px 200px repeat-x; opacity: .07; pointer-events: none }
+.tl-mdet img { position: absolute; left: 21px; top: 39px; width: 123px; height: 123px }
+.tl-mdet h3 { position: absolute; left: 167px; top: 45px; margin: 0; padding-top: .155em; font: 700 36.92px/55.74px var(--font-ui); text-transform: uppercase; white-space: nowrap; color: #f6f1eb }
+.tl-mdet p { position: absolute; left: 167px; top: 101px; margin: 0; padding-top: .155em; font: 600 14.06px/21.24px var(--font-ui); color: #acacbb; white-space: nowrap }
+/* transitions: opacity only, only when the view changes */
+.tl-anim-cat :is(.tl-ghead, .tl-gv, .tl-ppanel, .tl-mdet) { animation: tl-x .18s ease-out both }
+.tl-anim-mode :is(.tl-gv, .tl-ppanel, .tl-mdet, .tl-dring) { animation: tl-fade .15s ease-out both }
+/* info card Equip = Accept Button / 06 Pill Primary 280 x 48 (740:114191), Close hint 20 px right of it */
+.tl-info .skill-detail__actions { gap: 20px }
+.tl-info .btn-cta--detail { --cta-h: 48px; width: 280px; min-width: 280px; margin-top: -4px }
+.tl-info .btn-cta.is-off { opacity: .4 }
+.tl-info .btn-cta--detail .btn-cta__label { font-size: 30px }
+.tl-sdim { position: absolute; z-index: 2; background: rgb(0 0 0 / .7); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); pointer-events: none }
+/* group first, then slot (741:60422): level 1 group ring, levels 2-3 fade the other groups to 30 % */
+.tl-grp { position: absolute; inset: 0; pointer-events: none; transition: opacity .15s ease-out }
+.tl-grp > * { pointer-events: auto }
+.tl-grp.is-faded { opacity: .3 }
+.tl-gring { z-index: 3 }
+/* focus ring move = Skill Tree focus (.tnode__focus, screens.css): new ring grows 90 -> 100 % + fades in, old one fades out, .14 s */
+@keyframes tl-ring-in { from { opacity: 0; transform: scale(.9) } }
+@keyframes tl-ring-out { to { opacity: 0; transform: scale(.9) } }
+.tl-dring, .tl-focus { transform-origin: 50% 50% }
+.tl-dring.is-in, .tl-focus.is-in { animation: tl-ring-in .14s ease-out both }
+.tl-dring.is-out, .tl-focus.is-out { animation: tl-ring-out .14s ease-out forwards; pointer-events: none }
+/* equipped slot tag on grid cells (user 2026-11-13): which slot the item sits in, in the category colour */
+.tl-tag { position: absolute; left: 116px; top: 8px; z-index: 2; width: 32px; height: 32px; display: grid; place-items: center;
+  background: #0b0d12; box-shadow: inset 0 0 0 2px var(--tc) }
+.tl-tag .glyph { --g: 24px; margin: 0 }
+.tl-tag__key { font: 800 18px/1 var(--font-ui); color: #fff }
+.tl-cell.is-locked .tl-tag { opacity: .6 }
+/* signature slot keys on the hub (face button / keyboard I U L K) */
+.tl-sgkey { position: absolute; z-index: 1; transform: translate(-50%, -50%); pointer-events: none; display: grid; place-items: center }
+.tl-sgkey .glyph { --g: 26px; margin: 0 }
+.tl-sgkey .tl-tag__key { width: 26px; height: 26px; display: grid; place-items: center; background: #f6f1eb; color: #16181f; font-size: 16px }
+/* Signature centre = face buttons in a diamond (replaces the per-slot keys) */
+.tl-facekeys { width: 88px; height: 88px }
+.tl-fk { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center }
+.tl-fk .glyph { --g: 26px; margin: 0 }
+.tl-fk .tl-tag__key { width: 26px; height: 26px; display: grid; place-items: center; background: #f6f1eb; color: #16181f; font-size: 16px }
+/* slot tags = shared key-hint glyphs (white cut-out), no own chip (overrides the earlier .tl-tag box) */
+.tl-tag { left: 118px; top: 8px; width: 30px; height: 30px; background: none; box-shadow: none }
+.tl-tag .glyph, .tl-fk .glyph { --g: 26px; margin: 0 }

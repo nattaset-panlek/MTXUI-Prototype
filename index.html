@@ -19,7 +19,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="mtx/css/tokens.css?v=401">
   <link rel="stylesheet" href="mtx/css/base.css?v=pg3">
-  <link rel="stylesheet" href="mtx/css/components.css?v=fs11">
+  <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw1">
   <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
   <link rel="stylesheet" href="mtx/css/login.css?v=cta1">
   <link rel="stylesheet" href="mtx/css/shader-preload.css?v=3">
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
   <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
   <link rel="stylesheet" href="mtx/css/no-brand.css?v=8">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=sb16mh">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st17">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
@@ -496,50 +496,9 @@ board</h3>
           </div>
           <div class="tree__edge" aria-hidden="true"></div>
 
-          <!-- Skill detail panel (Figma 1:3697 "Group 1244834109", export mtx-figma-export_skillsDetailPanel).
-         Opens only when a node is confirmed (A). A = Unlock -> Equip, X = Unequip / Remove, B = close. -->
-          <aside class="skill-detail" data-bind="skillDetail" hidden
-            data-figma="1:3697 Group 1244834109 (skill detail panel)">
-            <p class="skill-detail__kind tex-text" data-bind="sdKind" data-figma="1:3709 decisive move">Decisive move
-            </p>
-            <div class="skill-detail__card tex" data-figma="1:3699 Group 1244833690 (card)">
-              <div class="skill-detail__art" data-figma="1:3702 image + 1:3703 slash">
-                <img src="mtx/assets/img/card-art.webp" alt="">
-                <div class="slash"><img class="slash__wedge" src="mtx/assets/svg/detail-slash.svg" alt=""
-                    style="width:94px;height:81px"><span class="slash__band" style="height:52px"></span></div>
-              </div>
-              <span class="skill-detail__score" data-figma="1:3714 score tag"><img src="mtx/assets/svg/icon-score.svg"
-                  alt="">Score: <b data-bind="sdScore">350</b></span>
-              <div class="skill-detail__title" data-figma="1:3710 Layer_1 icon + 1:3708 name">
-                <div>
-                  <h2 class="tex-text" data-bind="sdName">Ruesi Bod Ya</h2>
-                  <p class="skill-detail__sub" data-bind="sdSub"></p>
-                </div>
-              </div>
-              <div class="skill-detail__desc" data-figma="1:3706 description box">
-                <p data-bind="sdDesc">Deal 1000 damage to the enemy instantly.</p>
-                <dl class="skill-detail__stats" data-bind="sdStats"></dl>
-                <p class="skill-detail__req" data-bind="sdReq"></p>
-              </div>
-              <div class="skill-detail__actions">
-                <a class="btn-cta btn-cta--detail btn-cta--key" data-bind="sdPrimary"
-                  data-figma="1:3718 Group 1244833790 (Equip button)"><span class="btn-cta__grad"
-                    data-figma="Scratch-White 2 (gold gradient)"></span><span class="btn-cta__tex"
-                    data-figma="Scratch-White 1 (scratch image, linear burn)"></span><span
-                    class="btn-cta__hold-bar"></span><span class="glyph" data-btn="a">A</span><span
-                    class="btn-cta__label">Unlock</span><span class="btn-cta__check" aria-hidden="true"><svg
-                      viewBox="0 0 25 25">
-                      <path fill-rule="evenodd" clip-rule="evenodd"
-                        d="M12.5 0C19.4036 0 25 5.59635 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59635 25 0 19.4036 0 12.5C0 5.59635 5.59635 0 12.5 0ZM6.64896 13.2422L10.2089 16.5115C10.7281 16.9896 11.5318 16.9641 12.0203 16.4604L18.3714 10.3797C18.888 9.88281 18.9036 9.06094 18.4068 8.54479C17.9099 8.02812 17.088 8.0125 16.5719 8.50937L11.0703 13.776L8.40781 11.3307C7.88021 10.8453 7.05833 10.8792 6.57292 11.4068C6.08698 11.9349 6.12135 12.7562 6.64896 13.2422Z"
-                        fill="currentColor" />
-                    </svg></span></a>
-                <span class="hint-inline" data-bind="sdSecondary" data-figma="1:3727 unequip hint"><span class="glyph"
-                    data-btn="x">X</span><span>Remove</span></span>
-                <span class="hint-inline" data-figma="close hint"><span class="glyph"
-                    data-btn="b">B</span><span>Close</span></span>
-              </div>
-            </div>
-          </aside>
+          <!-- Skill detail panel = shared skill info card (components/skill-info.js, Figma MTX / Perk Info Card 719:89368),
+         filled by screen-skilltree.js init. A = Unlock (hold), X = Remove one level, RS = Level, B = close. -->
+          <aside data-bind="skillDetail" hidden></aside>
 
           <header class="skill__header" data-figma="14:1287 mastery + 14:1288 30 days left">
             <h1 class="skill__title tex-text">Mastery</h1>
@@ -795,8 +754,8 @@ Collection</h1>
       <section class="screen" id="s-management" data-screen="management" data-first="mgr" data-y="go:collection"
         data-figma="2:427 Management">
         <div class="screen__bg">
+          <div class="bg-texture"></div>   <!-- Mastery background -->
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>   <!-- same as Rewards -->
-          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
         <div class="screen__safe">
           <h1 class="page-title tex-text management__title">Management</h1>
@@ -824,7 +783,6 @@ Collection</h1>
           </div>
         </div>
         <div class="screen__chrome">
-          <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="2:434 Layer_1 (logo)">
           <div data-use="player-hud"></div>
           <nav class="hint-bar" data-hints='{"b":"Back","y":"Collection","ls":"Move"}'></nav>
           <div data-use="social-bar"></div>
@@ -1038,7 +996,6 @@ Collection</h1>
           <div class="simulate-overlay__scratch"></div>
           <div class="simulate-overlay__scrim"></div>
         </div>
-        <img class="simulate-overlay__logo" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
         <div class="simulate-overlay__box">
           <header class="simulate-overlay__header">
             <h2 class="simulate-overlay__month" id="simAnimMonth">AUGUST</h2>
@@ -1095,9 +1052,8 @@ Collection</h1>
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
-        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
         <div data-use="player-hud"></div>
         <span class="ev-modal__badge">Choose your</span>
         <h1 class="page-title tex-text ev-modal__title">Personal
@@ -1151,9 +1107,8 @@ Manager</h1>
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
-        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
         <div data-use="player-hud"></div>
         <h1 class="page-title tex-text ev-modal__title">Sponsor
 Contract</h1>
@@ -1216,9 +1171,8 @@ Contract</h1>
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
-        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
         <div data-use="player-hud"></div>
         <h1 class="page-title tex-text ev-modal__title">Interview</h1>
         <p class="ev-modal__sub">You've been invited for an interview.<br>Choose your response. Shape your image.</p>
@@ -1272,9 +1226,8 @@ Contract</h1>
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
-        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="2:1249 Layer_1 (logo)">
         <div data-use="player-hud"></div>
         <!-- the rolled scenario fills the badge / title / sub; its card set fills the cards row (sim-events.js) -->
         <span class="ev-modal__badge" id="evScenarioBadge">Random event</span>
@@ -1342,9 +1295,8 @@ Event</h1>
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
-          <div class="bg-scrim" style="background:rgb(0 0 0 / .75)"></div>
+          <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
         </div>
-        <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme">
         <div data-use="player-hud"></div>
         <span class="ev-modal__badge" data-bind="mentionTag">Mention</span>
         <h1 class="page-title tex-text ev-modal__title">New
@@ -1537,12 +1489,19 @@ Mention</h1>
         </section>
 
         <section class="dev-sec">
+          <h3 class="dev-sec__title">Transitions</h3>
+          <div id="devTransitions"><!-- one block per MTX_UI.wipe.register() (components/screen-wipe.js) --></div>
+        </section>
+
+        <section class="dev-sec">
           <h3 class="dev-sec__title">Skill tree</h3>
           <label>Skill points (free / earned) <input type="text" id="skillTotal" readonly tabindex="-1"></label>
           <label>Mastery unlock <select id="unlockInput">
               <option value="hold">Hold</option>
               <option value="confirm">Modal confirm</option>
             </select></label>
+          <label>Tree glow (nodes, frames, links) <input type="checkbox" id="treeGlow"></label>
+          <label>Controller rumble <input type="checkbox" id="rumbleOn"></label>
           <p class="dev-note">Earned with S levels: each S level up gives Skill points + MP</p>
           <div class="dev-row">
             <button class="chip" type="button" data-pl-lv="s">+1 S level</button>
@@ -1656,6 +1615,7 @@ Mention</h1>
   </div>
 
   <script src="mtx/js/components/hold.js?v=400"></script>
+  <script src="mtx/js/components/skill-info.js?v=2"></script>
   <script src="mtx/js/components/visual-keyboard.js?v=400"></script>
   <script src="mtx/js/components/motion.js?v=3"></script>
   <script src="mtx/js/components/glyph.js?v=400"></script>
@@ -1666,18 +1626,19 @@ Mention</h1>
   <script src="mtx/js/components/loading.js?v=2"></script>
   <script src="mtx/js/components/shader-preload.js?v=4"></script>
   <script src="mtx/js/components/match-found.js?v=1"></script>
+  <script src="mtx/js/components/screen-wipe.js?v=5"></script>
   <script src="mtx/js/components/match-result.js?v=24"></script>
   <script src="mtx/js/components/scrollbar.js?v=400"></script>
   <script src="mtx/js/components/nav-graph.js?v=402"></script>
   <script src="mtx/js/player-data.js?v=400"></script>
   <script src="mtx/js/player.js?v=400"></script>
   <script src="mtx/js/components/personality.js?v=400"></script>
-  <script src="mtx/js/skilltree-data.js?v=400"></script>
+  <script src="mtx/js/skilltree-data.js?v=401"></script>
   <script src="mtx/js/screens/screen-main.js?v=404"></script>
   <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
   <script src="mtx/js/screens/screen-career.js?v=402"></script>
   <script src="mtx/js/screens/screen-tactical.js?v=400"></script>
-  <script src="mtx/js/screens/screen-skilltree.js?v=400"></script>
+  <script src="mtx/js/screens/screen-skilltree.js?v=416"></script>
   <script src="mtx/js/sim-data.js?v=400"></script>
   <script src="mtx/js/sim-scenarios.js?v=400"></script>
   <script src="mtx/js/sim-events.js?v=400"></script>
@@ -1686,7 +1647,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-rewards.js?v=db1"></script>
   <script src="mtx/js/attr-data.js?v=400"></script>
   <script src="mtx/js/screens/screen-attributes.js?v=400"></script>
-  <script src="mtx/js/screens/screen-loadout.js?v=7"></script>
+  <script src="mtx/js/screens/screen-loadout.js?v=8"></script>
   <script src="mtx/js/screens/screen-customize.js?v=hb2"></script>
   <script src="mtx/js/screens/screen-store.js?v=db9"></script>
   <script src="mtx/js/screens/screen-leaderboard.js?v=402"></script>
@@ -1703,7 +1664,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-lobby.js?v=sb19v60"></script>
   <script src="mtx/js/screens/screen-login.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-campaign.js?v=hb1"></script>
-  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsp"></script>
+  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsp-r6-uw3"></script>
   <script src="mtx/js/components/character3d.js?v=sb7"></script>
   <script src="mtx/js/dev-text.js?v=400"></script>
   <script src="mtx/js/dev-bake.js?v=400"></script>
