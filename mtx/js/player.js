@@ -3,8 +3,8 @@
    Tracks (XP per level from 18_LegacyCoreLevel.csv, via player-data.js)
      E  Level      Attribute points earned = E level x CONFIG.attrPerELevel (the Attributes screen subtracts what is invested)
      S  Level      every level up gives CONFIG.skillPerSLevel Skill points (spent in the Skill tree)
-     Style Level   one per style. Only that style's Quests give its Mastery Points (MP); a full target
-                   (= the Quests screen levels) unlocks its next Style Level, which gates its Quests and Attributes caps
+     Style Level   one per style. Completing that style's Quests counts towards its level; the quest count a level
+                   needs (= the Quests screen levels) unlocks its next Style Level, which gates its Quests and Attributes caps
      R  Level      Reputation
    Points are never set by hand: to get Attribute / Skill points, add E / S XP (dev panel: +XP / +1 level).
    GDD + 18_LegacyCoreLevel.csv define the XP curve but not the points per level, so the rates live in CONFIG.
@@ -19,9 +19,9 @@
      addXp("e"|"s"|"r", n)      -> XP with level ups (and their E -> Attribute points / S -> Skill points rewards)
      addLevels(t, n)            -> exactly enough XP for n level ups
      levelReward(t)             -> text of what one level up of that track gives ("+5 Attribute points")
-     styleOf(id)                -> { level, mp } of one style
-     setStyle(id, patch)        -> change one style's level / mp
-     addQuestMp(id, n)          -> Mastery Points from that style's quests, with Style Level unlocks
+     styleOf(id)                -> { level, quests } of one style (quests = done inside the current level)
+     setStyle(id, patch)        -> change one style's level / quests
+     addQuestDone(id, n = 1)    -> n quests of that style completed, with Style Level unlocks
      attrTotal()                -> Attribute points earned so far (from the E level)
      spendCash(n)               -> false when there is not enough
      need(track)                -> XP needed for the next level of that track
@@ -35,7 +35,7 @@
   const CONFIG = {
     attrPerELevel: 5,          // Attribute points per E level up
     skillPerSLevel: 1,         // Skill points per S level up
-    styleTargets: [2500, 10000, 18000, 30000, 50000],   // MP to finish each Style Level (Quests overrides with its own)
+    styleTargets: [6, 6, 6, 6, 6],   // quests to complete for each Style Level (Quests overrides with its own)
     maxStyleLevel: 5
   };
 
@@ -43,7 +43,7 @@
     e: { level: 25, xp: 2512 },
     s: { level: 12, xp: 1800 },
     r: { level: 12, xp: 2512 },
-    styles: { phranakhon: { level: 2, mp: 4200 } },   // per style: Style Level 1-5 + MP inside that level (default: Lv 1, 0 MP)
+    styles: { phranakhon: { level: 2, quests: 1 } },   // per style: Style Level 1-5 + quests done inside that level (default: Lv 1, 0)
     personality: { professional: 0, boastful: 0, controversy: 0, cold: 0 },   // answers per tone (components/personality.js)
     skillTotal: 10,            // Skill points earned so far (S level ups); the Skill tree subtracts what its nodes cost
     rp: 612,                   // Rank Points
@@ -59,7 +59,7 @@
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) || "null");
       if (saved && !saved.styles && saved.styleLevel) {   // older save: one Style Level shared by all styles
-        saved.styles = { phranakhon: { level: saved.styleLevel, mp: saved.mp || 0 } };
+        saved.styles = { phranakhon: { level: saved.styleLevel, quests: 0 } };
         delete saved.styleLevel;
         delete saved.mp;
       }
@@ -91,7 +91,7 @@
 
   const get = () => clone(state);
   const need = t => XP[t][Math.max(0, Math.min(XP[t].length - 1, state[t].level - 1))] || 1;
-  const styleOf = id => Object.assign({ level: 1, mp: 0 }, state.styles[id]);
+  const styleOf = id => Object.assign({ level: 1, quests: 0 }, state.styles[id]);
   const styleTarget = id => CONFIG.styleTargets[Math.max(0, styleOf(id).level - 1)] || 1;
 
   function set(patch) {
@@ -110,7 +110,8 @@
     }
     for (const st of Object.values(state.styles)) {
       st.level = Math.max(1, Math.min(CONFIG.maxStyleLevel, Math.round(+st.level || 1)));
-      st.mp = Math.max(0, Math.round(+st.mp || 0));
+      st.quests = Math.max(0, Math.round(+st.quests || 0));
+      delete st.mp;   // older save: Mastery Points are gone, levels count quests
     }
     for (const k of ["skillTotal", "rp", "l", "cash"]) state[k] = Math.max(0, Math.round(+state[k] || 0));
   }
@@ -153,11 +154,11 @@
     emit({ type: "style", id, patch });
   }
 
-  function addQuestMp(id, n) {
+  function addQuestDone(id, n = 1) {
     const st = state.styles[id] = styleOf(id), before = st.level;
-    st.mp += Math.max(0, Math.round(n));
-    while (st.level < CONFIG.maxStyleLevel && st.mp >= styleTarget(id)) { st.mp -= styleTarget(id); st.level++; }
-    emit({ type: "mp", id, gained: n, styleUps: st.level - before });
+    st.quests += Math.max(0, Math.round(n));
+    while (st.level < CONFIG.maxStyleLevel && st.quests >= styleTarget(id)) { st.quests -= styleTarget(id); st.level++; }
+    emit({ type: "quest", id, gained: n, styleUps: st.level - before });
   }
 
   function spend(key, n) {
@@ -217,7 +218,7 @@
       <h3 class="dev-sec__title">Player · level &amp; wallet</h3>
       ${field("eLevel", "E level", "e.level")}${field("eXp", "E XP", "e.xp")}
       ${field("sLevel", "S level", "s.level")}${field("sXp", "S XP", "s.xp")}
-      ${field("style", "Style level (1-5), selected style", "style.level")}${field("mp", "Mastery points, selected style", "style.mp")}
+      ${field("style", "Style level (1-5), selected style", "style.level")}${field("quests", "Quests done in level, selected style", "style.quests")}
       ${field("rLevel", "R level (Reputation)", "r.level")}${field("rXp", "R XP", "r.xp")}
       ${field("rp", "Rank points (RP)", "rp")}${field("l", "L", "l")}${field("cash", "Cash", "cash")}
       <p class="dev-note">E level up ${levelReward("e")} · S level up ${levelReward("s")}</p>
@@ -231,7 +232,7 @@
         <button class="chip" type="button" data-pl-lv="s">+1 S level</button>
         <button class="chip" type="button" data-pl-lv="r">+1 R level</button>
       </div>
-      <button class="chip" type="button" data-pl-quest>+500 quest MP, selected style</button>
+      <button class="chip" type="button" data-pl-quest>+1 quest done, selected style</button>
       <button class="chip" type="button" data-pl-reset>Reset player</button>`;
     host.insertBefore(sec, host.firstChild);
     const inputs = [...sec.querySelectorAll("[data-pl-dev]")];
@@ -248,7 +249,10 @@
       window.MTX?.api?.toast?.(`+1000 ${btn.dataset.plAdd.toUpperCase()} XP${ups ? ` · level up ×${ups}` : ""}`);
     }));
     mountLevelButtons(sec);
-    sec.querySelector("[data-pl-quest]").addEventListener("click", () => addQuestMp(selStyle(), 500));
+    // completes the next open quest on the Quests screen (rows + count stay in step); store only when that screen is missing
+    sec.querySelector("[data-pl-quest]").addEventListener("click", () => {
+      if (!window.MTX_SCREENS?.quests?.completeNext?.()) addQuestDone(selStyle(), 1);
+    });
     sec.querySelector("[data-pl-reset]").addEventListener("click", () => { reset(); window.MTX?.api?.toast?.("Player reset"); });
     listeners.add(fill);
     fill();
@@ -268,7 +272,7 @@
 
   window.MTX_PLAYER = {
     CONFIG, DEFAULTS,
-    get, set, addXp, addLevels, levelReward, styleOf, setStyle, addQuestMp, need, styleTarget, reset, mountLevelButtons,
+    get, set, addXp, addLevels, levelReward, styleOf, setStyle, addQuestDone, need, styleTarget, reset, mountLevelButtons,
     spendCash: n => spend("cash", n),
     attrTotal: () => state.e.level * CONFIG.attrPerELevel,
     on(fn) { listeners.add(fn); return () => listeners.delete(fn); },

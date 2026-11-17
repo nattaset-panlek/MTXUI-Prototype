@@ -149,6 +149,7 @@
   };
 
   function enter() {
+    rPoints = +api.store.get("store_r", rPoints) || 0;   // Rewards spends the same balance
     render();
     renderWallet();
     clearInterval(timerTick);
@@ -257,7 +258,7 @@
     return true;
   }
 
-  const priceBtn = (type, val) => ({ html: `<span class="dlg-price"><img src="mtx/assets/svg/${type === "r" ? "icon-rpoint" : "icon-money"}.svg" alt="${type === "r" ? "R Point" : "Money"}"><span>${fmt(val)}</span></span>` });
+  const priceBtn = (type, val) => ({ html: `<span class="dlg-price">${type === "r" ? `<b class="dlg-price__r" aria-label="R Point">R</b>` : `<img src="mtx/assets/svg/icon-money.svg" alt="Money">`}<span>${fmt(val)}</span></span>` });   // R currency = letter R (Modi)
 
   // Two prices: choose the currency. One price: Buy or Cancel.
   function openBuy(item, el) {

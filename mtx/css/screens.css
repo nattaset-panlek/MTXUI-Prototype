@@ -439,12 +439,6 @@
   color: var(--text-1)
 }
 
-.tab-card__check {
-  display: none;
-  width: 25px;
-  height: 25px
-}
-
 .tab-card__body {
   position: relative;
   height: 376px;
@@ -492,9 +486,6 @@
   color: var(--style-fg, #fcf0d6)
 }
 
-.tab-card.is-focused .tab-card__check {
-  display: block
-}
 
 .tab-card__body::after {
   content: "";
@@ -852,7 +843,6 @@
   transform-origin: 0 0;
   will-change: transform
 }
-
 .style-panel {
   transition: opacity .3s ease, transform .4s cubic-bezier(.2, .7, .2, 1), visibility 0s
 }
@@ -1274,19 +1264,24 @@
   cursor: pointer
 }
 
+/* front marker = Track toggle (A on the row): empty box = not tracked, ticked box = tracked
+   (same box as the objective checkboxes); done quests cannot be tracked: no box (space kept so names line up),
+   name dimmed, the yellow "Completed" tag is the only done signal */
 .mq-row__state {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   flex: none;
   box-sizing: border-box;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 3px #fff
+  box-shadow: inset 0 0 0 2px #fff
 }
 
-.mq-row.is-done .mq-row__state {
+.mq-row.is-tracked .mq-row__state {
   box-shadow: none;
-  background: url(../assets/svg/icon-check-circle.svg) center/contain no-repeat
+  background: url(../assets/svg/icon-checkbox-done.svg) center/contain no-repeat
 }
+
+.mq-row.is-done .mq-row__state { visibility: hidden }
+.mq-row.is-done .mq-row__name { opacity: .6 }
 
 .mq-row.is-locked { color: var(--text-dim) }
 
@@ -1303,18 +1298,6 @@
   color: var(--text-muted)
 }
 
-/* tracked quest: bookmark icon after the name */
-.mq-row.is-tracked .mq-row__name::after {
-  content: "";
-  display: inline-block;
-  width: 16px;
-  height: 20px;
-  margin-left: 12px;
-  vertical-align: -4px;
-  background: var(--yellow);
-  -webkit-mask: url(../assets/svg/icon-bookmark.svg) center/contain no-repeat;
-  mask: url(../assets/svg/icon-bookmark.svg) center/contain no-repeat
-}
 
 .quests__scroll {
   left: 818px;
@@ -3348,16 +3331,21 @@ html body .attr__trigger .glyph[data-btn] {
 }
 
 /* type tint lives on the glow + label only (Figma keeps every unlocked node white) */
+/* type colours = Node Detail card (Figma 833:93841): Attribute green, Signature blue, Decisive red, Special lime */
 .tnode--stat {
-  --glow: #e2629a
+  --glow: #3fd28b
 }
 
 .tnode--sgm {
-  --glow: #3d7fe0
+  --glow: #4da3ff
 }
 
 .tnode--spe {
-  --glow: #2fb07a
+  --glow: #c7f029
+}
+
+.tnode--dsm {
+  --glow: #ff4060
 }
 
 /* focus & cursor aim hover with enhanced style glow matching exact node shape */
@@ -4865,18 +4853,7 @@ html body .attr__trigger .glyph[data-btn] {
   --sub-light: color-mix(in srgb, var(--sub) 55%, #fff);
   --sub-deep: color-mix(in srgb, var(--sub) 70%, #000)
 }
-.mq-orn {
-  position: absolute;
-  width: 82px;
-  height: 100px;
-  background: var(--sub);
-  opacity: .55;
-  -webkit-mask: center/contain no-repeat;
-  mask: center/contain no-repeat
-}
-
-.mq-orn--l { left: 8px; bottom: 6px; -webkit-mask-image: url(../assets/svg/skill-orn-bl.svg); mask-image: url(../assets/svg/skill-orn-bl.svg) }
-.mq-orn--r { left: 200px; top: 6px; -webkit-mask-image: url(../assets/svg/skill-orn-tr.svg); mask-image: url(../assets/svg/skill-orn-tr.svg) }
+/* yantra script ornaments (.mq-orn, skill-orn-*.svg) removed on request (2026-11-17) */
 
 .mq-progress__word {
   background: linear-gradient(90deg, rgb(255 255 255 / .2), rgb(255 255 255 / .08) 60%, color-mix(in srgb, var(--sub) 30%, transparent));
@@ -4897,8 +4874,8 @@ html body .attr__trigger .glyph[data-btn] {
 
 /* level tabs */
 .mq-tab { position: relative; transition: background .15s, box-shadow .15s }
-/* cleared level: purple corner flag */
-.mq-tab.is-cleared:not(.is-current)::after {
+/* corner flag: the level has a tracked quest (also on the current tab) */
+.mq-tab.has-tracked::after {
   content: "";
   position: absolute;
   right: 0;
@@ -4939,7 +4916,7 @@ html body .attr__trigger .glyph[data-btn] {
   background: linear-gradient(90deg, color-mix(in srgb, var(--sub) 32%, transparent), color-mix(in srgb, var(--sub) 8%, transparent) 55%, transparent)
 }
 
-.mq-row.is-focused:not(.is-done):not(.is-locked) .mq-row__state { box-shadow: inset 0 0 0 3px var(--yellow) }
+.mq-row.is-focused:not(.is-done):not(.is-locked):not(.is-tracked) .mq-row__state { box-shadow: inset 0 0 0 2px var(--yellow) }
 
 .mq-row__mp {
   padding: 4px 8px;
@@ -7856,6 +7833,8 @@ button.is-overlay { opacity: .45; cursor: default }
 .dlg-price img { height: 24px; width: auto; flex: none }
 /* Gold button: icon in the same ink as the text. Dark button: R Point color */
 .btn-cta:not(.btn-cta--secondary) .dlg-price img { filter: brightness(0) }
+/* R currency: the letter R in Modi (display font), in the button's text colour */
+.dlg-price__r { font: 400 26px/1 var(--font-display); color: inherit }
 .btn-cta--secondary .dlg-price { color: #f5e5b5 }
 
 /* Custom Lobby form: map image placeholder + visual keyboard (device skin from body[data-device]) */
@@ -8041,10 +8020,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* DSM / SPE: normal node face until unlocked, then the Tactical Loadout slot art (Decisive red, Special lime) */
 .tnode>span.tnode__move { display: none; width: 84px; height: 84px }
 .tnode__move img { width: 84px; height: 84px; display: block }
-.tnode--dsm.is-owned>span.node, .tnode--spe.is-owned>span.node { display: none }
-.tnode--dsm.is-owned>span.tnode__move, .tnode--spe.is-owned>span.tnode__move { display: block; filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--mvc) 55%, transparent)) }
+.tnode--dsm.is-owned>span.node, .tnode--spe.is-owned>span.node, .tnode--sgm.is-owned>span.node { display: none }
+.tnode--dsm.is-owned>span.tnode__move, .tnode--spe.is-owned>span.tnode__move, .tnode--sgm.is-owned>span.tnode__move { display: block; filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--mvc) 55%, transparent)) }
 .tnode--dsm { --mvc: #ff4060 }
 .tnode--spe { --mvc: #c7f029 }
+.tnode--sgm { --mvc: #4da3ff }
 .tnode.is-focused>span.tnode__move, .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
 
 /* ---- Tree focus = Selected Prismatic outline in the node's own shape (no glow, no scale) ----
@@ -8062,7 +8042,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* owned perk / DSM / SPE: the frame or slot art outline */
 .tnode--perk.is-owned>span.tnode__focus { --fs: var(--fm); width: 106px; height: 104px }
 .tnode--perk.is-owned[data-lv="3"]>span.tnode__focus { width: 112px; height: 109px }
-.tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus { --fs: var(--fm); width: 100px; height: 100px }
+.tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus, .tnode--sgm.is-owned>span.tnode__focus { --fs: var(--fm); width: 100px; height: 100px }
 /* no glow / scale on focus any more */
 .tnode.is-focused .tnode__lock, .tnode:hover .tnode__lock { transform: translate(-50%, -50%) scale(1.18); filter: none }
 .tnode.is-focused .tnode__lock::before, .tnode:hover .tnode__lock::before { box-shadow: inset 0 0 0 4px #141414, inset 0 0 0 6px #3b3b3b, 0 0 0 3px #050505 }
@@ -8085,7 +8065,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 .tnode>span.tnode__focus { display: block; opacity: 0; --fz: 1; --fr: 0deg; transform: translate(-50%, -50%) rotate(var(--fr)) scale(calc(var(--fz) * .9)); transition: opacity .14s ease-out, transform .14s ease-out }
 .tnode.is-focused>span.tnode__focus, .tnode:hover>span.tnode__focus { opacity: 1; transform: translate(-50%, -50%) rotate(var(--fr)) scale(var(--fz)) }
 .tnode.is-ready>span.tnode__focus, .tnode.is-owned>span.tnode__focus { --fz: 1.22 }
-.tnode--perk.is-owned>span.tnode__focus, .tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus { --fz: 1.18 }
+.tnode--perk.is-owned>span.tnode__focus, .tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus, .tnode--sgm.is-owned>span.tnode__focus { --fz: 1.18 }
 .tnode:not(.is-ready):not(.is-owned)>span.tnode__focus { --fz: 1.18; --fr: 45deg }
 .tnode--root>span.tnode__focus, .tnode--root.is-focused>span.tnode__focus, .tnode--root:hover>span.tnode__focus { display: block; --fz: 1; --fr: 45deg }
 
@@ -8110,3 +8090,76 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-skilltree .tl-info__equip.is-locked { opacity: .4 }
 #s-skilltree .tl-info__equip.is-done i { background-color: #3fd28b }
 #s-skilltree .tl-info__equip.is-done span { color: #f4f1ea }
+
+/* ================= Attributes: additional value from other sources =================
+   Yellow "+N" badge after the value = extra from Skill Tree / Mastery / other feeds, not spent Attribute points. */
+#s-attributes .attr-row {
+  position: relative;
+  grid-template-columns: 220px 1fr 132px 50px 30px
+}
+
+.attr-bonus {
+  display: inline-block;
+  padding: 4px 6px 3px;
+  background: var(--yellow);
+  font: 700 15px/1 var(--font-ui);
+  font-style: normal;
+  color: #0f090a
+}
+
+.attr-row__bonus {
+  text-align: left
+}
+
+/* Skill Tree: tier ornaments (whole skill-tree-yan.png strip), soft light 80 % */
+#s-skilltree .tree__yantra { position: absolute; pointer-events: none; background: url(../assets/skill-tree-yan.png) no-repeat; mix-blend-mode: soft-light; opacity: .8 }
+/* tier ornament shimmer (user 2026-11-17: "some movement"): a warm light band sweeps down the strip every 8 s, masked to the ornament */
+#s-skilltree .tree__yantra::after { content: ""; position: absolute; inset: 0;
+  -webkit-mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat;
+  background: linear-gradient(transparent 0, rgba(255, 228, 170, .9) 50%, transparent 100%) 0 0 / 100% 12% no-repeat;
+  animation: tree-yantra-sweep 8s linear infinite }
+@keyframes tree-yantra-sweep { from { background-position: 0 -15% } to { background-position: 0 115% } }
+@media (prefers-reduced-motion: reduce) { #s-skilltree .tree__yantra::after { animation: none; display: none } }
+/* unlock / level-up ripple: a warm ring grows from the node (--cx/--cy, px in the ornament box), masked to the ornament lines */
+@property --rr { syntax: "<length>"; inherits: false; initial-value: 0px }
+#s-skilltree .tree__ripple { position: absolute; pointer-events: none; mix-blend-mode: screen;
+  -webkit-mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat;   /* x4: the strip's alpha is weak (mostly < 50 %), layers add up */
+  background: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--rr) - 90px), rgba(255, 226, 160, 1) calc(var(--rr) - 10px), rgba(255, 255, 230, 1) var(--rr), transparent calc(var(--rr) + 14px));
+  animation: tree-ripple 2.8s cubic-bezier(.2, .6, .3, 1) forwards }
+@keyframes tree-ripple { 0% { --rr: 0px; opacity: .6 } 70% { opacity: .5 } 100% { --rr: 1100px; opacity: 0 } }   /* slower + fainter (user 2026-11-17) */
+/* node forge hit on unlock / level up (nodeForge in screen-skilltree.js): flat flash, one focus-ring copy grows + fades */
+#s-skilltree .tnode.is-forged .node, #s-skilltree .tnode.is-forged .tnode__move, #s-skilltree .tnode.is-forged .tnode__perk { animation: tnode-flash .45s ease-out }
+@keyframes tnode-flash { 0% { filter: brightness(1.9) } 100% { filter: none } }   /* flat: no glow / bloom */
+/* perk Lv 2 / 3: brighter, longer flat flash on the face */
+#s-skilltree .tnode.is-forged[data-forge="2"] .tnode__perk { animation: tnode-flash2 .6s ease-out }
+#s-skilltree .tnode.is-forged[data-forge="3"] .tnode__perk { animation: tnode-flash3 .8s ease-out }
+@keyframes tnode-flash2 { 0% { filter: brightness(2.3) } 100% { filter: none } }
+@keyframes tnode-flash3 { 0% { filter: brightness(2.8) } 30% { filter: brightness(1.6) } 45% { filter: brightness(2.4) } 100% { filter: none } }   /* no transform: it dropped the face's translate(-50%,-50%) and the node jumped */
+#s-skilltree .tnode>span.tnode__focus.tnode__burst { display: block; z-index: 4; transition: none; pointer-events: none; opacity: 0;
+  transform: translate(-50%, -50%) scale(1); animation: tnode-burst .9s cubic-bezier(.15, .7, .3, 1) forwards }
+/* ripple back (user 2026-11-17 "where did the ripple go"): each ring grows out and fades, one ring per level, staggered as beats */
+@keyframes tnode-burst { 0% { opacity: 1; transform: translate(-50%, -50%) scale(1) } 45% { opacity: .95 } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2.1) } }
+@media (prefers-reduced-motion: reduce) { #s-skilltree .tnode.is-forged .node { animation: none } }
+
+/* ornament parallax: --plx set on .tree__camera by focusCamera; same timing as the camera move */
+#s-skilltree .tree__yantra, #s-skilltree .tree__ripple { transform: translateY(var(--plx, 0px)); transition: transform .32s cubic-bezier(.2, .7, .2, 1) }   /* v1: same timing as the camera, stays in sync */
+/* perk Lv 2-3 forge extras (flat, no glow): shards fly out, Lv 3 adds a diamond outline opening out */
+#s-skilltree .tnode>i.tnode__opening { position: absolute; left: 50%; top: 50%; z-index: 3; width: 70px; height: 70px; margin: -35px; pointer-events: none;
+  border: 2px solid #ffe2a0; transform: rotate(45deg) scale(.6); opacity: 0; animation: tnode-opening .6s cubic-bezier(.15, .7, .3, 1) .4s forwards }
+@keyframes tnode-opening { 0% { opacity: 1; transform: rotate(45deg) scale(.6) } 100% { opacity: 0; transform: rotate(45deg) scale(1.8) } }
+/* ornament fade mask v3 (user 2026-11-17: "FractalNoise"): SVG feTurbulence fractalNoise tile as alpha mask, two layers at different
+   scales drifting different ways and intersected, so soft noisy patches of the yantra fade out and back. Extra layer over the shimmer. */
+@keyframes tree-yantra-flow-a { from { -webkit-mask-position: 0 0, 0 0; mask-position: 0 0, 0 0 }
+  to { -webkit-mask-position: 0 600px, -900px 900px; mask-position: 0 600px, -900px 900px } }
+#s-skilltree .tree__yantra {
+  -webkit-mask-image: url(../assets/svg/skill/fractal-noise-mask.svg?v=4), url(../assets/svg/skill/fractal-noise-mask.svg?v=4); mask-image: url(../assets/svg/skill/fractal-noise-mask.svg?v=4), url(../assets/svg/skill/fractal-noise-mask.svg?v=4);
+  -webkit-mask-size: 600px 600px, 900px 900px; mask-size: 600px 600px, 900px 900px;
+  -webkit-mask-repeat: repeat; mask-repeat: repeat;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  animation: tree-yantra-flow-a 14s linear infinite }
+@media (prefers-reduced-motion: reduce) { #s-skilltree .tree__yantra { animation: none; -webkit-mask-image: none; mask-image: none } }
+/* Dev > Skill tree VFX toggles (class .no-vfx-<name> on #s-skilltree, set by app.js) */
+#s-skilltree.no-vfx-ornament .tree__yantra, #s-skilltree.no-vfx-ornament .tree__ripple { display: none }
+#s-skilltree.no-vfx-shimmer .tree__yantra::after { display: none }
+#s-skilltree.no-vfx-noise .tree__yantra { -webkit-mask-image: none; mask-image: none; animation: none }
+#s-skilltree.no-vfx-ripple .tree__ripple { display: none }

@@ -22,6 +22,11 @@ button{font:inherit;color:inherit}
 .screen.is-active{opacity:1;visibility:visible;transition:opacity .18s ease}
 /* screen motion (components/motion.js): the old screen stays on top while its parts slide out, then fades */
 .screen.is-leaving{visibility:visible;opacity:1;z-index:2;pointer-events:none;transition:none}
+/* Fix "parts of a screen gone after coming back (Style Hub cards / title, Tactical map), until F5":
+   parts that were animating (screen motion, camera) while their screen was hidden kept a stale inherited
+   visibility:hidden in Chrome when the screen was shown again. This rule (zero specificity, so every screen's own
+   visibility rules still win) is keyed on the screen's class, so showing / hiding a screen re-styles all its parts. */
+:where(.screen.is-active, .screen.is-leaving) :where(*){visibility:inherit}
 .screen__bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .screen__bg > *{position:absolute}
 .screen__safe{position:absolute;top:0;left:var(--ox);width:1920px;height:1080px}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><title>Skill Tree ornament VFX preview</title>
+<style>
+  body { margin: 0; background: #0c0c0c; color: #ddd; font: 14px/1.4 system-ui, sans-serif; padding: 24px }
+  h1 { font-size: 18px; margin: 0 0 16px }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px }
+  .card { background: #151515; border: 1px solid #2a2a2a; padding: 10px }
+  .card b { display: block; margin-bottom: 8px; color: #fff }
+  .card small { color: #888 }
+  /* stage = same look as the tree: dark textured bg, soft light 80 % */
+  .stage { position: relative; height: 420px; overflow: hidden;
+    background: radial-gradient(60% 70% at 50% 40%, rgba(255,255,255,.07), transparent 70%),
+      repeating-linear-gradient(37deg, rgba(255,255,255,.015) 0 2px, transparent 2px 6px), #2b2b2b }
+  .orn { position: absolute; left: 50%; top: 0; width: 300px; height: 1242px; margin-left: -150px;
+    background: url(mtx/assets/skill-tree-bg.webp) 0 0 / 100% 100% no-repeat; mix-blend-mode: soft-light; opacity: .8 }
+  /* fake tree lines so the contrast reads like the real screen */
+  .stage::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(#000,#000) 30% 0/2px 100% no-repeat, linear-gradient(#000,#000) 70% 0/2px 100% no-repeat }
+
+  .v0 .orn {}
+  .v1 .orn { filter: blur(1.5px) }
+  .v2 .orn { -webkit-mask: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent), linear-gradient(transparent, #000 15%, #000 85%, transparent); -webkit-mask-composite: source-in; mask-composite: intersect }
+  .v3 .orn { mix-blend-mode: overlay; opacity: .5 }
+  .v4 .orn::after { content: ""; position: absolute; inset: 0; -webkit-mask: url(mtx/assets/skill-tree-bg.webp) 0 0 / 100% 100%;
+    background: linear-gradient(transparent 40%, rgba(255,230,170,1) 50%, transparent 60%) 0 0 / 100% 40% no-repeat; animation: sweep 6s linear infinite }
+  @keyframes sweep { from { background-position: 0 -40% } to { background-position: 0 140% } }
+  .v5 .orn.lit { mix-blend-mode: normal; opacity: .55; filter: sepia(1) saturate(3) hue-rotate(-10deg) brightness(1.1) drop-shadow(0 0 6px rgba(255,190,80,.6)) }
+  .v5 .lock { position: absolute; left: 0; right: 0; top: 50%; bottom: 0; overflow: hidden }
+  .v5 .lock .orn { top: -210px; opacity: .25; filter: grayscale(1) }
+  .v5 .gate { position: absolute; left: 0; right: 0; top: 50%; border-top: 1px dashed #666; font-size: 11px; color: #999; padding-left: 6px }
+  .v6 .orn { animation: breathe 4s ease-in-out infinite }
+  @keyframes breathe { 50% { opacity: .35 } }
+  .v7 .orn { animation: para 6s ease-in-out infinite alternate }
+  .v7 .stage::before { content: "กล้องเลื่อน (จำลอง): ลายเลื่อนช้ากว่าเส้น tree"; position: absolute; bottom: 6px; left: 6px; font-size: 11px; color: #aaa; z-index: 2 }
+  .v7 .stage::after { animation: paraLines 6s ease-in-out infinite alternate }
+  @keyframes para { to { transform: translateY(-60px) } }
+  @keyframes paraLines { to { background-position: 30% -120px, 70% -120px } }
+  .v8 .orn::after { content: ""; position: absolute; inset: 0; -webkit-mask: url(mtx/assets/skill-tree-bg.webp) 0 0 / 100% 100%;
+    background: radial-gradient(circle at 50% 12%, rgba(255,220,150,1) 0, rgba(255,220,150,.0) var(--r, 0%)); animation: pulse 2.5s ease-out infinite }
+  @property --r { syntax: "<percentage>"; inherits: false; initial-value: 0% }
+  @keyframes pulse { 0% { --r: 0%; opacity: 1 } 100% { --r: 30%; opacity: 0 } }
+  .combo .orn { filter: blur(1.2px); -webkit-mask: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent) }
+</style></head>
+<body>
+<h1>Skill Tree ลายพื้นหลัง · เลือก VFX (ตัวอย่างแสดงลายขั้น ๑-๒ แบบ soft light 80% เหมือนตอนนี้)</h1>
+<div class="grid">
+  <div class="card v0"><b>0 · ตอนนี้</b><div class="stage"><div class="orn"></div></div><small>soft light 80% ไม่มีเอฟเฟกต์</small></div>
+  <div class="card v1"><b>1 · Blur</b><div class="stage"><div class="orn"></div></div><small>เบลอ 1.5px ลายนุ่ม ดูอยู่ลึก</small></div>
+  <div class="card v2"><b>2 · Mask ไล่จาง</b><div class="stage"><div class="orn"></div></div><small>ขอบซ้ายขวาและหัวท้ายจางหาย</small></div>
+  <div class="card v3"><b>3 · Overlay 50%</b><div class="stage"><div class="orn"></div></div><small>เปลี่ยน blend ลายกลืนพื้นกว่า</small></div>
+  <div class="card v4"><b>4 · Shimmer</b><div class="stage"><div class="orn"></div></div><small>แสงวิ่งผ่านลาย ทุก 6 วินาที</small></div>
+  <div class="card v5"><b>5 · ติดไฟตามขั้นที่ปลด</b><div class="stage"><div class="orn lit"></div><div class="gate">ขั้น ๒ (ยังล็อก)</div><div class="lock"><div class="orn"></div></div></div><small>ขั้นที่ปลดแล้วเป็นทอง ขั้นล็อกมืดจาง</small></div>
+  <div class="card v6"><b>6 · Breathing</b><div class="stage"><div class="orn"></div></div><small>สว่างขึ้นลงช้าๆ 4 วินาที</small></div>
+  <div class="card v7"><b>7 · Parallax</b><div class="stage"><div class="orn"></div></div><small>ลายเลื่อนช้ากว่า tree มีความลึก</small></div>
+  <div class="card v8"><b>8 · Pulse ตอนปลด</b><div class="stage"><div class="orn"></div></div><small>คลื่นแสงแผ่จากลาย (ในเกมเล่นครั้งเดียว ที่นี่วนให้ดู)</small></div>
+  <div class="card combo"><b>แนะนำ · 1+2</b><div class="stage"><div class="orn"></div></div><small>เบลอ + ไล่จางขอบ ลด contrast ที่สุด</small></div>
+</div>
+</body></html>

@@ -1,0 +1,95 @@
+/* Skill tree node detail card (Figma Node Detail · Pack I 833:93841), markup: js/components/node-detail.js.
+   Card 513x846 at the old .skill-detail spot; inner coordinates = Figma card frame (13,121) offsets. */
+/* Background = Figma layer stack (SVG export of 833:93771), bottom to top:
+     frame fill #000 40% · "before" #060606 513x846 · group 25%: scratch image STRETCH (x 31.1%-74.2% of the image) 70% + stroke #d4d4d4 2 px
+     inner "before" #060606 488x819 at (13,14) · group 25%: same image 70% (486x817 at (14,15)) + stroke #696969 2 px centred on it */
+.nd { --tc: #e5e5e5; --nd-tex: url(../assets/img/node-detail-scratch.jpg); background: #060606; overflow: hidden }
+.nd::before, .nd::after { content: ""; position: absolute; pointer-events: none }
+.nd::before { inset: 0; opacity: .25; box-shadow: inset 0 0 0 2px #d4d4d4;
+  background: linear-gradient(rgb(6 6 6 / .3), rgb(6 6 6 / .3)), var(--nd-tex) -370px 0 / 1190px 846px no-repeat }
+.nd::after { left: 13px; top: 14px; width: 488px; height: 819px; background: #060606 }
+.nd__card::before { content: ""; position: absolute; left: 1px; top: -106px; width: 486px; height: 817px; opacity: .25; pointer-events: none;
+  box-shadow: 0 0 0 1px #696969, inset 0 0 0 1px #696969;
+  background: linear-gradient(rgb(6 6 6 / .3), rgb(6 6 6 / .3)), var(--nd-tex) -350.7px 0 / 1127.6px 817px no-repeat }
+.nd > * { z-index: 1 }
+.nd [hidden] { display: none !important }
+
+.nd__kind { position: absolute; left: 31px; top: 20px; margin: 0; font: 400 30px/25px var(--font-display); text-transform: uppercase; color: var(--tc) }
+.nd__card { position: absolute; left: 13px; top: 121px; width: 488px; height: 711px }
+
+/* art 454x274 at card (18,-67); type frame 200x200 at card (145,-30), icon centred on it */
+.nd__art { position: absolute; left: 18px; top: -67px; width: 454px; height: 274px }
+.nd__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover }
+/* Figma: card-art image FILL + #000 70%, stroke #1f1f1f 3 px inside */
+.nd__art::after { content: ""; position: absolute; inset: 0; background: rgb(0 0 0 / .7); box-shadow: inset 0 0 0 3px #1f1f1f; pointer-events: none }
+.nd__art > :not(.nd__bg) { z-index: 1 }
+.nd__frame { position: absolute; left: 127px; top: 37px; width: 200px; height: 200px; object-fit: contain }
+.nd[data-kind="perk"] .nd__frame { top: 40px; height: 194px }
+.nd__icon { position: absolute; left: 163px; top: 69px; width: 128px; height: 136px; object-fit: contain }
+.nd__video { position: absolute; left: 341px; top: 16px; height: 34px; padding: 0 14px 0 8px; display: flex; align-items: center; gap: 8px; border-radius: 17px; background: rgb(0 0 0 / .7);
+  font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5 }
+.nd__video .glyph { --g: 25px; font-size: 12px; margin: 0 }
+
+.nd__title { position: absolute; left: 18px; top: 217px; width: 454px; height: 55px; display: flex; align-items: center }
+.nd__title h2 { width: 440px; margin: 0; font: 400 40px/38px var(--font-display); text-transform: uppercase; white-space: nowrap; overflow: hidden }
+
+/* level tabs: LB | 3 tabs | RB, 454x29 at card (18,283) */
+.nd__tabs { position: absolute; left: 18px; top: 283px; width: 454px; height: 29px; display: flex; align-items: center; justify-content: space-between }
+.nd__tabs .glyph { --g: 29px; margin: 0; font-size: 13px }
+/* tabs: stroke #acacbb 50% 1 px inside; Lv tabs 86.67 wide gap 9 (pager 278), Tier tabs 96 gap 8 (304); viewing = fill #f4dd2f */
+.nd__pager { display: flex; gap: 9px }
+.nd__pager.is-wide { gap: 8px }
+.nd__pager span { width: 86.67px; height: 28px; display: grid; place-items: center; box-sizing: border-box; box-shadow: inset 0 0 0 1px rgb(172 172 187 / .5);
+  font: 700 20px/22px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb; cursor: pointer }
+.nd__pager.is-wide span { width: 96px }
+.nd__pager span.is-on { background: #f4dd2f; box-shadow: none; color: #16181f }
+.nd__pager span:not(.is-on):hover { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }
+
+/* info panel 454 wide at card (18,276) h340; with tabs (18,329) h287 */
+.nd__panel { position: absolute; left: 18px; top: 276px; width: 454px; height: 340px; box-sizing: border-box; padding: 20px 20px 0;
+  background: rgb(22 24 31 / .47); box-shadow: inset 0 0 0 1px #454545; overflow: hidden }
+.nd.has-tabs .nd__panel { top: 329px; height: 287px; padding-top: 8px }
+.nd__stack { display: flex; flex-direction: column; gap: 12px; width: 414px }
+.nd-div { display: block; height: 1px; background: #3a3d4f }
+.nd-desc, .nd-fx p { margin: 0; font: 600 15px/20px var(--font-ui); color: #c1c1c1 }
+.nd-row { display: flex; justify-content: space-between; align-items: center; min-height: 20px; font: 600 15px/20px var(--font-ui); color: #8a8f9c }
+.nd-row b { font-weight: 600; color: #e5e5e5; text-align: right }
+.nd-row--keys b { display: flex; align-items: center; gap: 6px; color: #e6e6e6 }
+.nd-row--keys .glyph { --g: 29px; margin: 0; font-size: 12px }
+.nd-row--keys i { font-style: normal }
+.nd-fx { display: flex; flex-direction: column; align-items: flex-start; gap: 9px }
+.nd-fx__tag { padding: 2px 8px 1px; font: 600 17px/17px var(--font-ui); letter-spacing: -.37px; text-transform: uppercase; color: #16181f; background: #3fd28b }
+.nd-fx--flaw .nd-fx__tag { background: #ff4060 }
+.nd-fx--flaw p { color: #ff8a9b }
+.nd-fx .nd-num { font-weight: inherit; color: #3fd28b }
+.nd-fx .nd-num--cond { color: #f4dd2f }
+
+/* actions at card (22,645): CTA + hints, gap 20 */
+.nd__actions { position: absolute; left: 22px; top: 645px; display: flex; align-items: center; gap: 20px }
+/* CTA = Accept Button / 06 Pill Primary 210x45 (label Modi 22.5); owned Attribute = Style=Done 240x45 */
+/* fills: #f6df2f · linear #f2df57 0 / #f3ad3b 82% / #f2df57 98% (handle 36,785 -> 164,889) · #000 10%; stroke #000 0.75 inside; no radius */
+.nd__cta { min-width: 210px; width: 210px; --cta-h: 45px; height: 45px; border-radius: 0; box-shadow: inset 0 0 0 .75px #000 }
+.nd__cta .btn-cta__grad { border-radius: 0; background: linear-gradient(rgb(0 0 0 / .1), rgb(0 0 0 / .1)), linear-gradient(129.5deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%), #f6df2f }
+.nd__cta .btn-cta__tex { display: none }
+.nd__cta .btn-cta__label { color: #141415; text-shadow: none }
+.nd__cta.btn-cta--detail .btn-cta__label, .nd__cta.btn-cta--detail.is-done .btn-cta__label, .nd__cta.btn-cta--detail.is-locked .btn-cta__label { font-size: 22.5px; letter-spacing: .45px }
+/* Style=Done: fill #16181f, stroke #3a3d4f 1 px, 240x45 */
+.nd__cta.is-done, .nd__cta.is-locked { min-width: 240px; width: 240px; border-radius: 0; background: #16181f; box-shadow: inset 0 0 0 1px #3a3d4f }
+.nd__hints { display: flex; align-items: center; gap: 20px }
+.nd__hints .hint-inline { display: flex; align-items: center; gap: 8px; font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5 }
+.nd__hints .glyph { --g: 25px; font-size: 12px; margin: 0 }
+
+/* Video Skill Preview (Figma 837:100435), 912x581 centred on a 80% black screen:
+   title Modi 24/25 #cecece at (0,0) · player 912x513 at (0,34), stroke #5b5b5b 3 px inside · time pill 120x30 r15 #000 70% at (16,503) · hint at (0,556) */
+.nd-video { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; z-index: 9000; background: rgb(0 0 0 / .8); animation: nd-vid-in .16s ease-out }
+@keyframes nd-vid-in { from { opacity: 0 } }
+.nd-video__panel { position: absolute; left: 504px; top: 250px; width: 912px; height: 581px }
+.nd-video__title { position: absolute; left: 0; top: 0; margin: 0; font: 400 24px/25px var(--font-display); text-transform: uppercase; color: #cecece }
+.nd-video__player { position: absolute; left: 0; top: 34px; width: 912px; height: 513px; overflow: hidden }
+.nd-video__player > img, .nd-video__player > video { width: 100%; height: 100%; object-fit: cover; display: block }
+.nd-video__player::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px #5b5b5b; pointer-events: none }
+.nd-video__time { position: absolute; left: 16px; top: 469px; width: 120px; height: 30px; box-sizing: border-box; padding-left: 23px; display: flex; align-items: center;
+  border-radius: 15px; background: rgb(0 0 0 / .7); font: 500 15px/1 var(--font-ui); color: #fff }
+.nd-video__hints { position: absolute; left: 0; top: 556px; display: flex; gap: 20px }
+.nd-video__hints .hint-inline { display: flex; align-items: center; gap: 8px; font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5; cursor: pointer }
+.nd-video__hints .glyph { --g: 25px; font-size: 12px; margin: 0 }

@@ -29,6 +29,53 @@
     n + sum(attrs[a.key] || []) - (attrs[a.key] ? sum(a.subs.map(s => s[1])) : 0), 0), 0);
   const pts = () => Math.max(0, (P() ? P().attrTotal() : 0) - invested());
   const HOLD_MS = 900;
+
+  // ---- bonuses from other systems (added on top of a sub-stat; they don't use points or count toward the cap)
+  // Generic: any system can feed bonuses through MTX_ATTR_BONUS.register(id, feed), where
+  //   feed = { label: "Skill Tree", color: "#e2629a", entries(ctx) -> [{ sub: "Punch Power", value: 5, detail: "Punch Power node" }] }
+  //   ctx  = { styleId }   (sub = sub-stat name, same in every style; detail is optional)
+  // This screen only lists { label, value } per source, so a system can change its data shape freely
+  // as long as its feed still returns entries. Skill Tree and Mastery below are just two feeds.
+  const FEEDS = new Map();
+  window.MTX_ATTR_BONUS = {
+    register(id, feed) { FEEDS.set(id, feed); if (api?.getCur?.() === "attributes") renderAttr(); },
+    unregister(id) { FEEDS.delete(id); },
+    feeds: () => [...FEEDS.keys()]
+  };
+
+  // Feed: Skill Tree. Owned Attribute nodes (v5 data, wiki "Skill Tree PhraNakorn"): node.bonus = [{ stat, value }].
+  // Wiki stat names match the sub-stat names except these.
+  const TREE_SUB = { "Block Gauge": "Block Strength" };
+  window.MTX_ATTR_BONUS.register("skilltree", {
+    label: "Skill Tree", color: "#e2629a",
+    entries() {
+      const tree = window.MTX_SCREENS.skilltree, T = window.MTX_TREE;
+      if (!tree?.getOwned || !T) return [];
+      const own = tree.getOwned(), out = [];
+      T.nodes.forEach(n => {
+        if (n.kind !== "attribute" || !own.has(n.id)) return;
+        (n.bonus || []).forEach(b => out.push({ sub: TREE_SUB[b.stat] || b.stat, value: b.value, detail: n.name }));
+      });
+      return out;
+    }
+  });
+
+  // Feed: Mastery. TEMPORARY placeholder: Mastery is being reworked and has no attribute bonus data yet.
+  // On the rework, replace (or re-register "mastery" from the Mastery code) with the real feed; nothing else here changes.
+  // [Style Level reached, sub-stat, amount]
+  const MASTERY_PLACEHOLDER = [
+    [2, "Knee Power", 2], [2, "Kick Power", 3], [2, "Head Armor", 3],
+    [3, "Strike Speed", 3], [3, "Stamina Regeneration", 3],
+    [4, "Punch Power", 3], [4, "Critical Rate", 3], [4, "Max Stamina", 5],
+    [5, "Damage Reduction", 5], [5, "DSM Charge", 5], [5, "Combo Power", 5]
+  ];
+  window.MTX_ATTR_BONUS.register("mastery", {
+    label: "Mastery", color: "#f6df2f",
+    entries({ styleId }) {
+      const lv = window.MTX_PLAYER?.styleOf?.(styleId)?.level || 1;
+      return MASTERY_PLACEHOLDER.filter(([l]) => l <= lv).map(([l, sub, v]) => ({ sub, value: v, detail: "Style Lv " + String(l).padStart(2, "0") }));
+    }
+  });
   let hold = null;   // MTX_UI.createHold, made in init
   //#endregion
 
@@ -81,6 +128,18 @@
     persist();
     if (api.getCur() === "attributes") renderAttr();
   }
+
+  // bonus list of one sub-stat, from every registered feed: [{ label, color, value, detail }]
+  function bonusOf(subName) {
+    const ctx = { styleId: styleId() }, out = [];
+    FEEDS.forEach(feed => {
+      let list = [];
+      try { list = feed.entries(ctx) || []; } catch (e) { console.warn("attr bonus feed failed", e); }
+      list.forEach(e => { if (e.sub === subName && e.value) out.push({ label: feed.label, color: feed.color, value: e.value, detail: e.detail || "" }); });
+    });
+    return out;
+  }
+  const bonusSum = list => sum(list.map(b => b.value));
 
   const attrValue = key => sum(values()[key]) + pendingIn(key);
   const overallValue = () => sum(KEYS.map(attrValue)) / KEYS.length;
@@ -166,6 +225,8 @@
       const pv = Math.min(100, v), pg = Math.min(100 - pv, g);
       const canAdd = left > 0 && !atCap && !full && v + g < SUB_MAX, canRemove = g > 0;
       const G = api.getGlyphs?.()[api.getDevice?.()] || {};
+      // additional value from other sources (registered feeds): red "+N" after the value, total only
+      const bl = bonusOf(n), bn = bonusSum(bl);
       return `<a class="attr-row focus-ring" data-nav data-id="a${i}" data-fn="upgradeAttr">` +
         `<span class="attr-row__name">${n}</span>` +
         `<span class="attr-row__bar"><i class="attr-row__fill" style="width:${pv}%"></i><i class="attr-row__gain" style="width:${pg}%"></i><i class="attr-row__rest"></i>` +
@@ -174,6 +235,7 @@
         `<span class="glyph attr-row__key${canRemove ? "" : " is-off"}" data-btn="dl" aria-hidden="true">${G.dl || "A"}</span>` +
         `<span class="attr-row__value">${v + g}</span>` +
         `<span class="glyph attr-row__key${canAdd ? "" : " is-off"}" data-btn="dr" aria-hidden="true">${G.dr || "D"}</span></span>` +
+        `<span class="attr-row__bonus">${bn ? `<em class="attr-bonus">+${bn}</em>` : ""}</span>` +
         `<span class="attr-row__gaintag">${g ? "+" + g : ""}</span></a>`;
     }).join("");
 

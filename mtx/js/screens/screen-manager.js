@@ -308,7 +308,7 @@
   }
 
   function fmtDate(d) {
-    return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
+    return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0, 3)}`;
   }
 
   function saveSponsorStage() {
@@ -380,7 +380,7 @@
     const host = api.bind("calDays");
     if (!host) return;
     api.bind("calMonth").textContent = MONTHS[simDate.getMonth()];
-    api.bind("calYear").textContent = simDate.getFullYear();
+
     let html = "";
     for (let i = -3; i <= 3; i++) {
       const d = new Date(simDate);
@@ -945,7 +945,7 @@
         renderCalendar();
         renderCards();
 
-        const dateStr = `${DAYS_SHORT[simDate.getDay()]}, ${MONTHS[simDate.getMonth()].slice(0, 3)} ${simDate.getDate()}, ${simDate.getFullYear()}`;
+        const dateStr = `${DAYS_SHORT[simDate.getDay()]}, ${MONTHS[simDate.getMonth()].slice(0, 3)} ${simDate.getDate()}`;
         api.toast(`Day simulated · ${dateStr}`);
         api.log(`Simulate day: ${dateStr} · Fitness ${fitness}`, "action");
 

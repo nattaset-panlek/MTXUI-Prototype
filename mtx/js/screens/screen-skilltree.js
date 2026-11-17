@@ -4,6 +4,13 @@
   //#region [Variables/Fields]
   let api = null;
   const TREE = window.MTX_TREE || { nodes: [], edges: [] };
+  // granted DSM (user 2026-11-17): given to the player for free, sits under Core, no links, never bought or upgraded.
+  // Added here, not in skilltree-data.js (generated file). base = owned from the start; granted = not the Core.
+  if (TREE.nodes.length && !TREE.nodes.some(n => n.granted)) TREE.nodes.push({
+    id: "pn_dsm_granted", kind: "decisive", type: "dsm", wikiType: "DSM", usage: "Trigger Use", tag: "attack", base: true, granted: true,
+    x: 0, y: 140, tier: 1, icon: "mtx/assets/svg/skill/thai_dsm_a.svg", name: "Hak Nguang Aiyara", th: "หักงวงไอยรา",
+    desc: "Granted with the style: a trap-and-break on the opponent's arm. Not bought or upgraded in the tree.",
+    stats: { baseDamage: 90, damagePart: "Elbow 50% / Knee 50%", placeholder: true } });
   const TN = new Map(TREE.nodes.map(n => [n.id, n]));
   const PARENTS = new Map(TREE.nodes.map(n => [n.id, []]));
   const CHILDREN = new Map(TREE.nodes.map(n => [n.id, []]));
@@ -15,7 +22,8 @@
   });
 
   const TYPE_NAME = { root: "Style core", stat: "Attribute", tier: "Technique", perk: "Perk", dsm: "DSM technique", sgm: "SGM", spe: "SPE" };
-  const TYPE_COLOR = { root: "#ed153f", stat: "#e2629a", tier: "#e5e5e5", perk: "#e5e5e5", dsm: "#ed153f", sgm: "#3d7fe0", spe: "#2fb07a" };
+  // type colours = Node Detail card (Figma 833:93841); root follows the style colour
+  const TYPE_COLOR = { root: "#ed153f", stat: "#3fd28b", tier: "#e5e5e5", perk: "#e5e5e5", dsm: "#ff4060", sgm: "#4da3ff", spe: "#c7f029" };
   // perk kind by wiki tag (same names / colours as the Tactical Loadout info card)
   const PERK_KIND = { defend: ["Defend perk", "#4da3ff"], attack: ["Attack perk", "#ff4060"], sustain: ["Sustain perk", "#3fd28b"] };
   // perk frame per level = MTX / Perk Frame 719:80514 (1 silver 719:80512, 2 copper 719:80511, 3 gold 719:80513), grid sizes from the loadout
@@ -24,6 +32,7 @@
   const LV_FRAME = { 1: 2, 2: 1, 3: 3 };
   const PERK_FRAME = { 1: [122, 122, 96, 94], 2: [119, 116, 96, 94], 3: [128, 124, 84, 82] };   // by frame file
   const PERK_SCALE = 0.74;
+  const PERK_FRAME_SVG = { 1: [124, 122], 2: [120, 117], 3: [129, 124] };   // svg viewBox sizes of perk-frame-N (detail card)
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   let skillTotal = 10;
@@ -54,45 +63,13 @@
   const ROOT_DY = -30;
   const THAI_NUM = ["๑", "๒", "๓", "๔", "๕", "๖", "๗", "๘", "๙"];
 
-  const SKILL_INFO = {
-    "DSM Default": ["Phra Nakorn core", "The root of the Phra Nakorn style. Every branch of the tree starts here."],
-    "Block Gauge": ["Block Gauge", "Raises the block gauge so your guard holds through longer combos."],
-    "Max Stamina": ["Max Stamina", "Increases maximum stamina for longer exchanges."],
-    "Critical Damage": ["Critical Damage", "Critical hits deal extra damage."],
-    "Stamina Regeneration": ["Stamina Regeneration", "Stamina comes back faster between exchanges."],
-    "Finesse Counter": ["Finesse Counter", "A clean counter after a successful parry deals bonus damage."],
-    "Restorative Breath": ["Restorative Breath", "Recover stamina while holding your guard in the pocket."],
-    "Max Stamina Efficiency": ["Max Stamina Efficiency", "Strikes cost less stamina while it is above half."],
-    "SGM": ["Signature Move", "Unlocks a signature move slot for this branch."],
-    "SPE": ["Special", "Unlocks a special technique slot for this branch."],
-    "Combo Stamina Efficiency": ["Combo Stamina Efficiency", "Combos of three hits or more cost less stamina."],
-    "Hop Stamina Efficiency": ["Hop Stamina Efficiency", "Switch-steps and hops cost less stamina."],
-    "Combo Power": ["Combo Power", "Each hit in a combo deals more damage than the last."],
-    "Triple Rhythm Press": ["Triple Rhythm Press", "A three-beat pressure pattern that breaks the opponent's timing."],
-    "Fluid Evasion": ["Fluid Evasion", "Wider evasion window when slipping straight punches."],
-    "Knee Power": ["Knee Power", "Knees deal more damage, more again in the clinch."],
-    "Punch Power": ["Punch Power", "Punches deal more damage."],
-    "Tiger Trap": ["Tiger Trap", "Bait a kick, catch it, and sweep the standing leg."],
-    "Counter-Catch Pivot": ["Counter-Catch Pivot", "Catch a body kick and pivot out to the open side."],
-    "Relentless Assault": ["Relentless Assault", "Keep pressing forward: every landed strike lowers the opponent's guard."],
-    "Elbow Power": ["Elbow Power", "Elbows deal more damage and cut more often."],
-    "Steadfast Focus": ["Steadfast Focus", "Stun lasts less and you recover your stance sooner."],
-    "Defensive Breaker": ["Defensive Breaker", "Strikes into a raised guard drain more block gauge."],
-    "Three-Step Pacing": ["Three-Step Pacing", "Step-in, step-out footwork that resets range after every exchange."],
-    "Alternating Breaker": ["Alternating Breaker", "Alternate high and low strikes to crack a closed guard."],
-    "Against All Odds": ["Against All Odds", "Deal more damage while your health is low."],
-    "Warcry": ["Warcry", "A shout between rounds that restores morale and some stamina."],
-    "Flawless Execution": ["Flawless Execution", "A perfect-timing strike deals 1000 damage to the enemy instantly."],
-  };
-
-  const DSM_INFO = {
-    "มอญยันหลัก": ["Mon Yan Lak", "\"The Mon holds up the pillar\": a straight push kick that stops the rush and opens the counter."],
-    "สลับฟันปลา": ["Salab Fan Pla", "\"Fish-tooth zigzag\": slip off the line on the diagonal and answer from the blind side."],
-    "จระเข้ฟาดหาง": ["Chorakhe Fad Hang", "\"The crocodile whips its tail\": a spinning back kick that ends the exchange."],
-  };
-
-  const KIND = { root: "Style core", stat: "Attribute", tier: "Technique", dsm: "Decisive move", sgm: "Signature move", spe: "Special" };
-  const ROMAN = ["", "I", "II", "III"];
+  // v5 data (wiki "Skill Tree PhraNakorn"): node.kind = core | attribute | perk | decisive | signature | special
+  const KIND_LABEL = { core: "Style core", attribute: "Attribute", perk: "Perk", decisive: "Decisive Move", signature: "Signature Move", special: "Special Move" };
+  const FAMILIES = TREE.families || {};
+  const isMove = n => n.kind === "decisive" || n.kind === "signature" || n.kind === "special";
+  // tree / toast name: decisive tiers carry their tier ("Mon Yan Lak T1")
+  const nodeLabel = n => n.kind === "decisive" ? `${n.name} T${n.tier}` : n.name;
+  let coreName = "Phra Nakorn core";
   let detailOpen = null;
 
   const HOLD_DURATION = 1750;
@@ -163,8 +140,9 @@
 
   function init(coreApi) {
     api = coreApi;
+    api.screens?.skilltree?.addEventListener("wheel", wheelCamera, { passive: false });
     const ph = api.bind("skillDetail");
-    if (ph && window.MTX_UI?.skillInfo) ph.outerHTML = window.MTX_UI.skillInfo.html({ attrs: 'data-bind="skillDetail" hidden', bind: true, primary: "Unlock", secondary: "Remove", cta: true });
+    if (ph && window.MTX_UI?.nodeDetail) ph.outerHTML = window.MTX_UI.nodeDetail.html({ attrs: 'data-bind="skillDetail" hidden' });
     hold = window.MTX_UI.createHold({
       ms: HOLD_DURATION,
       steps: 4,
@@ -211,9 +189,8 @@
   }
 
   function onStyleChanged(style) {
-    if (SKILL_INFO["DSM Default"]) SKILL_INFO["DSM Default"][0] = `${style.title} core`;
+    coreName = `${style.title} core`;
     TYPE_COLOR.root = style.color;
-    TYPE_COLOR.dsm = style.color;
     if (api?.screens?.skilltree?.classList?.contains?.("is-active")) updateTree();
   }
 
@@ -275,32 +252,66 @@
       TREE.nodes.some(n => owned.has(n.id) && !n.base && n.y > GATES[i] && (GATES[i + 1] === undefined || n.y < GATES[i + 1]))));
     const pts = api.bind("skillPts");
     if (pts) pts.textContent = skillPts;
-    if (api.focused && api.focused.classList.contains("tnode")) renderNodeInfo(api.focused.dataset.id);
+    const f = api.getFocused?.();
+    if (f && f.classList.contains("tnode")) renderNodeInfo(f.dataset.id);
   }
 
-  // level tab the panel opens on: the next level to buy, or the top level when maxed
-  const defaultViewLv = id => Math.min(lvOf(id) + 1, maxLv(TN.get(id)));
+  // tabs in the detail card: perk Lv 1-3, decisive Tier 1-3 (the family's tier nodes); others none
+  // Skill Tree: a Decisive node shows only itself (no Tier tabs; each tier is its own node, bought on its own) - user 2026-11-17
+  const tierIds = n => n?.kind === "decisive" ? [n.id] : null;
+  const tabCount = n => n?.levels ? maxLv(n) : 0;   // only perks have Lv tabs
+  // tab the card opens on: perk = next level to buy (top when maxed), decisive = the node's own tier
+  const defaultViewLv = id => {
+    const n = TN.get(id);
+    return n?.kind === "decisive" ? 1 : Math.min(lvOf(id) + 1, maxLv(n));
+  };
 
-  // RS: next perk level tab (wraps 3 -> 1)
-  function detailLevel() {
-    const n = TN.get(detailOpen);
-    if (!n?.levels) return false;
+  // LB / RB (step -1 / +1): previous / next Lv or Tier tab, wraps; RS (no step) = next
+  function detailLevel(step = 1) {
+    const n = TN.get(detailOpen), k = tabCount(n);
+    if (!k) return false;
     cancelUnlockHold();
-    viewLv = viewLv % maxLv(n) + 1;
+    viewLv = (viewLv - 1 + step + k) % k + 1;
     renderDetail();
     api.rumble(30, 0.15);
     return true;
   }
 
-  // click a level tab (Lv 1-3) to view it
+  // click a level tab to view it
   function setViewLevel(k) {
     const n = TN.get(detailOpen);
-    if (!n?.levels || k < 1 || k > maxLv(n) || k === viewLv) return false;
+    if (k < 1 || k > tabCount(n) || k === viewLv) return false;
     cancelUnlockHold();
     viewLv = k;
     renderDetail();
     return true;
   }
+
+  // what the card's CTA acts on for the tab shown: { id, lv } = buy level lv of node id
+  function viewTarget() {
+    const n = TN.get(detailOpen);
+    if (n?.kind === "decisive") return { id: tierIds(n)[viewLv - 1] || n.id, lv: 1 };
+    return { id: detailOpen, lv: n?.levels ? viewLv : 1 };
+  }
+
+  // Y on a move (card with the VIDEO badge): Video Panel over the screen (Figma 827:93068); Y / B close it
+  const V = () => window.MTX_UI.nodeDetail.video;
+  function detailVideo() {
+    if (V().isOpen()) { closeVideo(); return true; }
+    const n = TN.get(detailOpen);
+    if (!n || !isMove(n)) return false;
+    cancelUnlockHold();
+    V().open(api.screens.skilltree, { name: n.name, kind: n.kind, label: KIND_LABEL[n.kind], src: n.video || "" });
+    api.rumble(30, 0.15);
+    return true;
+  }
+  function closeVideo() {
+    if (!V().isOpen()) return false;
+    V().close();
+    api.rumble(20, 0.1);
+    return true;
+  }
+  const isVideoOpen = () => !!window.MTX_UI?.nodeDetail?.video.isOpen();
 
   function openDetail(id) {
     cancelUnlockHold();
@@ -314,6 +325,7 @@
 
   function closeDetail() {
     cancelUnlockHold();
+    window.MTX_UI?.nodeDetail?.video.close();
     detailOpen = null;
     api.bind("skillDetail").hidden = true;
     api.screens.skilltree.classList.remove("has-detail");
@@ -327,16 +339,15 @@
 
   function isHoldToUnlockReady() {
     if (api.store.get("unlockInput", "hold") !== "hold") return false;
-    if (api.getCur() !== "skilltree" || !detailOpen) return false;
-    const n = TN.get(detailOpen), lv = lvOf(detailOpen);
-    if (!n || n.base || lv >= maxLv(n)) return false;
-    if (n.levels && viewLv !== lv + 1) return false;   // only the tab of the next level can be bought
-    return true;
+    if (api.getCur() !== "skilltree" || !detailOpen || isVideoOpen()) return false;   // video preview open: no unlock hold
+    const { id, lv } = viewTarget(), n = TN.get(id);
+    if (!n || n.base || lvOf(id) >= maxLv(n)) return false;
+    return lv === lvOf(id) + 1;   // only the next level (perk) / an unowned tier or node can be bought
   }
 
   function startUnlockHold(source) {
     if (!isHoldToUnlockReady()) return false;
-    const id = detailOpen, n = TN.get(id);
+    const { id } = viewTarget(), n = TN.get(id);
     if (!canLevelUp(id)) {
       api.rumble(120, 0.2);
       api.toast("Locked · unlock a connected skill first");
@@ -357,89 +368,140 @@
 
   // the hold was let go: the label goes back to what the node allows; notify = "Hold A for 1.75s" hint
   function onUnlockCancel({ notify }) {
-    const btn = api.bind("sdPrimary");
-    const label = btn?.querySelector(".tl-info__label");
-    if (label && detailOpen) label.textContent = primaryLabel(detailOpen);
+    const label = api.bind("sdPrimary")?.querySelector(".tl-info__label");
+    if (label && detailOpen) label.textContent = ctaOf().label;
     if (notify) window.MTX_UI.holdHint("unlock (1.75s)");
   }
 
-  // CTA text for the node / perk level tab shown in the panel
-  function primaryLabel(id) {
-    const n = TN.get(id), lv = lvOf(id);
-    if (n?.base) return "Core";
-    if (n?.levels) {
-      if (viewLv <= lv) return "Unlocked";
-      return viewLv === lv + 1 && canLevelUp(id) ? "Unlock" : "Locked";
+  // CTA for the tab shown (Figma 833:93841): not owned = Unlock (or Locked); owned Attribute = Unlocked (passive),
+  // owned move / perk = Equip; core = Core
+  function ctaOf() {
+    const { id, lv } = viewTarget(), n = TN.get(id);
+    if (!n) return { label: "", state: "locked" };
+    if (n.base && !n.granted) return { label: "Core", state: "done" };
+    if (lv <= lvOf(id)) return n.kind === "attribute" ? { label: "Unlocked", state: "done" } : { label: equipped.has(id) ? "Equipped" : "Equip", state: equipped.has(id) ? "done" : "equip" };
+    return lv === lvOf(id) + 1 && canLevelUp(id) ? { label: "Unlock", state: "ready" } : { label: "Locked", state: "locked" };
+  }
+
+  // every unlock / level up: a light ring spreads from the node through the tier ornament (masked to its lines; user 2026-11-17)
+  const vfxOff = k => api?.screens?.skilltree?.classList.contains("no-vfx-" + k);   // Dev > Skill tree VFX toggles
+  function yantraRipple(id) {
+    requestAnimationFrame(() => nodeForge(id));
+    if (vfxOff("ripple") || vfxOff("ornament")) return;   // after updateTree, so the burst copies the new (owned) face
+    const orn = api.$("#s-skilltree .tree__yantra"), n = TN.get(id);
+    if (!orn || !n || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // the ornament and its ripples are shifted by the parallax (--plx on the camera), so take it off to land on the node (user 2026-11-17)
+    const plx = parseFloat(api.bind("treeCamera")?.style.getPropertyValue("--plx")) || 0;
+    const cx = n.x - parseFloat(orn.style.left), cy = n.y + (n.type === "root" ? ROOT_DY : 0) - parseFloat(orn.style.top) - plx;
+    const r = document.createElement("i");
+    r.className = "tree__ripple";
+    r.style.setProperty("--cx", cx + "px");
+    r.style.setProperty("--cy", cy + "px");
+    ["left", "top", "width", "height"].forEach(k => r.style[k] = orn.style[k]);   // own layer (screen blend), same box as the ornament
+    r.addEventListener("animationend", () => r.remove());
+    orn.after(r);
+  }
+
+  // node "forge" hit on unlock / level up: flat flash + one focus-ring copy that grows and fades; no sparks / glow (user 2026-11-17)
+  function nodeForge(id) {
+    if (vfxOff("forge")) return;
+    const t = api.$(`#s-skilltree .tnode[data-id="${id}"]`), ring = t?.querySelector(".tnode__focus");
+    if (!t || !ring || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // perks scale with the level just bought (user 2026-11-17): Lv N = N ring blinks (beats, no growing), stronger flash
+    const lv = TN.get(id)?.levels ? Math.max(1, lvOf(id)) : 1;
+    t.dataset.forge = lv;
+    t.classList.remove("is-forged"); void t.offsetWidth; t.classList.add("is-forged");
+    setTimeout(() => t.classList.remove("is-forged"), 500 + lv * 120);
+    const kill = e => e.target.remove();
+    for (let k = 0; k < lv; k++) {   // one ring per level (non-perk = 1)
+      const b = ring.cloneNode(false);
+      b.className = "tnode__focus tnode__burst";   // keeps the ring shape / size rules of the focus ring
+      b.style.animationDelay = k * 0.2 + "s";   // beats: ting, ting, ting
+      b.addEventListener("animationend", kill);
+      t.appendChild(b);
     }
-    return lv ? "Unlocked" : canUnlock(id) ? "Unlock" : "Locked";
+    // perk Lv 2-3 extras (added on top, flat, no glow): Lv 2 = 4 shards, Lv 3 = 8 shards + a diamond outline that opens out
+    // shards removed (user 2026-11-17)
+    if (lv >= 3) {
+      const o = document.createElement("i");
+      o.className = "tnode__opening";
+      o.addEventListener("animationend", kill);
+      t.appendChild(o);
+    }
   }
 
   function finishUnlockHold(id) {
     lastUnlockTime = performance.now();
     const n = TN.get(id), lv = lvOf(id) + 1;
     owned.set(id, lv);
+    yantraRipple(id);
     if (detailOpen === id && n.levels) viewLv = defaultViewLv(id);   // next level tab: the same Unlock CTA buys it
     updateTree();
     renderDetail();
     api.rumble(150, 0.6);
-    api.toast(n.levels ? `${skillMeta(n).name} Lv ${lv} unlocked` : `${skillMeta(n).name} unlocked`);
+    api.toast(n.levels ? `${n.name} Lv ${lv} unlocked` : `${nodeLabel(n)} unlocked`);
   }
 
   function detailPrimary() {
-    const id = detailOpen, n = TN.get(id), lv = lvOf(id);
-    if (n.base) {
-      api.toast(n.label + " · always unlocked");
+    const { id, lv: want } = viewTarget(), n = TN.get(id), lv = lvOf(id);
+    if (n.base && !n.granted) {
+      api.toast(coreName + " · always unlocked");
       return;
     }
-    if (n.levels && viewLv <= lv) { api.toast(`${skillMeta(n).name} Lv ${viewLv} already unlocked`); return; }
-    if (n.levels && viewLv > lv + 1) {
+    if (want <= lv) {
+      if (n.kind === "attribute") { api.toast(`${n.name} · passive, always active`); return; }
+      // Equip: prototype only marks it; the preset itself is built in Tactical Loadout
+      equipped.add(id);
+      renderDetail();
+      api.rumble(60, 0.3);
+      api.toast(`${nodeLabel(n)}${n.levels ? " Lv " + lv : ""} equipped`);
+      return;
+    }
+    if (want > lv + 1) {
       api.rumble(120, 0.2);
-      api.toast(`Locked · unlock Lv ${viewLv - 1} first`);
+      api.toast(`Locked · unlock Lv ${want - 1} first`);
       return;
     }
-    if (lv < maxLv(n)) {
-      if (!canLevelUp(id)) {
-        api.rumble(120, 0.2);
-        api.toast("Locked · unlock a connected skill first");
-        return;
-      }
-      const cost = costOf(n, lv + 1);
-      if (skillPts < cost) {
-        api.rumble(120, 0.2);
-        api.toast("No skill points left");
-        return;
-      }
-      if (api.store.get("unlockInput", "hold") === "confirm") {
-        const what = n.levels ? `${skillMeta(n).name} Lv ${lv + 1}` : skillMeta(n).name;
-        window.MTX_UI.dialog.open({
-          title: "Unlock skill?",
-          body: `Spend ${cost} Mastery point${cost === 1 ? "" : "s"} to unlock ${what}.`,
-          primary: "Unlock",
-          secondary: "Cancel",
-          onPrimary: () => finishUnlockHold(id)
-        });
-        return;
-      }
-      const glyph = api.getGlyphs()[api.getDevice()]?.a || "A";
-      api.toast(`Hold ${glyph} for 1.75s to unlock`);
+    if (!canLevelUp(id)) {
+      api.rumble(120, 0.2);
+      api.toast("Locked · unlock a connected skill first");
       return;
     }
-    api.toast(`${skillMeta(n).name} already unlocked`);
+    const cost = costOf(n, lv + 1);
+    if (skillPts < cost) {
+      api.rumble(120, 0.2);
+      api.toast("No skill points left");
+      return;
+    }
+    if (api.store.get("unlockInput", "hold") === "confirm") {
+      const what = n.levels ? `${n.name} Lv ${lv + 1}` : nodeLabel(n);
+      window.MTX_UI.dialog.open({
+        title: "Unlock skill?",
+        body: `Spend ${cost} Mastery point${cost === 1 ? "" : "s"} to unlock ${what}.`,
+        primary: "Unlock",
+        secondary: "Cancel",
+        onPrimary: () => finishUnlockHold(id)
+      });
+      return;
+    }
+    const glyph = api.getGlyphs()[api.getDevice()]?.a || "A";
+    api.toast(`Hold ${glyph} for 1.75s to unlock`);
   }
 
-  // X: takes the node down one level (a perk Lv 3 -> 2 ...); children whose link is no longer met are refunded too
+  // takes the node down one level (a perk Lv 3 -> 2 ...); children whose link is no longer met are refunded too.
+  // The Node Detail card has no Remove key (Figma 833:93841); kept for direct mode and the dev tools.
   function removeLevel(id) {
     const n = TN.get(id), lv = lvOf(id);
     if (!lv || n.base) return;
     const back = costOf(n, lv);
-    if (lv > 1) owned.set(id, lv - 1); else owned.delete(id);
+    if (lv > 1) owned.set(id, lv - 1); else { owned.delete(id); equipped.delete(id); }
     const extra = pruneInvalid();
     if (detailOpen === id && n.levels) viewLv = defaultViewLv(id);
     updateTree();
     renderDetail();
     api.rumble(60, 0.2);
     const pts = back + extra;
-    api.toast(`${skillMeta(n).name} ${n.levels ? (lv > 1 ? `down to Lv ${lv - 1}` : "removed") : "removed"} · ${pts} point${pts === 1 ? "" : "s"} refunded`);
+    api.toast(`${nodeLabel(n)} ${n.levels && lv > 1 ? `down to Lv ${lv - 1}` : "removed"} · ${pts} point${pts === 1 ? "" : "s"} refunded`);
   }
 
   function detailSecondary() {
@@ -447,6 +509,9 @@
   }
 
   function isLinked(a, b) {
+    // controller nav only (app.js rows mode): Core <-> granted DSM count as linked so D-pad down from Core lands on it; no line drawn
+    const g = id => TN.get(id)?.granted, c = id => TN.get(id)?.type === "root";
+    if ((g(a) && c(b)) || (c(a) && g(b))) return true;
     return !!(PARENTS.get(a)?.includes(b) || CHILDREN.get(a)?.includes(b));
   }
   //#endregion
@@ -458,7 +523,7 @@
     nodesEl.innerHTML = TREE.nodes.map(n => n.type === "root"
       ? `<a class="tnode tnode--root" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${n.y + ROOT_DY}px">
           <span class="tnode__focus" aria-hidden="true"></span><span class="node-core"><span class="node-core__circle"></span><span class="node-core__diamond"></span><img class="node-core__emblem" data-bind="coreEmblem" src="mtx/assets/svg/style-phranakhon-sel.svg" alt=""></span>
-          <span class="tnode__label">${esc(n.label)}</span></a>`
+          <span class="tnode__label">${esc(n.name)}</span></a>`
       : `<a class="tnode tnode--${n.type}" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${n.y}px${moveArt(n) ? `;--fm:url(${moveArt(n).replace(LO, "../assets/svg/loadout/")})` : ""}">
           <span class="tnode__focus" aria-hidden="true"></span>
           <span class="tnode__lock"></span>
@@ -466,7 +531,7 @@
           <span class="node"><span class="node__glow"></span><span class="node__shape"></span><span class="node__ring"></span><span class="node__lock"></span><span class="node__figure"></span></span>
           ${moveArt(n) ? `<span class="tnode__move"><img src="${moveArt(n)}" alt=""></span>` : ""}
           ${n.levels ? `<span class="tnode__perk"><img class="tnode__perk-frame" src="${LO}perk-frame-2.svg" alt=""><img class="tnode__perk-icon" src="${LO}perk-icon-${perkIcon(n)}.svg" alt=""></span>` : ""}
-          <span class="tnode__label">${esc(n.label)}${n.levels ? ' <em class="tnode__lv"></em>' : ""}</span></a>`).join("");
+          <span class="tnode__label">${esc(nodeLabel(n))}${n.levels ? ' <em class="tnode__lv"></em>' : ""}</span></a>`).join("");
 
     const octi = (a, b) => {
       const dx = b.x - a.x, dy = b.y - a.y, ax = Math.abs(dx), ay = Math.abs(dy);
@@ -482,18 +547,25 @@
     api.bind("treeFrames").innerHTML = hubs.map(cy => [240, 360, 480].map(r => `<path d="M0 ${cy - r}L${r * 1.15} ${cy}L0 ${cy + r}L${-r * 1.15} ${cy}Z"/>`).join("")).join("") +
       `<circle cx="0" cy="${ROOT_DY}" r="140"/>`;
 
-    const ORN = [["tl", -138, -139], ["tr", 138, -139], ["bl", -130, 148], ["br", 130, 148], ["top", 0, -246], ["bottom", 0, 246]];
-    api.bind("treeOrn").innerHTML = ORN.map(([k, x, y]) => `<img class="tree__orn" src="mtx/assets/svg/skill-orn-${k}.svg" alt="" style="left:${x * 0.6}px;top:${y * 0.6 + ROOT_DY}px;transform:translate(-50%,-50%) scale(.6)">`).join("");
+    // yantra script ornaments around the core (skill-orn-*.svg) removed on request (2026-11-17)
+    // Tier ornament strip (user image 2026-11-17, mtx/assets/skill-tree-yan.png (Yan PanakornTheme, 1513x4998; was skill-tree-bg.webp with the roosters), 5 motifs stacked): whole image, not sliced,
+    // spanning gate 1 -> tree end at 132 % (110 % then +20 %, user), centred on that span. Replaces the Tier 1 yantra.
+    const cam = api.bind("treeCamera");
+    if (cam && !cam.querySelector(".tree__yantra")) {
+      const span = maxY + 60 - GATES[0], h = Math.round(span * 1.32), w = Math.round(h * 1513 / 4998), top = GATES[0] + (span - h) / 2;
+      cam.insertAdjacentHTML("afterbegin", `<div class="tree__yantra" aria-hidden="true" style="left:${-w / 2}px;top:${top}px;width:${w}px;height:${h}px;background-size:100% 100%"></div>`);
+    }
     api.bind("treeGates").innerHTML = GATES.map((y, i) => `<div class="tree__gate" style="top:${y}px"><span>ขั้น ${THAI_NUM[i] || i + 1}</span></div>`).join("");
     const rail = api.bind("treeRail");
     if (rail) rail.innerHTML = GATES.map((y, i) => `<i style="top:${y / (maxY + 60) * 620 - 6}px"></i>`).join("") + "<b></b>";
   }
 
   // DSM / SPE owned face = the Tactical Loadout D-pad slot art (Decisive dc-slot, Special sp-slot); a / b art alternate
-  const MOVE_NODES = { dsm: TREE.nodes.filter(n => n.type === "dsm"), spe: TREE.nodes.filter(n => n.type === "spe") };
+  const MOVE_NODES = { dsm: TREE.nodes.filter(n => n.type === "dsm"), spe: TREE.nodes.filter(n => n.type === "spe"), sgm: TREE.nodes.filter(n => n.type === "sgm") };
   function moveArt(n) {
-    if (n.type === "dsm") return `${LO}dc-slot-${(/DSM_B/.test(Object.keys(n.extras).join()) ? "b" : "a")}.svg`;
+    if (n.type === "dsm") return `${LO}dc-slot-${n.family === "salabfanpla" ? "b" : "a"}.svg`;
     if (n.type === "spe") return `${LO}sp-slot-${MOVE_NODES.spe.indexOf(n) % 2 ? "b" : "a"}.svg`;
+    if (n.type === "sgm") return `${LO}sg-slot-${MOVE_NODES.sgm.indexOf(n) % 2 ? "b" : "a"}.svg`;
     return "";
   }
 
@@ -520,29 +592,55 @@
     const curStyle = tactical?.getSelStyle() || "phranakhon";
     api.bind("tiIcon").src = n.type === "root" ? `mtx/assets/svg/style-${curStyle}-sel.svg` : n.icon;
     api.bind("tiType").textContent = TYPE_NAME[n.type] || n.type;
-    api.bind("tiName").textContent = n.label;
+    api.bind("tiName").textContent = nodeLabel(n);
     const st = api.bind("tiState");
     st.className = "tree-info__state " + (own ? "is-owned" : ready ? "is-ready" : "is-locked");
     st.textContent = n.levels && own ? `Lv ${lv} / ${maxLv(n)}` : own ? "Unlocked" : ready ? "Ready to unlock" : "Locked";
     api.bind("tiStats").innerHTML = n.levels ? `<dt>Level</dt><dd>${lv} / ${maxLv(n)}</dd>`
-      : Object.entries(n.extras).map(([k, v]) => `<dt>${esc(k.replace(/_/g, " "))}</dt><dd>+${esc(v)}</dd>`).join("") || "<dt>No stat bonus</dt><dd></dd>";
-    api.bind("tiDesc").textContent = n.levels ? n.levels[Math.max(0, lv - 1)].fx : n.desc;
+      : (n.bonus || []).map(b => `<dt>${esc(b.stat)}</dt><dd>+${esc(b.value)}</dd>`).join("") || "<dt>No stat bonus</dt><dd></dd>";
+    api.bind("tiDesc").textContent = n.levels ? n.levels[Math.max(0, lv - 1)].desc : n.desc;
     const ps = PARENTS.get(id) || [];
     api.bind("tiReq").innerHTML = n.base ? '<li class="is-met">Starting node</li>'
-      : ps.map(p => `<li class="${owned.has(p) ? "is-met" : ""}">${esc(TN.get(p).label)}</li>`).join("") +
+      : ps.map(p => `<li class="${owned.has(p) ? "is-met" : ""}">${esc(nodeLabel(TN.get(p)))}</li>`).join("") +
         (ps.length > 1 ? `<li style="color:var(--text-dim)">${unlockRule === "all" ? "Needs all of these" : (ready ? "Requirement met (connected)" : "Needs any one connected")}</li>` : "");
     api.bind("tiAction").textContent = n.base ? "Always unlocked" : own ? "A · Remove (refunds this and dependent skills)"
       : ready ? (skillPts ? `A · Unlock (1 point, ${skillPts} left)` : "No skill points left") : "Unlock the required skills first";
   }
 
+  let plxPct = 45;
+  // Dev tools: ornament parallax amount in % of the camera move; re-applies to the focused node
+  function setParallax(pct) {
+    plxPct = Math.max(0, Math.min(80, +pct || 0));
+    const f = api?.getFocused?.();
+    if (f?.dataset?.id && TN.has(f.dataset.id)) focusCamera(f.dataset.id);
+  }
+
+  const CAM_H = 1080, CAM_TOP = 300, CAM_BOTTOM = 230;
+  const clampCam = ty => Math.max(Math.min(ty, CAM_TOP), CAM_H - CAM_BOTTOM - maxY);
+  let camTy = CAM_TOP;
+
+  // mouse wheel scrolls the tree camera freely (user 2026-11-17); the next focus move snaps back to the focused node
+  function wheelCamera(e) {
+    if (e.target.closest?.(".skill-detail, [data-bind='skillDetail']")) return;
+    e.preventDefault();
+    setCamera(clampCam(camTy - e.deltaY), null);
+  }
+
   function focusCamera(id) {
-    const n = TN.get(id), cam = api.bind("treeCamera");
-    if (!n || !cam) return;
-    const H = 1080, TOP = 300, BOTTOM = 230;
-    const ty = Math.max(Math.min(H / 2 + 20 - n.y, TOP), H - BOTTOM - maxY);
+    const n = TN.get(id);
+    if (!n) return;
+    setCamera(clampCam(CAM_H / 2 + 20 - n.y), n.y);
+  }
+
+  function setCamera(ty, railY) {
+    const cam = api.bind("treeCamera");
+    if (!cam) return;
+    camTy = ty;
     cam.style.transform = `translateY(${ty}px)`;
+    // parallax: the ornament (and its ripples) trails the camera at 70 % speed, so it reads as further back (user 2026-11-17)
+    cam.style.setProperty("--plx", Math.round(-ty * plxPct / 100) + "px");   // Dev > Ornament parallax (store treePlx, default 45 %)   // v1 parallax restored (user 2026-11-17): ornament 30 % slower, same timing as the camera
     const rail = api.$("#s-skilltree .tree-rail b");
-    if (rail) rail.style.top = n.y / (maxY + 60) * 620 + "px";
+    if (rail) rail.style.top = (railY ?? (CAM_H / 2 + 20 - ty)) / (maxY + 60) * 620 + "px";
   }
 
   function gateOf(y) {
@@ -560,123 +658,94 @@
     api.toast(`ขั้น ${THAI_NUM[g] || g + 1}`);
   }
 
-  function skillMeta(n) {
-    if (n.levels) {
-      const [kind] = PERK_KIND[n.tag] || ["Perk"];
-      return { name: n.label, desc: n.levels[0].fx, tier: lvOf(n.id), sub: kind, score: [150, 150, 250, 350][lvOf(n.id)] };
-    }
-    const tier = +((/Tier (\d)/.exec(n.label) || [])[1] || 0);
-    const base = n.label.replace(/\s*Tier \d$/, "");
-    if (n.type === "dsm") {
-      const thai = Object.keys(DSM_INFO).find(k => n.label.includes(k)), code = (/DSM ([ABC])/.exec(n.label) || [])[1];
-      const [name, desc] = DSM_INFO[thai] || [base, ""];
-      return { name, desc, tier, sub: `${thai} · DSM ${code} · Tier ${ROMAN[tier] || tier}`, score: [0, 350, 500, 700][tier] || 350 };
-    }
-    const [name, desc] = SKILL_INFO[base] || [base, n.desc];
-    const score = { root: 0, stat: 100, tier: [0, 150, 250, 350][tier], sgm: 400, spe: 450 }[n.type] ?? 150;
-    return { name, desc, tier, sub: tier ? `Tier ${ROMAN[tier]}` : KIND[n.type], score };
-  }
-
   // Mastery data for a move shown elsewhere (Character Customize > Style preset).
-  //   decisive  DSM family matched by name (Mon Yan Lak = DSM A ...), tiers I-III
-  //   signature / special  the tree's SGM / SPE slot nodes, by slot order
-  //   perk      technique family matched by name (Finesse Counter Tier 1-3 ...)
+  //   decisive  the family's tier nodes, matched by name (Mon Yan Lak = Tier 1-3)
+  //   signature / special  the tree node with that move name, else the slot node by slot order
+  //   perk      the perk node with that name (levels 1-3)
   // Returns null when the move is not part of the tree.
   function getMastery(cat, name, i) {
     const byY = (a, b) => a.y - b.y || a.x - b.x;
-    let nodes = [];
-    if (cat === "decisive") {
-      const thai = Object.keys(DSM_INFO).find(k => DSM_INFO[k][0] === name);
-      if (thai) nodes = TREE.nodes.filter(n => n.type === "dsm" && n.label.startsWith(thai)).sort(byY);
-    } else if (cat === "signature" || cat === "special") {
-      const slots = TREE.nodes.filter(n => n.type === (cat === "signature" ? "sgm" : "spe")).sort(byY);
-      if (slots.length) nodes = [slots[i % slots.length]];
-    } else if (cat === "perk") {
-      const p = TREE.nodes.find(n => n.levels && n.label === name);
+    if (cat === "perk") {
+      const p = TREE.nodes.find(n => n.levels && n.name === name);
       if (!p) return null;
-      const lv = lvOf(p.id), [kind] = PERK_KIND[p.tag] || ["Perk"];
+      const lv = lvOf(p.id);
       return {
-        kind, name: p.label, desc: p.levels[Math.max(0, lv - 1)].fx, code: "", icon: p.icon,
-        tiers: maxLv(p), owned: lv, level: lv, levels: p.levels, stats: [],
+        kind: "Perk", name: p.name, desc: p.levels[Math.max(0, lv - 1)].desc, code: "", icon: p.icon,
+        tiers: maxLv(p), owned: lv, level: lv, levels: p.levels, stats: p.cooldown ? [["Cooldown", p.cooldown + "s"]] : [],
         next: lv >= maxLv(p) ? "Fully unlocked" : canLevelUp(p.id) ? `Lv ${lv + 1} ready to unlock in Mastery Skill` : "Locked · unlock earlier skills first"
       };
     }
+    let nodes = [];
+    if (cat === "decisive") {
+      const fam = Object.values(FAMILIES).find(f => f.name === name);
+      if (fam) nodes = fam.tiers.map(id => TN.get(id));
+    } else if (cat === "signature" || cat === "special") {
+      const slots = TREE.nodes.filter(n => n.kind === cat).sort(byY);
+      const hit = slots.find(n => n.name === name) || slots[i % (slots.length || 1)];
+      if (hit) nodes = [hit];
+    }
     if (!nodes.length) return null;
-    const first = nodes[0], m = skillMeta(first);
-    const ownedTiers = nodes.filter(n => owned.has(n.id)).length;
-    const next = nodes.find(n => !owned.has(n.id));
-    const stats = {};
-    nodes.filter(n => owned.has(n.id)).forEach(n => Object.entries(n.extras).forEach(([k, v]) => { stats[k] = Math.max(stats[k] || 0, v); }));
-    const base = Object.keys(stats).length ? stats : first.extras;
+    const first = nodes[0], ownedN = nodes.filter(n => owned.has(n.id));
+    const top = ownedN.at(-1) || first, next = nodes.find(n => !owned.has(n.id)), st = top.stats || {};
+    const stats = first.kind === "decisive" ? [["Base Damage", st.baseDamage], ["Damage Part", st.damagePart]]
+      : [["Damage", st.damage], ["Target", st.target], ["Stamina", st.stamina]];
     return {
-      kind: KIND[first.type],
-      name: cat === "signature" || cat === "special" ? name : m.name,
-      desc: cat === "signature" || cat === "special"
-        ? `${m.desc} Slot ${(i % TREE.nodes.filter(n => n.type === first.type).length) + 1} of the Mastery tree.`
-        : m.desc,
-      code: first.type === "dsm" ? `DSM ${(/DSM ([ABC])/.exec(first.label) || [])[1]}` : "",
+      kind: KIND_LABEL[first.kind],
+      name: first.kind === "decisive" ? first.name : name,
+      desc: first.desc,
+      code: first.kind === "decisive" ? first.th : "",
       icon: first.icon,
       tiers: nodes.length,
-      owned: ownedTiers,
-      stats: Object.entries(base).map(([k, v]) => [k.replace(/_/g, " "), "+" + v]),
+      owned: ownedN.length,
+      stats: stats.filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]),
       next: next ? (canUnlock(next.id) ? "Ready to unlock in Mastery Skill" : "Locked · unlock earlier skills first") : "Fully unlocked"
     };
   }
 
-  // Long names ("Combo Stamina Efficiency") shrink until they fit the title's two lines.
-  function fitDetailTitle(el, text) {
-    el.textContent = text;
-    el.style.fontSize = el.style.lineHeight = "";
-    const limit = parseFloat(getComputedStyle(el).maxHeight) + 4; // glyphs overhang the line box by a few px
-    for (let size = 46; size > 26 && el.scrollHeight > limit; size -= 2) {
-      el.style.fontSize = size - 2 + "px";
-      el.style.lineHeight = Math.round((size - 2) * 38 / 46) + "px";
+  // highlight numbers in effect text (same look as the Tactical Loadout card)
+  // numbers green; numbers inside (...) are conditions: yellow (Figma 833:94092)
+  const fxHtml = t => esc(t).replace(/\([^)]*\)|[+-]?\d+(?:\.\d+)?%?/g, m => m[0] === "(" ? m.replace(/\d+(?:\.\d+)?%?/g, d => `<b class="nd-num nd-num--cond">${d}</b>`) : `<b class="nd-num">${m}</b>`);
+  const cap = s => s ? s[0].toUpperCase() + s.slice(1) : "";
+
+  // card content per node type (Figma Node Detail · Pack I 833:93841)
+  function detailModel(n) {
+    const tc = window.MTX_UI.nodeDetail.COLOR[n.kind];
+    const m = { kind: n.kind, label: KIND_LABEL[n.kind], name: n.name, video: isMove(n), tabs: null, rows: [], cta: ctaOf(),
+      hints: [["b", "Close"], ...(isMove(n) ? [["y", "Video"]] : [])] };
+    const st = n.stats || {};
+    if (n.kind === "core") {
+      m.name = coreName;
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Decisive Move", value: n.name }];
+    } else if (n.kind === "attribute") {
+      m.rows = [{ t: "desc", text: n.desc }, ...(n.bonus || []).map(b => ({ t: "row", label: b.stat, value: "+" + b.value, color: tc }))];
+    } else if (n.kind === "perk") {
+      const L = n.levels[viewLv - 1];
+      m.tabs = { labels: n.levels.map(l => "Lv " + l.lv), view: viewLv, owned: lvOf(n.id) };
+      // frame follows the Lv tab shown, same art as the tree node (Lv 1 copper, Lv 2 silver, Lv 3 gold); gold = Figma 200x194
+      const fk = LV_FRAME[viewLv], [fw, fh] = PERK_FRAME_SVG[fk], k = 194 / 124;
+      m.frame = { src: `${LO}perk-frame-${fk}.svg`, w: Math.round(fw * k), h: Math.round(fh * k) };
+      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff) }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: esc(L.flaw) }] : []),
+        { t: "row", label: "Cooldown", value: n.cooldown ? n.cooldown + "s" : "-" }];
+    } else if (n.kind === "decisive") {
+      const ids = tierIds(n), T = TN.get(ids[viewLv - 1]) || n, ts = T.stats || {};
+      // no Tier tabs in the Skill Tree; the tier is a row in the info list ("Tier  Tier 3"), name stays plain (user 2026-11-17)
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Tier", value: "Tier " + (n.tier || 1) }, { t: "row", label: "Base Damage", value: ts.baseDamage, color: tc },
+        { t: "row", label: "Damage Part", html: esc(ts.damagePart).replace(/ \/ /g, ' <i class="nd-sep">/</i> ') }, { t: "row", label: "Type", value: cap(n.tag) }];
+    } else {
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Damage", value: st.damage, color: tc },
+        { t: "row", label: "Target Attack", value: st.target }, { t: "row", label: "Stamina Cost", value: st.stamina },
+        ...(n.kind === "signature" && st.input ? [{ t: "keys", label: "Input", keys: st.input }] : [])];
     }
+    return m;
   }
 
-  // highlight numbers in effect text (same look as the Tactical Loadout card)
-  const fxHtml = t => esc(t).replace(/[+-]?d+(?:.d+)?%?/g, m => `<b class="tl-num">${m}</b>`);
-
-  // detail panel = shared skill info card (components/skill-info.js, MTX / Perk Info Card 719:89368)
+  // detail panel = Node Detail card (components/node-detail.js)
   function renderDetail() {
     const id = detailOpen;
     if (!id) return;
-    const n = TN.get(id), m = skillMeta(n), lv = lvOf(id), own = lv > 0, perk = !!n.levels;
-    // perk: level tabs Lv 1-3 (RS / click), CTA buys only the next level
-    const tabOwned = perk ? viewLv <= lv : own;
-    const ready = perk ? viewLv === lv + 1 && canLevelUp(id) : !own && canUnlock(id);
-    const panel = api.bind("skillDetail");
-    const col = perk ? (PERK_KIND[n.tag] || [, "#e5e5e5"])[1] : n.type === "dsm" ? "#ff4060" : n.type === "spe" ? "#c7f029" : TYPE_COLOR[n.type];
-    panel.style.setProperty("--tc", col);
-    panel.style.setProperty("--style-color", col);
-    panel.style.setProperty("--style-fg", "#16181f");
-    api.bind("sdKind").textContent = perk ? m.sub : KIND[n.type];
-    api.bind("sdBadge").textContent = n.base ? "Core" : perk ? (own ? `Owned Lv${lv}` : "Locked") : own ? "Owned" : "Locked";
-    fitDetailTitle(api.bind("sdName"), m.name);
-    const draw = api.bind("sdDraw");
-    panel.querySelectorAll("[data-i-lv]").forEach(x => { x.hidden = !perk; });
-    panel.classList.toggle("is-perk", perk);
-    if (perk) {
-      const L = n.levels[viewLv - 1];
-      window.MTX_UI.skillInfo.levels(panel, viewLv, lv);
-      api.bind("sdDesc").innerHTML = fxHtml(L.fx);
-      draw.textContent = L.drawback || "";
-      draw.hidden = !L.drawback;
-      api.bind("sdStats").innerHTML = n.cooldown ? `<div><dt>Cooldown</dt><dd>${esc(n.cooldown)}s</dd></div>` : "";
-    } else {
-      draw.hidden = true;
-      api.bind("sdDesc").textContent = m.desc;
-      api.bind("sdStats").innerHTML = Object.entries(n.extras).map(([k, v]) => `<div><dt>${esc(k.replace(/_/g, " "))}</dt><dd>+${esc(v)}</dd></div>`).join("");
-    }
-    const btn = api.bind("sdPrimary");
-    btn.classList.toggle("is-locked", !tabOwned && !ready && !n.base);
-    btn.classList.toggle("is-ready-unlock", !tabOwned && ready);
-    btn.classList.toggle("is-done", tabOwned || !!n.base);
-    btn.querySelector(".tl-info__label").textContent = primaryLabel(id);
-    const sec = api.bind("sdSecondary");
-    sec.hidden = n.base || !own;
-    sec.lastElementChild.textContent = "Remove";
+    window.MTX_UI.nodeDetail.render(api.bind("skillDetail"), detailModel(TN.get(id)));
   }
+
 
   function initHoldListeners() {
     const sdPri = api.bind("sdPrimary");
@@ -738,6 +807,7 @@
     startUnlockHold,
     cancelUnlockHold,
     finishUnlockHold,
+    setParallax,
     canUnlock,
     pruneInvalid,
     isLinked,
@@ -751,6 +821,9 @@
     addLevel,
     canLevelUp,
     detailLevel,
+    detailVideo,
+    closeVideo,
+    isVideoOpen,
     setViewLevel,
     getEquipped,
     getMastery,
@@ -758,7 +831,7 @@
       toggleSkill(el) { openDetail(el.dataset.id); },
       toggleSkillDirect(el) {
         const id = el.dataset.id, n = TN.get(id);
-        if (n.base) { api.toast(n.label + " · always unlocked"); return; }
+        if (n.base) { api.toast(coreName + " · always unlocked"); return; }
         // direct mode: A buys the next level; a maxed node is taken down one level
         if (lvOf(id) >= maxLv(n)) { removeLevel(id); return; }
         if (!canLevelUp(id)) {
@@ -766,8 +839,8 @@
           return;
         }
         if (skillPts < costOf(n, lvOf(id) + 1)) { api.rumble(120, 0.2); api.toast("No skill points left · remove a skill"); return; }
-        owned.set(id, lvOf(id) + 1); updateTree(); api.rumble(90, 0.4);
-        api.toast(`${n.label}${n.levels ? " Lv " + lvOf(id) : ""} unlocked · ${skillPts} point${skillPts === 1 ? "" : "s"} left`);
+        owned.set(id, lvOf(id) + 1); yantraRipple(id); updateTree(); api.rumble(90, 0.4);
+        api.toast(`${nodeLabel(n)}${n.levels ? " Lv " + lvOf(id) : ""} unlocked · ${skillPts} point${skillPts === 1 ? "" : "s"} left`);
       },
       prevGate() { jumpGate(-1); },
       nextGate() { jumpGate(1); },

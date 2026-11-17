@@ -57,7 +57,11 @@
     if (d === "ps4" || d === "ps5") { psModel = d; d = "ps"; }
     if (d === device && document.body.dataset.device && document.body.dataset.pad === psModel) return;
     device = d; document.body.dataset.device = d; document.body.dataset.pad = psModel;
-    $$(".glyph[data-btn]").forEach(g => { g.textContent = GLYPHS[d][g.dataset.btn] ?? g.dataset.btn.toUpperCase(); });
+    $$(".glyph[data-btn]").forEach(g => {
+      // [data-combat] = fight input keys (skill Input rows): keyboard shows the combat map (MTX_UI.COMBAT_KB)
+      const combat = "combat" in g.dataset && d === "kb" && window.MTX_UI?.COMBAT_KB?.[g.dataset.btn];
+      g.textContent = combat || (GLYPHS[d][g.dataset.btn] ?? g.dataset.btn.toUpperCase());
+    });
   }
 
   /* ---------------------------------------------------------------- overlays */
@@ -355,6 +359,12 @@
     if (window.MTX_SHADER?.isOpen?.()) return;   // Shader Preload (first launch): no input
     if (window.MTX_LOADING?.isOpen?.() || window.MTX_MATCH_FOUND?.isPlaying?.() || window.MTX_UI?.wipe?.isPlaying?.()) return;   // load screen / Match Found video / screen wipe: no input
     if (window.MTX_MATCH_RESULT?.isOpen?.()) { if (dev) setDevice(dev); window.MTX_MATCH_RESULT.input(a); return; }   // Match Result after a fight: A / LT / RT
+    // Skill video preview open: nothing else works until it is closed (Y / B close it)
+    if (window.MTX_UI?.nodeDetail?.video?.isOpen?.()) {
+      if (dev) setDevice(dev);
+      if (a === "y" || a === "back") window.MTX_SCREENS?.skilltree?.closeVideo?.();
+      return;
+    }
     if (window.MTX_MODE_CARD?.isLocked?.()) { if (a === "a" || a === "back") window.MTX_MODE_CARD.cancelFind(); return; }   // locked Match Find (Main Quick Fight): only A / B work, they cancel
     if (dev) setDevice(dev);
     logIn(label);
@@ -393,12 +403,16 @@
           if (t?.classList.contains("tnode")) setFocus(t);
           return;
         }
+        // Video Panel open: Y / B close it, everything else waits
+        if (scrSkill.isVideoOpen?.()) { if (a === "y" || a === "back") scrSkill.closeVideo?.(); return; }
         if (a === "a" && scrSkill.isHoldToUnlockReady?.()) return;
+        // Node Detail card (Figma 833:93841): LB / RB = Lv or Tier tab, Y = Video on moves, no Remove key
         ({ a: () => scrSkill.detailPrimary?.(),
-           x: () => scrSkill.detailSecondary?.(),
-           rs: () => scrSkill.detailLevel?.(),
+           lt: () => scrSkill.detailLevel?.(-1),
+           rt: () => scrSkill.detailLevel?.(1),
+           rs: () => scrSkill.detailLevel?.(1),
            back: () => scrSkill.closeDetail?.(),
-           y: () => scrSkill.closeDetail?.() })[a]?.();
+           y: () => scrSkill.detailVideo?.() })[a]?.();
         return;
       }
     }
@@ -530,6 +544,10 @@
     if (!started) { setDevice("kb"); startGame(); logIn("Click"); return; }
     const scrSkill = window.MTX_SCREENS?.skilltree;
     if (cur === "skilltree" && scrSkill?.isDetailOpen?.()) {
+      if (scrSkill.isVideoOpen?.()) {
+        if (e.target.closest("[data-nd-video-close]") || !e.target.closest(".nd-video__panel")) { logIn("Click"); scrSkill.closeVideo?.(); }
+        return;
+      }
       if (e.target.closest('[data-bind="sdPrimary"]')) {
         logIn("Click");
         if (scrSkill.isHoldToUnlockReady?.()) {
@@ -540,9 +558,11 @@
         scrSkill.detailPrimary?.();
         return;
       }
-      if (e.target.closest('[data-bind="sdSecondary"]')) { logIn("Click"); scrSkill.detailSecondary?.(); return; }
-      const lvTab = e.target.closest(".skill-detail .tl-lv span");
-      if (lvTab) { logIn("Click"); scrSkill.setViewLevel?.([...lvTab.parentNode.children].indexOf(lvTab) + 1); return; }
+      const lvTab = e.target.closest(".skill-detail [data-lv-tab]");
+      if (lvTab) { logIn("Click"); scrSkill.setViewLevel?.(+lvTab.dataset.lvTab); return; }
+      const bump = e.target.closest(".skill-detail .nd__bump");
+      if (bump) { logIn("Click"); scrSkill.detailLevel?.(bump.dataset.btn === "lt" ? -1 : 1); return; }
+      if (e.target.closest(".skill-detail .nd__video")) { logIn("Click"); scrSkill.detailVideo?.(); return; }
       if (!e.target.closest(".skill-detail") && !e.target.closest(".tnode")) scrSkill.closeDetail?.();
       return;
     }
@@ -842,6 +862,21 @@
       applyTreeGlow(treeGlowChk.checked);
       toast(`Tree glow: ${treeGlowChk.checked ? "on" : "off"}`);
     });
+  }
+  // Dev > Skill tree VFX on / off (store keys treeVfx_<name>, default on): class .no-vfx-<name> on the Mastery screen
+  document.querySelectorAll("[data-tree-vfx]").forEach(chk => {
+    const k = chk.dataset.treeVfx, apply = on => screens.skilltree?.classList.toggle("no-vfx-" + k, !on);
+    chk.checked = String(store.get("treeVfx_" + k, "true")) !== "false";
+    apply(chk.checked);
+    chk.addEventListener("change", () => { store.set("treeVfx_" + k, chk.checked); apply(chk.checked); toast(`Tree VFX ${k}: ${chk.checked ? "on" : "off"}`); });
+  });
+  // Dev > Ornament parallax (store key treePlx, % of the camera move, default 45)
+  const plxIn = $("#treePlx"), plxOut = $("#treePlxVal");
+  if (plxIn) {
+    const applyPlx = v => { if (plxOut) plxOut.textContent = v + "%"; window.MTX_SCREENS?.skilltree?.setParallax?.(v); };
+    plxIn.value = store.get("treePlx", "45");
+    applyPlx(plxIn.value);
+    plxIn.addEventListener("input", () => { store.set("treePlx", plxIn.value); applyPlx(plxIn.value); });
   }
   // Dev > Rumble on / off (store key rumble)
   const rumbleChk = $("#rumbleOn");

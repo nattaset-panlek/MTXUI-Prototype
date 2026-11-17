@@ -3,11 +3,10 @@
 
   //#region [Variables/Fields]
   let api = null;
-  const HOLD_DURATION = 1000;
   let currentPage = 0;
   let focusedTileId = null;
-
-  let claimHold = null;   // MTX_UI.createHold, made in init
+  // Rewards are bought with R points (same confirm modal as the Shop, screen-store.js); no Claim / hold any more.
+  // claimedSet = owned rewards (saved as "rewards_claimed": the Shop also reads it as owned).
 
   // Item data lives in data/items.js; this is only which items each Style Level gives
   const PAGES = [
@@ -22,15 +21,13 @@
   //#endregion
 
   //#region [Properties]
+  // app.js asks these on A: no hold here, A runs the focused element's buyReward action instead
   function isClaimHoldReady() {
-    if (!api || api.getCur() !== "rewards") return false;
-    const tile = getActiveTile();
-    if (!tile) return false;
-    return !claimedSet.has(tile.id) && !lockLevel(tile);
+    return false;
   }
 
   function isHoldingClaim() {
-    return !!claimHold?.active;
+    return false;
   }
 
   function getCurrentPage() {
@@ -45,12 +42,6 @@
 
   function init(coreApi) {
     api = coreApi;
-    claimHold = window.MTX_UI.createHold({
-      ms: HOLD_DURATION,
-      flash: "is-unlocked-flash",
-      onDone: id => finishClaimHold(id),
-      onCancel: ({ notify }) => { if (notify) window.MTX_UI.holdHint("claim reward"); }
-    });
     loadState();
     renderPage();
     bindEvents();
@@ -58,9 +49,7 @@
 
   function enter() {
     renderPage();
-    // same balance the R Shop spends (screen-store.js)
-    const rPoints = +api.store.get("store_r", 1500) || 1500;
-    api.$$("#s-rewards [data-store-r]").forEach(el => { el.textContent = rPoints.toLocaleString("en-US"); });
+    renderWallet();
   }
   //#endregion
 
@@ -98,35 +87,58 @@
     }
   }
 
-  function startClaimHold(source) {
-    if (claimHold.active) return false;
-    const tile = getActiveTile();
-    if (!tile) return false;
-    if (claimedSet.has(tile.id)) {
-      api.toast("Already claimed");
-      return false;
+  // ---- buy with R points: A / Space / click opens the Shop's confirm modal (MTX_UI.dialog) ----
+  // same balance the Shop spends ("store_r", screen-store.js)
+  const rBalance = () => +api.store.get("store_r", 1500) || 0;
+  const fmt = n => n.toLocaleString("en-US");
+  // R price; rewards with only a Cash price use that number as R (placeholder until the data has R prices)
+  const rPrice = it => (it.prices.find(p => p.type === "r") || it.prices.find(p => p.type === "cash") || { val: 0 }).val;
+  const priceBtn = val => ({ html: `<span class="dlg-price"><b class="dlg-price__r" aria-label="R Point">R</b><span>${fmt(val)}</span></span>` });   // R currency = letter R (Modi)
+
+  function openBuy() {
+    if (window.MTX_UI.dialog.isOpen()) return false;
+    const it = getActiveTile();
+    if (!it) return false;
+    if (claimedSet.has(it.id)) { api.toast(`${it.title} already owned`); return false; }
+    if (lockLevel(it)) { api.toast(`Requires R Level ${lockLevel(it)}`); api.rumble(60, 0.2); return false; }
+    window.MTX_UI.dialog.open({
+      title: `Buy ${it.title}?`, body: `${window.MTX_ITEMS.RARITY[it.rarity]?.label || ""} ${it.type}`,
+      primary: priceBtn(rPrice(it)), secondary: "Cancel",
+      onPrimary: () => buy(it.id)
+    });
+    return true;
+  }
+
+  function buy(tileId) {
+    const it = getTileById(tileId), price = rPrice(it), have = rBalance();
+    if (price > have) {
+      api.toast(`Not enough R points, need ${fmt(price - have)} more`);
+      api.rumble(120, 0.5);
+      return;
     }
-    const tileEl = api.$(`#s-rewards .reward-tile[data-id="${tile.id}"]`);
-    return claimHold.start(api.bind("claimBtn"), { ctx: tile.id, source, extra: [tileEl] });
-  }
-
-  function cancelClaimHold(notify = false) {
-    claimHold?.cancel(notify);
-  }
-
-  function finishClaimHold(tileId) {
+    api.store.set("store_r", have - price);
+    if (it.grantsCash && window.MTX_PLAYER) window.MTX_PLAYER.set({ cash: window.MTX_PLAYER.get().cash + it.grantsCash });
     claimedSet.add(tileId);
     saveState();
-
-    const tile = getTileById(tileId);
     updateTileState(tileId);
     renderDetail(tileId);
     renderClaimStats();
-
-    api.rumble(160, 0.65);
-    api.toast(`Claimed · ${tile ? tile.title : "Reward"}`);
-    api.log(`Reward claimed: ${tile ? tile.title : tileId}`, "action");
+    renderWallet();
+    const tileEl = api.$(`#s-rewards .reward-tile[data-id="${tileId}"]`);
+    tileEl?.classList.add("is-bought");
+    setTimeout(() => tileEl?.classList.remove("is-bought"), 500);
+    api.rumble(150, 0.6);
+    api.toast(`Bought ${it.title} for ${fmt(price)} R`);
+    api.log(`Rewards: bought ${it.title} for ${fmt(price)} R`, "action");
   }
+
+  function renderWallet() {
+    api.$$("[data-store-r]").forEach(el => { el.textContent = fmt(rBalance()); });
+  }
+
+  // kept for app.js (it calls these on A / release); the buy modal replaced the hold
+  function startClaimHold() { return openBuy(); }
+  function cancelClaimHold() {}
   //#endregion
 
   //#region [Private Methods]
@@ -180,7 +192,7 @@
         label: labelHtml(it),
         cls: `${isClaimed ? "is-claimed" : ""} ${lockLevel(it) ? "is-locked" : ""}`,
         style: `grid-column:${column}`,
-        attrs: 'data-fn="claimReward"',
+        attrs: 'data-fn="buyReward"',
         badge: NEW_ITEMS.has(it.id) && !isClaimed && !lockLevel(it) ? "New" : ""
       });
     });
@@ -210,14 +222,11 @@
   // Figma MTX / Item Slot Label 573:65712: the bar shows what matters in this context
   const itemLabel = (type, value) => window.MTX_UI.itemLabel(type, value);
 
-  // Rewards: claimed > coin amount > price (R first: the balance shown here) > name
+  // Rewards: owned > locked (R Level) > R price
   function labelHtml(it) {
-    if (claimedSet.has(it.id)) return itemLabel("status", "Claimed");
+    if (claimedSet.has(it.id)) return itemLabel("status", "Owned");
     if (lockLevel(it)) return itemLabel("locked", `R LV ${lockLevel(it)}`);
-    if (it.qty) return itemLabel("qty", `x${it.qty.toLocaleString("en-US")}`);
-    const price = it.prices.find(p => p.type === "r") || it.prices.find(p => p.type === "cash");
-    if (price) return itemLabel(price.type === "r" ? "r" : "money", price.val);
-    return itemLabel("name", it.title);
+    return itemLabel("r", rPrice(it));
   }
 
   // Sort inside a Style Level group: Normal to Legendary
@@ -244,7 +253,7 @@
     PAGES.forEach(p => totalItems += p.items.length);
     const claimedCount = claimedSet.size;
     const el = api.bind("claimedCount");
-    if (el) el.textContent = `${claimedCount}/${totalItems} claimed`;
+    if (el) el.textContent = `${claimedCount}/${totalItems} owned`;
   }
 
   // Fighter skins preview on the 3D model; the Dev Tools 3D switch falls back to the 2D art
@@ -277,7 +286,7 @@
       btn.classList.toggle("is-locked", !!locked);
       const label = btn.querySelector(".btn-cta__label");
       if (label) {
-        label.textContent = isClaimed ? "Claimed" : locked ? "Locked" : "Claim";
+        label.textContent = isClaimed ? "Owned" : locked ? "Locked" : "Buy";
       }
     }
 
@@ -289,16 +298,6 @@
       grid.addEventListener("scroll", updateScrollbar, { passive: true });
     }
 
-    const claimBtn = api.bind("claimBtn");
-    if (claimBtn) {
-      claimBtn.addEventListener("mousedown", e => {
-        if (e.button === 0) startClaimHold("mouse");
-      });
-      claimBtn.addEventListener("mouseup", () => cancelClaimHold(false));
-      claimBtn.addEventListener("mouseleave", () => cancelClaimHold(false));
-      claimBtn.addEventListener("touchstart", () => startClaimHold("touch"), { passive: true });
-      claimBtn.addEventListener("touchend", () => cancelClaimHold(false));
-    }
 
   }
   //#endregion
@@ -313,27 +312,14 @@
     prevPage,
     startClaimHold,
     cancelClaimHold,
-    finishClaimHold,
+    openBuy,
     isClaimHoldReady,
     isHoldingClaim,
     getCurrentPage,
     renderPage,
     actions: {
-      claimReward() {
-        if (isClaimHoldReady()) {
-          const glyph = api.getGlyphs()[api.getDevice()]?.a || "A";
-          api.toast(`Hold ${glyph} to claim reward`);
-          api.rumble(60, 0.2);
-          const btn = api.bind("claimBtn");
-          if (btn) {
-            btn.classList.add("is-holding");
-            setTimeout(() => btn.classList.remove("is-holding"), 220);
-          }
-        } else if (lockLevel(getActiveTile() || {})) {
-          api.toast(`Requires R Level ${lockLevel(getActiveTile())}`);
-          api.rumble(60, 0.2);
-        }
-      },
+      buyReward() { openBuy(); },
+      claimReward() { openBuy(); },   // old name, still on the CTA markup of older bakes
       nextPage,
       prevPage
     }

@@ -1,0 +1,736 @@
+{
+ "nodes": [
+  {
+   "id": "pn1_root",
+   "x": 0,
+   "y": 0,
+   "icon": "mtx/assets/svg/skill/thai_root.svg"
+  },
+  {
+   "id": "pn2_block",
+   "x": -200,
+   "y": 140,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn3_maxsta",
+   "x": 200,
+   "y": 140,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn4_crit",
+   "x": -375,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn5_staregen",
+   "x": -375,
+   "y": 400,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn6_dsmA1",
+   "x": -375,
+   "y": 520,
+   "icon": "mtx/assets/svg/skill/thai_dsm_a.svg"
+  },
+  {
+   "id": "pn_fin",
+   "x": -125,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn_rest",
+   "x": 125,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn13_maxstaeff",
+   "x": 375,
+   "y": 280,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn14_sgm1",
+   "x": 375,
+   "y": 400,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg"
+  },
+  {
+   "id": "pn15_dsmB1",
+   "x": 375,
+   "y": 520,
+   "icon": "mtx/assets/svg/skill/thai_dsm_b.svg"
+  },
+  {
+   "id": "pn16_combosta",
+   "x": -200,
+   "y": 680,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn17_hopsta",
+   "x": 200,
+   "y": 680,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn18_combopow",
+   "x": -375,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn19_sgm2",
+   "x": -375,
+   "y": 940,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg"
+  },
+  {
+   "id": "pn20_dsmA2",
+   "x": -375,
+   "y": 1060,
+   "icon": "mtx/assets/svg/skill/thai_dsm_a.svg"
+  },
+  {
+   "id": "pn_trip",
+   "x": -125,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn_fluid",
+   "x": 125,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn27_knee",
+   "x": 375,
+   "y": 820,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn28_spe1",
+   "x": 375,
+   "y": 940,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg"
+  },
+  {
+   "id": "pn29_dsmC1",
+   "x": 375,
+   "y": 1060,
+   "icon": "mtx/assets/svg/skill/thai_dsm_c.svg"
+  },
+  {
+   "id": "pn30_punch",
+   "x": -200,
+   "y": 1220,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn31_sgm3",
+   "x": 200,
+   "y": 1220,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg"
+  },
+  {
+   "id": "pn_tiger",
+   "x": -300,
+   "y": 1360,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn35_spe2",
+   "x": -300,
+   "y": 1480,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg"
+  },
+  {
+   "id": "pn_cc",
+   "x": 0,
+   "y": 1360,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn39_dsmB2",
+   "x": 0,
+   "y": 1480,
+   "icon": "mtx/assets/svg/skill/thai_dsm_b.svg"
+  },
+  {
+   "id": "pn_rel",
+   "x": 300,
+   "y": 1360,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn43_dsmC2",
+   "x": 300,
+   "y": 1480,
+   "icon": "mtx/assets/svg/skill/thai_dsm_c.svg"
+  },
+  {
+   "id": "pn44_sgm4",
+   "x": -200,
+   "y": 1640,
+   "icon": "mtx/assets/svg/skill/thai_sgm.svg"
+  },
+  {
+   "id": "pn45_elbow",
+   "x": 200,
+   "y": 1640,
+   "icon": "mtx/assets/svg/skill/thai_stat.svg"
+  },
+  {
+   "id": "pn_stead",
+   "x": -300,
+   "y": 1780,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn49_dsmA3",
+   "x": -300,
+   "y": 1900,
+   "icon": "mtx/assets/svg/skill/thai_dsm_a.svg"
+  },
+  {
+   "id": "pn_def",
+   "x": 0,
+   "y": 1780,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn53_dsmB3",
+   "x": 0,
+   "y": 1900,
+   "icon": "mtx/assets/svg/skill/thai_dsm_b.svg"
+  },
+  {
+   "id": "pn_three",
+   "x": 300,
+   "y": 1780,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn57_spe3",
+   "x": 300,
+   "y": 1900,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg"
+  },
+  {
+   "id": "pn_alt",
+   "x": -375,
+   "y": 2080,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn_odds",
+   "x": -125,
+   "y": 2080,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn64_spe4",
+   "x": -250,
+   "y": 2240,
+   "icon": "mtx/assets/svg/skill/thai_spe.svg"
+  },
+  {
+   "id": "pn_war",
+   "x": 125,
+   "y": 2080,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn_flaw",
+   "x": 375,
+   "y": 2080,
+   "icon": "mtx/assets/svg/skill/thai_tier1.svg"
+  },
+  {
+   "id": "pn71_dsmC3",
+   "x": 250,
+   "y": 2240,
+   "icon": "mtx/assets/svg/skill/thai_dsm_c.svg"
+  }
+ ],
+ "edges": [
+  {
+   "id": "pe1",
+   "from": "pn1_root",
+   "to": "pn2_block",
+   "style": "curve",
+   "hx": -200,
+   "hy": 40,
+   "needLv": 1
+  },
+  {
+   "id": "pe2",
+   "from": "pn1_root",
+   "to": "pn3_maxsta",
+   "style": "curve",
+   "hx": 200,
+   "hy": 40,
+   "needLv": 1
+  },
+  {
+   "id": "pe3",
+   "from": "pn2_block",
+   "to": "pn4_crit",
+   "style": "curve",
+   "hx": -375,
+   "hy": 180,
+   "needLv": 1
+  },
+  {
+   "id": "pe4",
+   "from": "pn4_crit",
+   "to": "pn5_staregen",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe5",
+   "from": "pn5_staregen",
+   "to": "pn6_dsmA1",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe6",
+   "from": "pn3_maxsta",
+   "to": "pn_rest",
+   "style": "curve",
+   "hx": 125,
+   "hy": 180,
+   "needLv": 1
+  },
+  {
+   "id": "pe7",
+   "from": "pn_rest",
+   "to": "pn_fin",
+   "style": "curve",
+   "needLv": 1
+  },
+  {
+   "id": "pe12",
+   "from": "pn3_maxsta",
+   "to": "pn13_maxstaeff",
+   "style": "curve",
+   "hx": 375,
+   "hy": 180,
+   "needLv": 1
+  },
+  {
+   "id": "pe13",
+   "from": "pn13_maxstaeff",
+   "to": "pn14_sgm1",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe14",
+   "from": "pn14_sgm1",
+   "to": "pn15_dsmB1",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe15",
+   "from": "pn6_dsmA1",
+   "to": "pn16_combosta",
+   "style": "curve",
+   "hx": -200,
+   "hy": 570,
+   "needLv": 1
+  },
+  {
+   "id": "pe16",
+   "from": "pn_fin",
+   "to": "pn16_combosta",
+   "style": "curve",
+   "hx": -200,
+   "hy": 570,
+   "needLv": 1
+  },
+  {
+   "id": "pe17",
+   "from": "pn_rest",
+   "to": "pn17_hopsta",
+   "style": "curve",
+   "hx": 200,
+   "hy": 570,
+   "needLv": 1
+  },
+  {
+   "id": "pe18",
+   "from": "pn15_dsmB1",
+   "to": "pn17_hopsta",
+   "style": "curve",
+   "hx": 200,
+   "hy": 570,
+   "needLv": 1
+  },
+  {
+   "id": "pe19",
+   "from": "pn16_combosta",
+   "to": "pn18_combopow",
+   "style": "curve",
+   "hx": -375,
+   "hy": 720,
+   "needLv": 1
+  },
+  {
+   "id": "pe20",
+   "from": "pn16_combosta",
+   "to": "pn_trip",
+   "style": "curve",
+   "hx": -125,
+   "hy": 720,
+   "needLv": 1
+  },
+  {
+   "id": "pe21",
+   "from": "pn_trip",
+   "to": "pn_fluid",
+   "style": "curve",
+   "needLv": 1
+  },
+  {
+   "id": "pe22",
+   "from": "pn17_hopsta",
+   "to": "pn27_knee",
+   "style": "curve",
+   "hx": 375,
+   "hy": 720,
+   "needLv": 1
+  },
+  {
+   "id": "pe23",
+   "from": "pn18_combopow",
+   "to": "pn19_sgm2",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe24",
+   "from": "pn19_sgm2",
+   "to": "pn20_dsmA2",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe29",
+   "from": "pn27_knee",
+   "to": "pn28_spe1",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe30",
+   "from": "pn28_spe1",
+   "to": "pn29_dsmC1",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe31",
+   "from": "pn20_dsmA2",
+   "to": "pn30_punch",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1110,
+   "needLv": 1
+  },
+  {
+   "id": "pe32",
+   "from": "pn_trip",
+   "to": "pn30_punch",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1110,
+   "needLv": 1
+  },
+  {
+   "id": "pe33",
+   "from": "pn_fluid",
+   "to": "pn31_sgm3",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1110,
+   "needLv": 1
+  },
+  {
+   "id": "pe34",
+   "from": "pn29_dsmC1",
+   "to": "pn31_sgm3",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1110,
+   "needLv": 1
+  },
+  {
+   "id": "pe35",
+   "from": "pn30_punch",
+   "to": "pn_tiger",
+   "style": "curve",
+   "hx": -300,
+   "hy": 1260,
+   "needLv": 1
+  },
+  {
+   "id": "pe36",
+   "from": "pn30_punch",
+   "to": "pn_cc",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1260,
+   "needLv": 1
+  },
+  {
+   "id": "pe37",
+   "from": "pn31_sgm3",
+   "to": "pn_cc",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1260,
+   "needLv": 1
+  },
+  {
+   "id": "pe38",
+   "from": "pn31_sgm3",
+   "to": "pn_rel",
+   "style": "curve",
+   "hx": 300,
+   "hy": 1260,
+   "needLv": 1
+  },
+  {
+   "id": "pe41",
+   "from": "pn_tiger",
+   "to": "pn35_spe2",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe44",
+   "from": "pn_cc",
+   "to": "pn39_dsmB2",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe47",
+   "from": "pn_rel",
+   "to": "pn43_dsmC2",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe48",
+   "from": "pn35_spe2",
+   "to": "pn44_sgm4",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1770,
+   "needLv": 1
+  },
+  {
+   "id": "pe49",
+   "from": "pn39_dsmB2",
+   "to": "pn44_sgm4",
+   "style": "curve",
+   "hx": -200,
+   "hy": 1770,
+   "needLv": 1
+  },
+  {
+   "id": "pe50",
+   "from": "pn39_dsmB2",
+   "to": "pn45_elbow",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1770,
+   "needLv": 1
+  },
+  {
+   "id": "pe51",
+   "from": "pn43_dsmC2",
+   "to": "pn45_elbow",
+   "style": "curve",
+   "hx": 200,
+   "hy": 1770,
+   "needLv": 1
+  },
+  {
+   "id": "pe52",
+   "from": "pn44_sgm4",
+   "to": "pn_stead",
+   "style": "curve",
+   "hx": -300,
+   "hy": 1680,
+   "needLv": 1
+  },
+  {
+   "id": "pe53",
+   "from": "pn44_sgm4",
+   "to": "pn_def",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1680,
+   "needLv": 1
+  },
+  {
+   "id": "pe54",
+   "from": "pn45_elbow",
+   "to": "pn_def",
+   "style": "curve",
+   "hx": 0,
+   "hy": 1680,
+   "needLv": 1
+  },
+  {
+   "id": "pe55",
+   "from": "pn45_elbow",
+   "to": "pn_three",
+   "style": "curve",
+   "hx": 300,
+   "hy": 1680,
+   "needLv": 1
+  },
+  {
+   "id": "pe58",
+   "from": "pn_stead",
+   "to": "pn49_dsmA3",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe61",
+   "from": "pn_def",
+   "to": "pn53_dsmB3",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe64",
+   "from": "pn_three",
+   "to": "pn57_spe3",
+   "style": "straight",
+   "needLv": 1
+  },
+  {
+   "id": "pe65",
+   "from": "pn49_dsmA3",
+   "to": "pn_alt",
+   "style": "curve",
+   "hx": -375,
+   "hy": 2190,
+   "needLv": 1
+  },
+  {
+   "id": "pe66",
+   "from": "pn49_dsmA3",
+   "to": "pn_odds",
+   "style": "curve",
+   "hx": -125,
+   "hy": 2190,
+   "needLv": 1
+  },
+  {
+   "id": "pe67",
+   "from": "pn53_dsmB3",
+   "to": "pn_odds",
+   "style": "curve",
+   "hx": -125,
+   "hy": 2190,
+   "needLv": 1
+  },
+  {
+   "id": "pe68",
+   "from": "pn53_dsmB3",
+   "to": "pn_war",
+   "style": "curve",
+   "hx": 125,
+   "hy": 2190,
+   "needLv": 1
+  },
+  {
+   "id": "pe69",
+   "from": "pn57_spe3",
+   "to": "pn_war",
+   "style": "curve",
+   "hx": 125,
+   "hy": 2190,
+   "needLv": 1
+  },
+  {
+   "id": "pe70",
+   "from": "pn57_spe3",
+   "to": "pn_flaw",
+   "style": "curve",
+   "hx": 375,
+   "hy": 2190,
+   "needLv": 1
+  },
+  {
+   "id": "pe79",
+   "from": "pn_alt",
+   "to": "pn64_spe4",
+   "style": "curve",
+   "hx": -250,
+   "hy": 2370,
+   "needLv": 1
+  },
+  {
+   "id": "pe80",
+   "from": "pn_odds",
+   "to": "pn64_spe4",
+   "style": "curve",
+   "hx": -250,
+   "hy": 2370,
+   "needLv": 1
+  },
+  {
+   "id": "pe81",
+   "from": "pn_war",
+   "to": "pn71_dsmC3",
+   "style": "curve",
+   "hx": 250,
+   "hy": 2370,
+   "needLv": 1
+  },
+  {
+   "id": "pe82",
+   "from": "pn_flaw",
+   "to": "pn71_dsmC3",
+   "style": "curve",
+   "hx": 250,
+   "hy": 2370,
+   "needLv": 1
+  },
+  {
+   "id": "e182",
+   "from": "pn17_hopsta",
+   "to": "pn_fluid",
+   "style": "curve",
+   "hx": 126.12096614624213,
+   "hy": 719.6942960530072,
+   "needLv": 1
+  },
+  {
+   "id": "e184",
+   "from": "pn2_block",
+   "to": "pn_fin",
+   "style": "curve",
+   "hx": -124.08768638030054,
+   "hy": 181.58490982718973,
+   "needLv": 1
+  }
+ ]
+}

@@ -18,7 +18,7 @@
 -->
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="mtx/css/tokens.css?v=401">
-  <link rel="stylesheet" href="mtx/css/base.css?v=pg3">
+  <link rel="stylesheet" href="mtx/css/base.css?v=pg6">
   <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw1">
   <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
   <link rel="stylesheet" href="mtx/css/login.css?v=cta1">
@@ -27,12 +27,13 @@
   <link rel="stylesheet" href="mtx/css/spotlight.css?v=bl1">
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
   <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
-  <link rel="stylesheet" href="mtx/css/no-brand.css?v=8">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=st17">
+  <link rel="stylesheet" href="mtx/css/no-brand.css?v=8b">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st67">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
   <link rel="stylesheet" href="mtx/css/loadout.css?v=10">
+  <link rel="stylesheet" href="mtx/css/node-detail.css?v=6">
 </head>
 
 <body>
@@ -268,7 +269,7 @@
                   data-bind="fitness">20</b></span>
             </div>
             <div class="mini-cal" data-figma="Calendar (moved from Management 2:645)">
-              <header class="mini-cal__head"><span data-bind="calMonth">August</span><span data-bind="calYear">2026</span></header>
+              <header class="mini-cal__head"><span data-bind="calMonth">August</span></header>
               <div class="mini-cal__days" data-bind="calDays"></div>
             </div>
             <a class="simulate-btn tex focus-ring focus-ring--thin" data-nav data-id="sim" data-fn="holdSimulateDay"
@@ -342,8 +343,7 @@ board</h3>
           <nav class="mastery__cards" data-figma="Tab card row (was 3 cards x ~10 loose layers each)">
             <a class="tab-card" data-nav data-id="attributes" data-go="attributes"
               data-figma="NEW (Figma note 14:1337: missing Attributes slot, uses E value)">
-              <div class="tab-card__tab"><span class="tab-card__label">Attributes</span><img class="tab-card__check"
-                  src="mtx/assets/svg/icon-check.svg" alt=""></div>
+              <div class="tab-card__tab"><span class="tab-card__label">Attributes</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/attributes.jpg?v=5" alt="">
                 </div>
@@ -352,8 +352,7 @@ board</h3>
             </a>
             <a class="tab-card" data-nav data-id="mastery" data-go="skilltree"
               data-figma="1:1812 + 1:1914 + 1:1926 + 1:1935 + 1:1944 (Mastery card)">
-              <div class="tab-card__tab"><span class="tab-card__label">Mastery</span><img class="tab-card__check"
-                  src="mtx/assets/svg/icon-check.svg" alt=""></div>
+              <div class="tab-card__tab"><span class="tab-card__label">Mastery</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/mastery.jpg?v=5" alt="">
                 </div>
@@ -362,8 +361,7 @@ board</h3>
             </a>
             <a class="tab-card" data-nav data-id="reward" data-go="rewards"
               data-figma="1:1811 + 1:1920 + 1:1928 + 1:1941 (Reward card)">
-              <div class="tab-card__tab"><span class="tab-card__label">Rewards</span><img class="tab-card__check" src="mtx/assets/svg/icon-check.svg"
-                  alt=""></div>
+              <div class="tab-card__tab"><span class="tab-card__label">Rewards</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/rewards.jpg?v=5" alt="">
                 </div>
@@ -372,8 +370,7 @@ board</h3>
             </a>
             <a class="tab-card" data-nav data-id="quest" data-go="quests"
               data-figma="1:1810 + 1:1917 + 1:1927 + 1:1938 (Quest card)">
-              <div class="tab-card__tab"><span class="tab-card__label">Quest</span><img class="tab-card__check" src="mtx/assets/svg/icon-check.svg"
-                  alt=""></div>
+              <div class="tab-card__tab"><span class="tab-card__label">Quest</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/quest.jpg?v=5" alt="">
                 </div>
@@ -474,8 +471,8 @@ board</h3>
 
       <!-- ============================ Mastery skill tree ============================
      Screen chrome: Figma 14:747 (Phranakon Skill Tree).
-     Tree layout + links: Skill-tree_v3 export (tools/skilltree/PhraNakorn_SkillTree.source.json)
-     -> tools/skilltree/export_to_prototype.py -> mtx/js/skilltree-data.js. Nodes are rendered by app.js. -->
+     Node content: wiki table "Skill Tree PhraNakorn" (08-data-tables/10-Skill-Tree-PhraNakorn.md); layout + links: v4
+     (tools/skilltree/layout-v4.json) -> tools/skilltree/build-v5.mjs -> mtx/js/skilltree-data.js. Rendered by screen-skilltree.js. -->
       <section class="screen" id="s-skilltree" data-screen="skilltree" data-nav-mode="rows" data-first="pn1_root"
         data-lt="fn:prevGate" data-rt="fn:nextGate"
         data-figma="14:747 Phranakon Skill Tree (tree from Skill-tree_v3 JSON)">
@@ -488,7 +485,6 @@ board</h3>
           <div class="tree" data-figma="Skill tree viewport (camera follows focus)">
             <div class="tree__camera" data-bind="treeCamera">
               <svg class="tree__frames" data-bind="treeFrames" aria-hidden="true"></svg>
-              <div data-bind="treeOrn"></div>
               <svg class="tree__links" data-bind="treeLinks" aria-hidden="true"></svg>
               <div class="tree__gates" data-bind="treeGates"></div>
               <div class="tree__nodes" data-bind="treeNodes"></div>
@@ -496,8 +492,8 @@ board</h3>
           </div>
           <div class="tree__edge" aria-hidden="true"></div>
 
-          <!-- Skill detail panel = shared skill info card (components/skill-info.js, Figma MTX / Perk Info Card 719:89368),
-         filled by screen-skilltree.js init. A = Unlock (hold), X = Remove one level, RS = Level, B = close. -->
+          <!-- Node detail card (components/node-detail.js, Figma Node Detail · Pack I 833:93841), filled by screen-skilltree.js init.
+         A = Unlock (hold) / Equip, LB / RB = Lv or Tier tab, Y = Video (moves), B = close. -->
           <aside data-bind="skillDetail" hidden></aside>
 
           <header class="skill__header" data-figma="14:1287 mastery + 14:1288 30 days left">
@@ -535,12 +531,11 @@ board</h3>
           <div class="mq-progress" data-figma="123:105 Progression Milestone">
             <div class="mq-progress__inner">
               <img class="mq-progress__art" src="mtx/assets/img/quest-progression.webp" alt="">
-              <span class="mq-orn mq-orn--l"></span><span class="mq-orn mq-orn--r"></span>
               <span class="mq-progress__sep"></span>
               <div class="mq-emblem" data-bind="mqLevel" data-figma="123:122 Style Level Border">02</div>
               <p class="mq-progress__word" data-bind="mqStyleName">Phranakhon</p>
-              <p class="mq-progress__sub" data-bind="mqSub">Earn Mastery Points from quests below to unlock higher style</p>
-              <span class="mq-progress__pts" data-bind="mqPts"><b>4,200</b> | 10,000</span>
+              <p class="mq-progress__sub" data-bind="mqSub">Complete the quests below to level up this style</p>
+              <span class="mq-progress__pts" data-bind="mqPts"><b>2</b> | 6 Quests</span>
               <div class="mq-bar" data-figma="123:116 ProgressionBar">
                 <div class="mq-bar__track"><i class="mq-bar__fill" data-bind="mqBar"></i></div>
               </div>
@@ -566,10 +561,6 @@ board</h3>
               <section>
                 <h3 class="mq-detail__label">Current objective</h3>
                 <div class="mq-objectives" data-bind="questObjectives"></div>
-              </section>
-              <section class="mq-rewards">
-                <h3 class="mq-detail__label">Rewards</h3>
-                <div class="quest-rewards" data-bind="questRewards"></div>
               </section>
             </div>
           </article>
@@ -673,13 +664,12 @@ Collection</h1>
             <h2 class="tex-text" data-bind="rewardTitle">MTX 2026 Collection</h2>
             <p data-bind="rewardDesc">Deal 1000 damage to the enemy instantly.</p>
             <div class="rewards__actions">
-              <a class="btn-cta btn-cta--key focus-ring focus-ring--out" data-nav data-id="claim" data-fn="claimReward"
-                data-bind="claimBtn" data-hold-action="claim" data-figma="1:5095 + 1:5096 + 1:5097 (Claim button)">
+              <a class="btn-cta btn-cta--key focus-ring focus-ring--out" data-nav data-id="claim" data-fn="buyReward"
+                data-bind="claimBtn" data-figma="1:5095 + 1:5096 + 1:5097 (Claim button, now Buy: R point confirm modal)">
                 <span class="btn-cta__grad" data-figma="Scratch-White 2 (gold gradient)"></span>
                 <span class="btn-cta__tex" data-figma="Scratch-White 1 (scratch image, linear burn)"></span>
                 <span class="glyph glyph--lg" data-btn="a">A</span>
-                <span class="btn-cta__label">Claim</span>
-                <span class="btn-cta__hold-bar"></span>
+                <span class="btn-cta__label">Buy</span>
                 <span class="btn-cta__check" aria-hidden="true"><svg viewBox="0 0 25 25">
                     <path fill-rule="evenodd" clip-rule="evenodd"
                       d="M12.5 0C19.4036 0 25 5.59635 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59635 25 0 19.4036 0 12.5C0 5.59635 5.59635 0 12.5 0ZM6.64896 13.2422L10.2089 16.5115C10.7281 16.9896 11.5318 16.9641 12.0203 16.4604L18.3714 10.3797C18.888 9.88281 18.9036 9.06094 18.4068 8.54479C17.9099 8.02812 17.088 8.0125 16.5719 8.50937L11.0703 13.776L8.40781 11.3307C7.88021 10.8453 7.05833 10.8792 6.57292 11.4068C6.08698 11.9349 6.12135 12.7562 6.64896 13.2422Z"
@@ -692,7 +682,7 @@ Collection</h1>
         <div class="screen__chrome">
           <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:4852 Layer_1 (logo)">
           <div data-use="player-hud" data-variant="rpoint"></div>
-          <nav class="hint-bar" data-hints='{"b":"Back","a":"Claim","ls":"Move"}'></nav>
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Buy","ls":"Move"}'></nav>
           <div data-use="social-bar"></div>
         </div>
       </section>
@@ -1501,6 +1491,12 @@ Mention</h1>
               <option value="confirm">Modal confirm</option>
             </select></label>
           <label>Tree glow (nodes, frames, links) <input type="checkbox" id="treeGlow"></label>
+          <label>VFX: ornament (yantra) <input type="checkbox" data-tree-vfx="ornament"></label>
+          <label>VFX: ornament shimmer <input type="checkbox" data-tree-vfx="shimmer"></label>
+          <label>VFX: ornament noise fade <input type="checkbox" data-tree-vfx="noise"></label>
+          <label>VFX: unlock ripple (ornament) <input type="checkbox" data-tree-vfx="ripple"></label>
+          <label>VFX: node forge (flash / rings) <input type="checkbox" data-tree-vfx="forge"></label>
+          <label>Ornament parallax <input type="range" id="treePlx" min="0" max="80" step="5"> <output id="treePlxVal"></output></label>
           <label>Controller rumble <input type="checkbox" id="rumbleOn"></label>
           <p class="dev-note">Earned with S levels: each S level up gives Skill points + MP</p>
           <div class="dev-row">
@@ -1614,11 +1610,12 @@ Mention</h1>
     </div>
   </div>
 
-  <script src="mtx/js/components/hold.js?v=400"></script>
+  <script src="mtx/js/components/hold.js?v=402"></script>
   <script src="mtx/js/components/skill-info.js?v=2"></script>
+  <script src="mtx/js/components/node-detail.js?v=6"></script>
   <script src="mtx/js/components/visual-keyboard.js?v=400"></script>
   <script src="mtx/js/components/motion.js?v=3"></script>
-  <script src="mtx/js/components/glyph.js?v=400"></script>
+  <script src="mtx/js/components/glyph.js?v=400-cb1"></script>
   <script src="mtx/js/components/hint-bar.js?v=pin2"></script>
   <script src="mtx/js/data/items.js?v=3"></script>
   <script src="mtx/js/components/item-card.js?v=1"></script>
@@ -1626,30 +1623,30 @@ Mention</h1>
   <script src="mtx/js/components/loading.js?v=2"></script>
   <script src="mtx/js/components/shader-preload.js?v=4"></script>
   <script src="mtx/js/components/match-found.js?v=1"></script>
-  <script src="mtx/js/components/screen-wipe.js?v=5"></script>
+  <script src="mtx/js/components/screen-wipe.js?v=6"></script>
   <script src="mtx/js/components/match-result.js?v=24"></script>
   <script src="mtx/js/components/scrollbar.js?v=400"></script>
   <script src="mtx/js/components/nav-graph.js?v=402"></script>
   <script src="mtx/js/player-data.js?v=400"></script>
-  <script src="mtx/js/player.js?v=400"></script>
+  <script src="mtx/js/player.js?v=401"></script>
   <script src="mtx/js/components/personality.js?v=400"></script>
-  <script src="mtx/js/skilltree-data.js?v=401"></script>
+  <script src="mtx/js/skilltree-data.js?v=501"></script>
   <script src="mtx/js/screens/screen-main.js?v=404"></script>
   <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
   <script src="mtx/js/screens/screen-career.js?v=402"></script>
   <script src="mtx/js/screens/screen-tactical.js?v=400"></script>
-  <script src="mtx/js/screens/screen-skilltree.js?v=416"></script>
+  <script src="mtx/js/screens/screen-skilltree.js?v=544"></script>
   <script src="mtx/js/sim-data.js?v=400"></script>
   <script src="mtx/js/sim-scenarios.js?v=400"></script>
   <script src="mtx/js/sim-events.js?v=400"></script>
   <script src="mtx/js/screens/screen-manager.js?v=400"></script>
-  <script src="mtx/js/screens/screen-quests.js?v=qi1"></script>
-  <script src="mtx/js/screens/screen-rewards.js?v=db1"></script>
+  <script src="mtx/js/screens/screen-quests.js?v=qi4"></script>
+  <script src="mtx/js/screens/screen-rewards.js?v=db1-buy2"></script>
   <script src="mtx/js/attr-data.js?v=400"></script>
-  <script src="mtx/js/screens/screen-attributes.js?v=400"></script>
+  <script src="mtx/js/screens/screen-attributes.js?v=401"></script>
   <script src="mtx/js/screens/screen-loadout.js?v=8"></script>
-  <script src="mtx/js/screens/screen-customize.js?v=hb2"></script>
-  <script src="mtx/js/screens/screen-store.js?v=db9"></script>
+  <script src="mtx/js/screens/screen-customize.js?v=hb3"></script>
+  <script src="mtx/js/screens/screen-store.js?v=db9-r2"></script>
   <script src="mtx/js/screens/screen-leaderboard.js?v=402"></script>
   <script src="mtx/js/screens/screen-history.js?v=400"></script>
   <script src="mtx/js/screens/screen-matchdetail.js?v=ic1"></script>
@@ -1664,7 +1661,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-lobby.js?v=sb19v60"></script>
   <script src="mtx/js/screens/screen-login.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-campaign.js?v=hb1"></script>
-  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsp-r6-uw3"></script>
+  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsp-r6-uw3-nd4pv"></script>
   <script src="mtx/js/components/character3d.js?v=sb7"></script>
   <script src="mtx/js/dev-text.js?v=400"></script>
   <script src="mtx/js/dev-bake.js?v=400"></script>

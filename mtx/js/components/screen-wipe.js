@@ -104,7 +104,7 @@
     const sel = box.querySelector("[data-mode]");
     sel.value = t.mode;
     sel.addEventListener("change", () => {
-      t.mode = sel.value; ls.set(`wipe.${t.id}.mode`, t.mode);
+      t.mode = sel.value; ls.set(`wipe.${t.id}.mode2`, t.mode);
       window.MTX?.api?.toast?.(`${t.label} video: ${sel.selectedOptions[0].textContent}`);
     });
     box.querySelectorAll("[data-speed]").forEach(r => {
@@ -121,7 +121,7 @@
     list: () => list.slice(),
     register(def) {
       const t = Object.assign({ back: null }, def);
-      t.mode = ls.get(`wipe.${t.id}.mode`, t.back ? "both" : "in");
+      t.mode = ls.get(`wipe.${t.id}.mode2`, "off");   // video transitions are off by default (turn on in Dev > System > Transitions)
       if (!t.back && t.mode === "both") t.mode = "in";
       t.speed = { in: +ls.get(`wipe.${t.id}.speed.in`, 1), back: +ls.get(`wipe.${t.id}.speed.back`, 1) };
       list.push(t);
