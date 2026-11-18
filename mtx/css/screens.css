@@ -1100,7 +1100,6 @@
   height: 266px;
   box-sizing: border-box;
   padding: 7px;
-  border-radius: 20px;
   box-shadow: inset 0 0 0 1px #999, 0 0 49px rgb(0 0 0 / .6)
 }
 
@@ -1108,7 +1107,6 @@
   position: relative;
   height: 100%;
   overflow: hidden;
-  border-radius: 14px;
   background: linear-gradient(rgb(31 31 31 / .82), rgb(31 31 31 / .82)), var(--tex-scratch) center/cover, #1f1f1f
 }
 
@@ -3885,17 +3883,19 @@ html body .attr__trigger .glyph[data-btn] {
   left: 61px
 }
 
-/* equipped marker on the tree */
+/* equipped tag on the tree: 1:1 square, gold (--grad-gold), turned 45 deg, top right of the node (user 2026-11-18). Flat, no glow. */
 .tnode.is-equipped::after {
   content: "";
   position: absolute;
-  right: -2px;
-  top: -2px;
-  width: 16px;
-  height: 16px;
+  z-index: 5;
+  right: -1px;
+  top: -1px;
+  width: 7px;
+  height: 7px;
   transform: rotate(45deg);
-  background: var(--yellow-2);
-  box-shadow: 0 0 0 3px #050505, 0 0 10px rgb(242 223 87 / .7)
+  background: var(--grad-gold);
+  box-shadow: 0 0 0 1px #050505;
+  pointer-events: none
 }
 
 
@@ -8112,14 +8112,20 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 }
 
 /* Skill Tree: tier ornaments (whole skill-tree-yan.png strip), soft light 80 % */
-#s-skilltree .tree__yantra { position: absolute; pointer-events: none; background: url(../assets/skill-tree-yan.png) no-repeat; mix-blend-mode: soft-light; opacity: .8 }
-/* tier ornament shimmer (user 2026-11-17: "some movement"): a warm light band sweeps down the strip every 8 s, masked to the ornament */
-#s-skilltree .tree__yantra::after { content: ""; position: absolute; inset: 0;
-  -webkit-mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat;
-  background: linear-gradient(transparent 0, rgba(255, 228, 170, .9) 50%, transparent 100%) 0 0 / 100% 12% no-repeat;
-  animation: tree-yantra-sweep 8s linear infinite }
-@keyframes tree-yantra-sweep { from { background-position: 0 -15% } to { background-position: 0 115% } }
-@media (prefers-reduced-motion: reduce) { #s-skilltree .tree__yantra::after { animation: none; display: none } }
+/* Tier ornament box: soft light 80 %. v5 (user 2026-11-18, Firefox lag at full screen): the FractalNoise fade is baked into 3 images
+   (skill-tree-yan-n0..2.webp = the strip x two noise tiles 600 / 900 at 3 drift phases) and crossfaded with opacity only,
+   so nothing is masked or repainted per frame. Layers: .tree__yantra (box, blend) > .tree__yantra-art x3 (+ --plain) + .tree__shine */
+#s-skilltree .tree__yantra { position: absolute; pointer-events: none; overflow: hidden; mix-blend-mode: soft-light; opacity: .8 }
+#s-skilltree .tree__yantra-art { position: absolute; inset: 0; background: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat }
+/* tier ornament shimmer (user 2026-11-17: "some movement"): a warm light band sweeps down the strip every 8 s, masked to the ornament.
+   v4: the mask stays still, the band moves by transform (was background-position). 12 % tall band, -15 % -> 115 % like before. */
+#s-skilltree .tree__shine { position: absolute; inset: 0; overflow: hidden;
+  -webkit-mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat }
+#s-skilltree .tree__shine i { position: absolute; left: 0; top: 0; width: 100%; height: 12%; will-change: transform;
+  background: linear-gradient(transparent 0, rgba(255, 228, 170, .9) 50%, transparent 100%);
+  animation: tree-shine 8s linear infinite }
+@keyframes tree-shine { from { transform: translateY(-110%) } to { transform: translateY(843.3%) } }
+@media (prefers-reduced-motion: reduce) { #s-skilltree .tree__shine { display: none } }
 /* unlock / level-up ripple: a warm ring grows from the node (--cx/--cy, px in the ornament box), masked to the ornament lines */
 @property --rr { syntax: "<length>"; inherits: false; initial-value: 0px }
 #s-skilltree .tree__ripple { position: absolute; pointer-events: none; mix-blend-mode: screen;
@@ -8147,19 +8153,35 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-skilltree .tnode>i.tnode__opening { position: absolute; left: 50%; top: 50%; z-index: 3; width: 70px; height: 70px; margin: -35px; pointer-events: none;
   border: 2px solid #ffe2a0; transform: rotate(45deg) scale(.6); opacity: 0; animation: tnode-opening .6s cubic-bezier(.15, .7, .3, 1) .4s forwards }
 @keyframes tnode-opening { 0% { opacity: 1; transform: rotate(45deg) scale(.6) } 100% { opacity: 0; transform: rotate(45deg) scale(1.8) } }
-/* ornament fade mask v3 (user 2026-11-17: "FractalNoise"): SVG feTurbulence fractalNoise tile as alpha mask, two layers at different
-   scales drifting different ways and intersected, so soft noisy patches of the yantra fade out and back. Extra layer over the shimmer. */
-@keyframes tree-yantra-flow-a { from { -webkit-mask-position: 0 0, 0 0; mask-position: 0 0, 0 0 }
-  to { -webkit-mask-position: 0 600px, -900px 900px; mask-position: 0 600px, -900px 900px } }
-#s-skilltree .tree__yantra {
-  -webkit-mask-image: url(../assets/svg/skill/fractal-noise-mask.svg?v=4), url(../assets/svg/skill/fractal-noise-mask.svg?v=4); mask-image: url(../assets/svg/skill/fractal-noise-mask.svg?v=4), url(../assets/svg/skill/fractal-noise-mask.svg?v=4);
-  -webkit-mask-size: 600px 600px, 900px 900px; mask-size: 600px 600px, 900px 900px;
-  -webkit-mask-repeat: repeat; mask-repeat: repeat;
-  -webkit-mask-composite: source-in; mask-composite: intersect;
-  animation: tree-yantra-flow-a 14s linear infinite }
-@media (prefers-reduced-motion: reduce) { #s-skilltree .tree__yantra { animation: none; -webkit-mask-image: none; mask-image: none } }
+/* ornament noise fade (user 2026-11-17 "FractalNoise", v5 baked 2026-11-18): soft noisy patches of the yantra fade out and back.
+   Each variant peaks once per 15 s cycle, 5 s apart; .7 at the crossover keeps the combined alpha near 1 (no dip). */
+#s-skilltree .tree__yantra-art--n0 { background-image: url(../assets/skill-tree-yan-n0.webp) }
+#s-skilltree .tree__yantra-art--n1 { background-image: url(../assets/skill-tree-yan-n1.webp) }
+#s-skilltree .tree__yantra-art--n2 { background-image: url(../assets/skill-tree-yan-n2.webp) }
+#s-skilltree .tree__yantra-art--n0, #s-skilltree .tree__yantra-art--n1, #s-skilltree .tree__yantra-art--n2 {
+  opacity: 0; will-change: opacity; animation: tree-yan-fade 15s linear infinite }
+#s-skilltree .tree__yantra-art--n1 { animation-delay: -10s }
+#s-skilltree .tree__yantra-art--n2 { animation-delay: -5s }
+@keyframes tree-yan-fade { 0% { opacity: 0 } 16.67% { opacity: .7 } 33.33% { opacity: 1 } 50% { opacity: .7 } 66.67%, 100% { opacity: 0 } }
+#s-skilltree .tree__yantra-art--plain { display: none }
+@media (prefers-reduced-motion: reduce) {
+  #s-skilltree .tree__yantra-art--n0, #s-skilltree .tree__yantra-art--n1, #s-skilltree .tree__yantra-art--n2 { display: none }
+  #s-skilltree .tree__yantra-art--plain { display: block } }
 /* Dev > Skill tree VFX toggles (class .no-vfx-<name> on #s-skilltree, set by app.js) */
 #s-skilltree.no-vfx-ornament .tree__yantra, #s-skilltree.no-vfx-ornament .tree__ripple { display: none }
-#s-skilltree.no-vfx-shimmer .tree__yantra::after { display: none }
-#s-skilltree.no-vfx-noise .tree__yantra { -webkit-mask-image: none; mask-image: none; animation: none }
+#s-skilltree.no-vfx-shimmer .tree__shine { display: none }
+#s-skilltree.no-vfx-noise .tree__yantra-art--n0, #s-skilltree.no-vfx-noise .tree__yantra-art--n1, #s-skilltree.no-vfx-noise .tree__yantra-art--n2 { display: none }
+#s-skilltree.no-vfx-noise .tree__yantra-art--plain { display: block }
 #s-skilltree.no-vfx-ripple .tree__ripple { display: none }
+/* perf (user 2026-11-18 "skill tree stutters"): the ornament's mask + shimmer animate every frame. Without their own layers each frame
+   repainted the whole camera (44 nodes with blur glows + 56 drop-shadow link paths). Keep the camera and the ornament on their own
+   GPU layers so only the ornament repaints and the camera move is a pure transform. Look is unchanged (the camera already had a transform). */
+#s-skilltree .tree__camera { will-change: transform }
+#s-skilltree .tree__yantra, #s-skilltree .tree__ripple { will-change: transform }
+
+/* Skill tree per style (2026-11-18, docs/skill-data-design.html): the Phra Nakorn yantra ornament is tinted to the
+   selected style colour (hue turned from PN red) until each style has its own art. data-tree-style set by screen-skilltree.js useStyle. */
+#s-skilltree[data-tree-style="south"] .tree__yantra { filter: hue-rotate(208deg) saturate(.9) }
+#s-skilltree[data-tree-style="isan"] .tree__yantra { filter: hue-rotate(88deg) saturate(1.1) brightness(1.1) }
+#s-skilltree[data-tree-style="north"] .tree__yantra { filter: hue-rotate(273deg) saturate(1.2) }
+#s-skilltree[data-tree-style="west"] .tree__yantra { filter: hue-rotate(38deg) saturate(1.1) }

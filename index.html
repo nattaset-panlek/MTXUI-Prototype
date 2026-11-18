@@ -19,7 +19,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="mtx/css/tokens.css?v=401">
   <link rel="stylesheet" href="mtx/css/base.css?v=pg6">
-  <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw1">
+  <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw8">
   <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
   <link rel="stylesheet" href="mtx/css/login.css?v=cta1">
   <link rel="stylesheet" href="mtx/css/shader-preload.css?v=3">
@@ -27,13 +27,13 @@
   <link rel="stylesheet" href="mtx/css/spotlight.css?v=bl1">
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
   <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
-  <link rel="stylesheet" href="mtx/css/no-brand.css?v=8b">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=st67">
+  <link rel="stylesheet" href="mtx/css/no-brand.css?v=8c">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st71">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
   <link rel="stylesheet" href="mtx/css/loadout.css?v=10">
-  <link rel="stylesheet" href="mtx/css/node-detail.css?v=6">
+  <link rel="stylesheet" href="mtx/css/node-detail.css?v=7">
 </head>
 
 <body>
@@ -472,7 +472,7 @@ board</h3>
       <!-- ============================ Mastery skill tree ============================
      Screen chrome: Figma 14:747 (Phranakon Skill Tree).
      Node content: wiki table "Skill Tree PhraNakorn" (08-data-tables/10-Skill-Tree-PhraNakorn.md); layout + links: v4
-     (tools/skilltree/layout-v4.json) -> tools/skilltree/build-v5.mjs -> mtx/js/skilltree-data.js. Rendered by screen-skilltree.js. -->
+     (tools/skilltree/layout-v4.json + sheet CSV / wiki 11-14) -> tools/skilltree/build-v6.mjs -> mtx/js/data/skills-data.js (5 styles). Rendered by screen-skilltree.js. -->
       <section class="screen" id="s-skilltree" data-screen="skilltree" data-nav-mode="rows" data-first="pn1_root"
         data-lt="fn:prevGate" data-rt="fn:nextGate"
         data-figma="14:747 Phranakon Skill Tree (tree from Skill-tree_v3 JSON)">
@@ -1630,12 +1630,13 @@ Mention</h1>
   <script src="mtx/js/player-data.js?v=400"></script>
   <script src="mtx/js/player.js?v=401"></script>
   <script src="mtx/js/components/personality.js?v=400"></script>
-  <script src="mtx/js/skilltree-data.js?v=501"></script>
+  <script src="mtx/js/data/skills-data.js?v=2"></script>
+  <script src="mtx/js/skill-state.js?v=1"></script>
   <script src="mtx/js/screens/screen-main.js?v=404"></script>
   <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
   <script src="mtx/js/screens/screen-career.js?v=402"></script>
   <script src="mtx/js/screens/screen-tactical.js?v=400"></script>
-  <script src="mtx/js/screens/screen-skilltree.js?v=544"></script>
+  <script src="mtx/js/screens/screen-skilltree.js?v=547"></script>
   <script src="mtx/js/sim-data.js?v=400"></script>
   <script src="mtx/js/sim-scenarios.js?v=400"></script>
   <script src="mtx/js/sim-events.js?v=400"></script>
@@ -1644,7 +1645,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-rewards.js?v=db1-buy2"></script>
   <script src="mtx/js/attr-data.js?v=400"></script>
   <script src="mtx/js/screens/screen-attributes.js?v=401"></script>
-  <script src="mtx/js/screens/screen-loadout.js?v=8"></script>
+  <script src="mtx/js/screens/screen-loadout.js?v=9"></script>
   <script src="mtx/js/screens/screen-customize.js?v=hb3"></script>
   <script src="mtx/js/screens/screen-store.js?v=db9-r2"></script>
   <script src="mtx/js/screens/screen-leaderboard.js?v=402"></script>

@@ -60,22 +60,31 @@ body[data-device="kb"] .glyph--md{--g:26px}
 .social-bar__btn--options{width:136px}
 
 /* ---------- Level chip (Figma R/E/S chip, 36px badge + 158px body) ---------- */
-.level-chip{--c:var(--track-r);position:relative;display:flex;width:194px;height:62px}
+.level-chip{--c:var(--track-r);position:relative;display:flex;width:220px;height:62px}   /* Figma 236:5791 MTX / Level Chip, Layout=2 */
 .level-chip--e{--c:var(--track-e)} .level-chip--s{--c:var(--track-s)}
-.level-chip__badge{width:36px;height:62px;flex:none;border-radius:1px;background:var(--c);display:grid;place-items:center;font:400 23px/1 var(--font-display);color:var(--text-ink);padding-top:12px;box-sizing:border-box}
-.level-chip__body{position:relative;flex:1;background:linear-gradient(rgb(22 24 31 / .7) 0 33px,#000 33px)}
+.level-chip__badge{width:62px;height:62px;flex:none;border-radius:1px;background:var(--c);display:grid;place-items:center;font:400 40px/23px var(--font-display);color:var(--text-ink);padding-top:1px;box-sizing:border-box}
+.level-chip__body{position:relative;flex:1;background:linear-gradient(rgb(0 0 0 / .5),#000 69.7%)}
 .level-chip__label{position:absolute;left:13px;top:6px;font:600 15px/1 var(--font-ui);letter-spacing:-.019em;text-transform:uppercase;color:var(--text-1)}
 .level-chip__value{position:absolute;right:10px;top:4px;font:600 20px/1 var(--font-ui);letter-spacing:-.019em;color:var(--text-1)}
 .level-chip__xp{position:absolute;left:13px;top:41px;font:500 14px/1 var(--font-ui);letter-spacing:-.019em;text-transform:uppercase;color:var(--text-muted)}
 .level-chip__bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgb(255 255 255 / .12)}
 .level-chip__bar i{position:absolute;inset:0 auto 0 0;width:var(--p,50%);background:var(--c);clip-path:polygon(0 0,100% 0,calc(100% - 3px) 100%,0 100%)}
 /* compact variant used inside the profile card (Figma 136x47) */
+/* Figma 236:5788: the colour fill of the XP line is gone, only the 12% track stays ("current" HUD style only) */
+html:not([data-hud-style]) .level-chip__bar i{display:none}
 .level-chip--mini{width:136px;height:47px}
 /* Figma order: body first, badge + letter on top (badge overlaps the body by 7px) */
-.level-chip--mini .level-chip__badge{position:relative;z-index:1;width:36px;height:43px;margin-top:3px;padding:2px 0 0}
+.level-chip--mini .level-chip__badge{position:relative;z-index:1;width:36px;height:43px;margin-top:3px;padding:2px 0 0;font-size:23px;line-height:1}
 .level-chip--mini .level-chip__body{position:relative;z-index:0;margin:4px 0 2px -7px;background:var(--surface-chip);border-radius:1px}
 .level-chip--mini .level-chip__label{left:14px;top:12px;color:var(--c)}
 .level-chip--mini .level-chip__value{right:14px;top:12px;font-size:15px;color:var(--c)}
+/* "Current" HUD style: profile card chips = Figma 236:4633 / 4651 / 4668 MTX / Level Chip Layout 1 (150x45):
+   square 43px badge beside a 41px body, no overlap. 136px wide (not 150) so 3 fit the 422px card row. */
+html:not([data-hud-style]) .level-chip--mini{height:45px}
+html:not([data-hud-style]) .level-chip--mini .level-chip__badge{width:43px;height:43px;margin-top:1px;padding:0;font-size:28px;line-height:23px}
+html:not([data-hud-style]) .level-chip--mini .level-chip__body{margin:2px 0 0;height:41px}
+html:not([data-hud-style]) .level-chip--mini .level-chip__value{font-size:14.65px}
+html:not([data-hud-style]) .level-chip--mini:is(.level-chip--s,.level-chip--r) .level-chip__value{font-size:15.52px}
 
 /* ---------- Wallet (Figma "Currency" 236:4940, 250x62): rank badge, MTX Credit | Money ---------- */
 .wallet{position:relative;width:250px;height:62px;display:flex;align-items:center;padding-left:80px;box-sizing:border-box;border-radius:3px;background:rgb(0 0 0 / .5)}

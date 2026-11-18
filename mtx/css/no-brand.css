@@ -33,9 +33,6 @@
 #s-history > .screen__safe > .lb-tabs,
 #s-history > .screen__safe > .mh-detail,
 #s-history > .screen__safe > .mh-table,
-#s-collection > .screen__safe > .collection__title,
-#s-collection > .screen__safe > .col-tabs,
-#s-collection > .screen__safe > .collection__groups,
 #s-media > .screen__safe > .xprofile { margin-top: -95px }
 
 /* the profile card goes all the way up: its top lines up with the wallet (top-right, 48px) - same anchor on Main menu and Ultimate Fight */
@@ -65,7 +62,11 @@
 #s-store > .screen__safe > .st-balance,
 #s-store > .screen__safe > .st-view { margin-top: -43px }   /* the balance sits on the view; HUD limit */
 #s-attributes > .screen__safe > .attr__panel { margin-top: 0 }   /* stays under the tabs (the tabs don't move) */
-#s-collection > .screen__safe > .col-count { margin-top: -95px }   /* moves with the tabs / grid */
+/* Collection: the tabs row reaches under the wider HUD (Level Chip 220px), so the group stops 16px below it (129px) */
+#s-collection > .screen__safe > .collection__title,
+#s-collection > .screen__safe > .col-tabs,
+#s-collection > .screen__safe > .collection__groups,
+#s-collection > .screen__safe > .col-count { margin-top: -53px }   /* moves with the tabs / grid */
 
 /* Quests: the freed space goes to the content - list, scrollbar, detail and art start 91px higher and grow by as much
    (the Accept button below keeps its place) */

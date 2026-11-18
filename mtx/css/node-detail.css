@@ -93,3 +93,5 @@
 .nd-video__hints { position: absolute; left: 0; top: 556px; display: flex; gap: 20px }
 .nd-video__hints .hint-inline { display: flex; align-items: center; gap: 8px; font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5; cursor: pointer }
 .nd-video__hints .glyph { --g: 25px; font-size: 12px; margin: 0 }
+/* Damage Part "Knee 40% / Punch 30%": the "/" separators in grey (user 2026-11-18) */
+.nd-sep { font-style: normal; color: var(--text-dim) }

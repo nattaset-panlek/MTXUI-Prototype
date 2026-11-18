@@ -30,26 +30,48 @@
     { id: "west", name: "Lopburi", color: "#f96000", req: "E Lv 50  S Lv 40  R Lv 20" }
   ];
   const KIND = { defend: ["Defend perk", "#4da3ff"], attack: ["Attack perk", "#ff4060"], sustain: ["Sustain perk", "#3fd28b"] };
-  // lv = owned level (frame: 1 silver, 2 copper, 3 gold). fx = effect per level 1-3, draw = drawback (Lv 3)
-  const PERKS = [
-    { name: "Finesse Counter", kind: "defend", lv: 1, fx: ["After a successful block, the next attack gains +10 Strike Speed.", "After a successful block, the next attack gains +15 Strike Speed.", "After a successful block, the next 2 attacks gain +20 Strike Speed."], draw: "Drawback: blocking costs 10% more Stamina" },
-    { name: "Restorative Breath", kind: "sustain", lv: 1, fx: ["Standing still for 2 seconds restores 5% Stamina per second.", "Standing still for 2 seconds restores 8% Stamina per second.", "Standing still for 1 second restores 12% Stamina per second."], draw: "Drawback: Guard is 20% weaker while restoring" },
-    { name: "Triple Rhythm Press", kind: "attack", lv: 1, fx: ["Every third hit in a combo deals +10% damage.", "Every third hit in a combo deals +15% damage.", "Every third hit in a combo deals +25% damage and staggers."], draw: "Drawback: the fourth hit deals 20% less damage" },
-    { name: "Fluid Evasion", kind: "defend", lv: 2, fx: ["Perfect Hop cuts the Stamina Cost of your next attack by 20% for 5 seconds.", "Perfect Hop cuts the Stamina Cost of your next attack by 30% and grants +10 Combo Efficiency for 5 seconds.", "Perfect Hop cuts the Stamina Cost of your next attack by 40% and grants +15 Combo Efficiency for 5 seconds."], draw: "Drawback: a missed Hop drains 10% Stamina" },
-    { name: "Tiger Trap", kind: "attack", lv: 3, fx: ["Guard Cancel before an attack lowers the enemy Damage Reduction by 15% for 5 seconds.", "Guard Cancel before an attack lowers the enemy Damage Reduction by 20% and grants +10 Armor Shred Rate for 5 seconds.", "Guard Cancel before an attack lowers the enemy Damage Reduction by 30% and grants +15 Armor Shred Rate for 5 seconds."], draw: "Drawback: if that attack misses, you are slowed by 50% for 5 seconds" },
-    { name: "Counter-Catch Pivot", kind: "defend", lv: 1, fx: ["Catching a kick and pivoting restores 5% Stamina.", "Catching a kick and pivoting restores 8% Stamina.", "Catching a kick and pivoting restores 12% Stamina and stuns briefly."], draw: "Drawback: a failed catch takes 20% more damage" },
-    { name: "Relentless Assault", kind: "sustain", lv: 1, fx: ["Landing a heavy move (Base Damage [[13]] or higher) restores 1 Max Stamina", "Landing a heavy move (Base Damage [[13]] or higher) restores 3 Max Stamina", "Landing a heavy move (Base Damage [[13]] or higher) restores 6 Max Stamina and grants +10% crit rate on heavy moves"], draw: "Drawback: each trigger also lowers Max HP by 1" },
-    { name: "Steadfast Focus", kind: "sustain", lv: 3, fx: ["While HP regenerates, Max HP also regenerates 5% of missing Max HP per second.", "While HP regenerates, Max HP also regenerates 10% of missing Max HP per second.", "While HP regenerates, Max HP also regenerates 20% of missing Max HP per second."], draw: "Drawback: Movement Speed -40% while HP regenerates" },
-    { name: "Defensive Breaker", kind: "attack", lv: 1, locked: true, fx: ["Hits on a guarding enemy deal +10% Guard Damage.", "Hits on a guarding enemy deal +15% Guard Damage.", "Hits on a guarding enemy deal +25% Guard Damage."], draw: "Drawback: your own guard recovers 20% slower" },
-    { name: "Three-Step Pacing", kind: "sustain", lv: 1, locked: true, fx: ["Three steps without attacking restore 3% Stamina.", "Three steps without attacking restore 5% Stamina.", "Three steps without attacking restore 8% Stamina."], draw: "Drawback: the next attack is 10% slower" },
-    // row 3 (Hub B grid, all locked); names + art from Figma, effects are mock text
-    { name: "Alternating Breaker", kind: "attack", lv: 1, locked: true, fx: ["Alternating high and low strikes deal +5% damage.", "Alternating high and low strikes deal +10% damage.", "Alternating high and low strikes deal +15% damage."], draw: "Drawback: repeating a level deals 10% less damage" },
-    { name: "Against All Odds", kind: "sustain", lv: 1, locked: true, fx: ["Below 30% HP, Stamina regenerates 10% faster.", "Below 30% HP, Stamina regenerates 15% faster.", "Below 30% HP, Stamina regenerates 25% faster."], draw: "Drawback: above 70% HP, Stamina regenerates 10% slower" },
-    { name: "Flawless Execution", kind: "attack", lv: 1, locked: true, fx: ["A full combo without being hit deals +10% damage on its last hit.", "A full combo without being hit deals +15% damage on its last hit.", "A full combo without being hit deals +25% damage on its last hit."], draw: "Drawback: a broken combo costs 10% Stamina" },
-    { name: "Warcry", kind: "attack", lv: 1, locked: true, fx: ["After a knockdown, gain +5 Strike Speed for 5 seconds.", "After a knockdown, gain +10 Strike Speed for 5 seconds.", "After a knockdown, gain +15 Strike Speed for 8 seconds."], draw: "Drawback: Guard is 15% weaker for the same time" },
-    { name: "Block Gauge", kind: "defend", lv: 1, locked: true, fx: ["Blocked hits fill the gauge 10% faster.", "Blocked hits fill the gauge 15% faster.", "Blocked hits fill the gauge 25% faster."], draw: "Drawback: a full gauge drains in 5 seconds" }
-  ];
-  // grid / list / hub frame + icon sizes per level (Figma perk-frame instances), centred on one point
+  // Items per style come from the Skill Tree data (window.MTX_SKILLS, build-v6) and its unlock state (MTX_SKILLSTATE):
+  // PERKS / MOVES / MOVE_DESC are rebuilt for the shown style by syncLists() (start of every render).
+  //   perk: tree perk nodes; lv = tree level (frame 1-3), locked = level 0; fx per level, draw = Lv 3 drawback
+  //   special / signature: tree nodes of that kind; decisive: granted DSM + one item per family (owned with Tier 1, shows the top tier)
+  // IDS[tid][i] = node id (decisive: family id or granted node id) -> Skill Tree equip / is-equipped tag.
+  let PERKS = [];
+  let MOVES = { special: [], decisive: [], signature: [] }, MOVE_DESC = { special: [], decisive: [], signature: [] };
+  let MOVE_OWN = { special: [], decisive: [], signature: [] }, IDS = { perk: [], special: [], decisive: [], signature: [] };
+  const lvIn = (sid, id) => window.MTX_SKILLSTATE?.level(sid, id) || 0;
+  function listsFor(sid) {
+    const S = window.MTX_SKILLS?.styles?.[sid];
+    const L = { perks: [], moves: { special: [], decisive: [], signature: [] }, desc: { special: [], decisive: [], signature: [] }, own: { special: [], decisive: [], signature: [] }, ids: { perk: [], special: [], decisive: [], signature: [] } };
+    if (!S) return L;
+    S.nodes.filter(n => n.kind === "perk").forEach(n => {
+      const lv = lvIn(sid, n.id);
+      L.perks.push({ id: n.id, name: n.name, kind: n.tag in KIND ? n.tag : "attack", lv: Math.max(1, lv), locked: !lv, fx: n.levels.map(l => l.buff || l.desc), draw: n.levels[2]?.flaw || "" });
+      L.ids.perk.push(n.id);
+    });
+    const add = (tid, id, name, desc, own) => { L.ids[tid].push(id); L.moves[tid].push(name); L.desc[tid].push(desc); L.own[tid].push(own); };
+    ["special", "signature"].forEach(k => S.nodes.filter(n => n.kind === k).forEach(n => add(k, n.id, n.name, n.desc, lvIn(sid, n.id) > 0)));
+    S.nodes.filter(n => n.granted).forEach(n => add("decisive", n.id, n.name, n.desc, true));
+    Object.values(S.families || {}).forEach(f => {
+      const top = f.tiers.filter(id => lvIn(sid, id) > 0).length, n = S.nodes.find(x => x.id === f.tiers[Math.max(0, top - 1)]);
+      add("decisive", f.id, f.name, (top ? `Tier ${top} · ` : "") + (n?.desc || ""), top > 0);
+    });
+    return L;
+  }
+  // which list / index a tree node is in (decisive tiers -> their family)
+  function itemOf(sid, nodeId) {
+    const L = listsFor(sid), n = window.MTX_SKILLS?.styles?.[sid]?.nodes.find(x => x.id === nodeId);
+    if (!n) return null;
+    const key = n.kind === "decisive" && !n.granted ? n.family : nodeId, tid = n.kind === "perk" ? "perk" : n.kind;
+    const i = L.ids[tid]?.indexOf(key);
+    return i >= 0 ? { tid, i, L } : null;
+  }
+  const isOwnedIn = (L, tid, i) => tid === "perk" ? !!L.perks[i] && !L.perks[i].locked : !!L.own[tid]?.[i];
+  function syncLists() {
+    const sid = style().id, L = listsFor(sid);
+    PERKS = L.perks; MOVES = L.moves; MOVE_DESC = L.desc; MOVE_OWN = L.own; IDS = L.ids;
+    // skills removed in the tree leave the loadout (working copy and saved)
+    [presets[sid], saved[sid]].forEach(p => p && Object.keys(p).forEach(tid => p[tid] = p[tid].map(v => v != null && isOwnedIn(L, tid, v) ? v : null)));
+  }
   const PF = {
     grid: { 1: [122, 122, 96, 94], 2: [119, 116, 96, 94], 3: [128, 124, 84, 82] },
     list: { 1: [167, 167, 133, 130], 2: [164, 160, 133, 130], 3: [190, 184, 123, 121] },
@@ -57,16 +79,15 @@
   };
   const LIST_ICON = { 0: "perk-licon-1", 3: "perk-licon-2", 4: "perk-licon-3" };
   // 15 per grid (Hub B frames 740:114293 / 740:115977 / 740:117661); decisive row 3 repeats Kwang Liao Lang as in Figma
-  const MOVES = {
+  const MOVES_MOCK = {
     special: ["Jumping Knee", "Spinning Elbow", "Superman Punch", "Flying Kick", "Clinch Sweep", "Cartwheel Kick", "Axe Kick", "Question Mark Kick", "Spinning Back Fist", "Step-up Knee", "Spin Push Kick", "Spin Punch", "Flying Knee", "Face Teep", "Tornado Kick"],
     decisive: ["Mon Yan Lak", "Salab Fan Pla", "Erawan Soei Nga", "Hak Nguang", "Chawa Sad Hok", "Inao Thang Krit", "Pak Look Thoy", "Ta Then Kham Fak", "Yo Khao Phra Sumen", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang", "Kwang Liao Lang"],
     signature: ["TBD", "TBD", "Super Hook", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD", "TBD"]
   };
-  const MOVE_DESC = {
+  const MOVE_DESC_MOCK = {
     special: ["A rising knee that jumps in from mid range.", "A spinning elbow that turns through the guard.", "A leaping cross that closes distance in one step.", "A flying kick launched off the back foot.", "A clinch sweep that drops the opponent to the canvas.", "A cartwheel kick that comes over the guard.", "An axe kick that drops onto the head.", "A kick that feints low and lands high.", "A spinning back fist that punishes a step in.", "A step-up knee off the opponent's thigh."],
     decisive: ["A finishing knee that drives through the centre.", "A spinning elbow that cuts across the brow.", "A rising knee off the clinch that lifts the opponent and breaks their guard.", "A crocodile spin that throws the opponent off balance.", "A six-strike flurry that ends with an elbow.", "A long-range knee that splits the guard.", "A sweeping counter that catches a kick.", "A jumping kick that lands on the shoulder.", "A knee climb that strikes down on the head.", "A deer-turn kick that comes from behind."]
   };
-  const OWNED_MOVES = 4;
   const C_SIGNATURE = "#9aa0ab";
   const TYPES = [
     { id: "perk", label: "Perk", grid: "Perk" },
@@ -102,10 +123,8 @@
   const SLOT_PATH = "M563.816 243.569L530.894 211.373L497.972 243.569C492.748 248.675 489.789 255.148 489.084 261.814C482.269 262.498 475.646 265.393 470.422 270.499L437.5 302.695L470.422 334.89C475.646 339.997 482.269 342.891 489.084 343.575C489.789 350.241 492.748 356.714 497.972 361.82L530.894 394.016L563.816 361.82C569.04 356.714 571.999 350.241 572.704 343.575C579.519 342.891 586.142 339.997 591.365 334.89L624.288 302.695L591.365 270.499C586.142 265.393 579.519 262.498 572.704 261.814C571.999 255.148 569.04 248.675 563.816 243.569Z";
 
   // one preset per style. perk: 4 slots (PERKS index | null); special / decisive: 4 D-pad slots (MOVES index | null)
-  const DEFAULT_PRESETS = {
-    phranakhon: { perk: [0, 3, 4, null], special: [null, 0, 1, null], decisive: [null, 0, 1, null], signature: [null, null, null, null] },
-    south: { perk: [5, null, null, null], special: [null, 2, null, null], decisive: [null, 3, null, null], signature: [null, null, null, null] }
-  };
+  // empty at start: items come from the Skill Tree (Equip there, or pick owned items here)
+  const DEFAULT_PRESETS = {};
 
   let api = null, root = null, open = false;
   let presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));   // working copy (what the hub shows / edits)
@@ -150,7 +169,7 @@
   }
   const isLocked = s => !!s.req;
   const count = arr => arr.filter(v => v != null).length;
-  const owned = (tid, i) => i < itemCount(tid) && (tid === "perk" ? !PERKS[i].locked : i < OWNED_MOVES);
+  const owned = (tid, i) => i < itemCount(tid) && (tid === "perk" ? !PERKS[i].locked : !!MOVE_OWN[tid][i]);
   const itemCount = tid => tid === "perk" ? PERKS.length : MOVES[tid].length;
   const itemName = (tid, i) => tid === "perk" ? PERKS[i].name : MOVES[tid][i];
   const moveDesc = (tid, i) => MOVE_DESC[tid]?.[i] || (tid === "signature" ? "Signature move details not defined yet." : "Move details not defined yet.");
@@ -493,6 +512,7 @@
   //#region [Render]
   function render() {
     if (!root) return;
+    syncLists();
     const hub = page === 2;
     const body = tabsHtml(PAGES, page, x => x.w) + (page === 0 ? profileHtml() : page === 1 ? tbdHtml() : hubHtml());
     root.querySelector("[data-tl-hubart]").hidden = !hub;
@@ -777,7 +797,32 @@
     state: () => ({ page, styleIdx, view, type, mode, slot, cell, info, presets }),
     set: o => { ({ page = page, styleIdx = styleIdx, view = view, type = type, mode = mode, slot = slot, cell = cell } = o); if ("info" in o) info = o.info; if ("scroll" in o) { gscroll = o.scroll; lastType = type; } if (o.presets) { presets = o.presets; saved = clone(o.presets); } if (root?.querySelector("[data-tl-sw]")) root.querySelector("[data-tl-sw]").innerHTML = ""; quietRings = true; render(); quietRings = false; },
     reset: () => { presets = clone(DEFAULT_PRESETS); saved = clone(DEFAULT_PRESETS); styleIdx = 0; },
-    isDirty: () => dirty()
+    isDirty: () => dirty(),
+    // Skill Tree link (screen-skilltree.js): equipped = in the style's saved loadout
+    isEquipped(sid, nodeId) {
+      const it = itemOf(sid, nodeId);
+      return !!it && isOwnedIn(it.L, it.tid, it.i) && (saved[sid]?.[it.tid] || []).includes(it.i);
+    },
+    // puts the node in the first free slot (saved + working copy); returns the slot index, or null when full / not owned
+    equipNode(sid, nodeId) {
+      const it = itemOf(sid, nodeId);
+      if (!it || !isOwnedIn(it.L, it.tid, it.i)) return null;
+      const empty = () => ({ perk: [null, null, null, null], special: [null, null, null, null], decisive: [null, null, null, null], signature: [null, null, null, null] });
+      const sv = saved[sid] || (saved[sid] = empty()), pr = presets[sid] || (presets[sid] = clone(sv));
+      if (sv[it.tid].includes(it.i)) return sv[it.tid].indexOf(it.i);
+      const k = ENTRY_ORDER[it.tid].find(j => sv[it.tid][j] == null);
+      if (k == null) return null;
+      sv[it.tid][k] = it.i; if (pr[it.tid][k] == null) pr[it.tid][k] = it.i;
+      if (open) render();
+      return k;
+    },
+    // a decisive tier only leaves when its family has no tier left
+    unequipNode(sid, nodeId) {
+      const it = itemOf(sid, nodeId);
+      if (!it || isOwnedIn(it.L, it.tid, it.i)) return;
+      [saved[sid], presets[sid]].forEach(p => p && (p[it.tid] = p[it.tid].map(v => v === it.i ? null : v)));
+      if (open) render();
+    }
   };
   //#endregion
 })();

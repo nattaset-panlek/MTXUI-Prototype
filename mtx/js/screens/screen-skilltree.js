@@ -3,23 +3,29 @@
 
   //#region [Variables/Fields]
   let api = null;
-  const TREE = window.MTX_TREE || { nodes: [], edges: [] };
-  // granted DSM (user 2026-11-17): given to the player for free, sits under Core, no links, never bought or upgraded.
-  // Added here, not in skilltree-data.js (generated file). base = owned from the start; granted = not the Core.
-  if (TREE.nodes.length && !TREE.nodes.some(n => n.granted)) TREE.nodes.push({
-    id: "pn_dsm_granted", kind: "decisive", type: "dsm", wikiType: "DSM", usage: "Trigger Use", tag: "attack", base: true, granted: true,
-    x: 0, y: 140, tier: 1, icon: "mtx/assets/svg/skill/thai_dsm_a.svg", name: "Hak Nguang Aiyara", th: "หักงวงไอยรา",
-    desc: "Granted with the style: a trap-and-break on the opponent's arm. Not bought or upgraded in the tree.",
-    stats: { baseDamage: 90, damagePart: "Elbow 50% / Knee 50%", placeholder: true } });
-  const TN = new Map(TREE.nodes.map(n => [n.id, n]));
-  const PARENTS = new Map(TREE.nodes.map(n => [n.id, []]));
-  const CHILDREN = new Map(TREE.nodes.map(n => [n.id, []]));
-  const NEED_LV = new Map();   // "from>to" -> parent level the child needs (v4 data: 1 on every link)
-  TREE.edges.forEach(e => {
-    PARENTS.get(e.to)?.push(e.from);
-    CHILDREN.get(e.from)?.push(e.to);
-    NEED_LV.set(e.from + ">" + e.to, e.needLv || 1);
-  });
+  // v6 data (tools/skilltree/build-v6.mjs -> mtx/js/data/skills-data.js): 5 styles, one tree each; the shown tree follows
+  // the selected Tactical style (useStyle). window.MTX_TREE = that style's tree (Attributes feed + older callers read it).
+  // Node y = depth from the core; layout.dir "up" draws the core at the bottom (DY below), logic keeps using depth.
+  const SKILLS = window.MTX_SKILLS || { styles: {}, styleOrder: [], layout: {} };
+  const FLIP = SKILLS.layout?.dir === "up";
+  let styleId = null;
+  let TREE = { nodes: [], edges: [] }, TN = new Map(), PARENTS = new Map(), CHILDREN = new Map();
+  const NEED_LV = new Map();   // "from>to" -> parent level the child needs
+  function loadTree(id) {
+    TREE = SKILLS.styles[id] || SKILLS.styles[SKILLS.styleOrder[0]] || TREE;
+    styleId = TREE.id || id;
+    window.MTX_TREE = TREE;
+    TN = new Map(TREE.nodes.map(n => [n.id, n]));
+    PARENTS = new Map(TREE.nodes.map(n => [n.id, []]));
+    CHILDREN = new Map(TREE.nodes.map(n => [n.id, []]));
+    NEED_LV.clear();
+    TREE.edges.forEach(e => {
+      PARENTS.get(e.to)?.push(e.from);
+      CHILDREN.get(e.from)?.push(e.to);
+      NEED_LV.set(e.from + ">" + e.to, e.needLv || 1);
+    });
+  }
+  loadTree(SKILLS.styleOrder[0]);
 
   const TYPE_NAME = { root: "Style core", stat: "Attribute", tier: "Technique", perk: "Perk", dsm: "DSM technique", sgm: "SGM", spe: "SPE" };
   // type colours = Node Detail card (Figma 833:93841); root follows the style colour
@@ -38,8 +44,10 @@
   let skillTotal = 10;
   let unlockRule = "all";
   // owned level per node id: base nodes start at 1; perks go 1-3, every other node is 1 level
-  const owned = new Map(TREE.nodes.filter(n => n.base).map(n => [n.id, 1]));
-  const equipped = new Set();
+  // owned level per style lives in MTX_SKILLSTATE (shared with the Tactical Loadout); equipped = in the style's Loadout preset
+  let owned = window.MTX_SKILLSTATE ? window.MTX_SKILLSTATE.owned(styleId) : new Map(TREE.nodes.filter(n => n.base).map(n => [n.id, 1]));
+  const LOADOUT = () => window.MTX_LOADOUT;
+  const isEquipped = id => !!LOADOUT()?.isEquipped?.(styleId, id);
   const lvOf = id => owned.get(id) || 0;
   const maxLv = n => n?.levels?.length || 1;
   const costOf = (n, lv) => n?.levels?.[lv - 1]?.cost ?? 1;
@@ -52,7 +60,8 @@
   let skillPts = 10;
   let viewLv = 1;   // perk level tab shown in the detail panel (RS cycles it)
 
-  const maxY = Math.max(0, ...TREE.nodes.map(n => n.y));
+  const maxY = Math.max(0, ...TREE.nodes.map(n => n.y));   // same rows for every style (one layout graph)
+  const DY = y => FLIP ? maxY - y : y;   // depth -> drawn y
   const GATES = (() => {
     const ys = [...new Set(TREE.nodes.map(n => n.y))].sort((a, b) => a - b), out = [70];
     for (let i = 1; i < ys.length; i++) {
@@ -65,7 +74,7 @@
 
   // v5 data (wiki "Skill Tree PhraNakorn"): node.kind = core | attribute | perk | decisive | signature | special
   const KIND_LABEL = { core: "Style core", attribute: "Attribute", perk: "Perk", decisive: "Decisive Move", signature: "Signature Move", special: "Special Move" };
-  const FAMILIES = TREE.families || {};
+  const FAMILIES = () => TREE.families || {};
   const isMove = n => n.kind === "decisive" || n.kind === "signature" || n.kind === "special";
   // tree / toast name: decisive tiers carry their tier ("Mon Yan Lak T1")
   const nodeLabel = n => n.kind === "decisive" ? `${n.name} T${n.tier}` : n.name;
@@ -129,7 +138,7 @@
   }
 
   function getEquipped() {
-    return equipped;
+    return new Set(TREE.nodes.filter(n => isEquipped(n.id)).map(n => n.id));
   }
   //#endregion
 
@@ -166,13 +175,35 @@
     buildTree();
     initHoldListeners();
     updateTree();
-    const cam = api.bind("treeCamera");
-    if (cam) cam.style.transform = "translateY(300px)";
+    if (FLIP) setCamera(clampCam(CAM_H / 2 + 20 - DY(0)), DY(0));   // core at the bottom: open on it
+    else { const cam = api.bind("treeCamera"); if (cam) cam.style.transform = "translateY(300px)"; }
   }
 
   function enter() {
     closeDetail();
+    syncStyle();
     updateTree();
+  }
+
+  // the tree shown = the selected Tactical style; swaps data, nodes, links and the background tint
+  function syncStyle() {
+    const id = api?.getScreen?.("tactical")?.getSelStyle?.() || styleId;
+    return useStyle(id);
+  }
+  function useStyle(id) {
+    const scr = api?.screens?.skilltree;
+    if (scr) scr.dataset.treeStyle = id;
+    if (!SKILLS.styles[id] || id === styleId) return false;
+    cancelUnlockHold?.();
+    closeDetail();
+    loadTree(id);
+    owned = window.MTX_SKILLSTATE ? window.MTX_SKILLSTATE.owned(styleId) : new Map(TREE.nodes.filter(n => n.base).map(n => [n.id, 1]));
+    const root = TREE.nodes.find(n => n.kind === "core");
+    if (scr && root) scr.dataset.first = root.id;
+    buildTree();
+    updateTree();
+    if (root) focusCamera(root.id);
+    return true;
   }
 
   function focus(el) {
@@ -191,7 +222,8 @@
   function onStyleChanged(style) {
     coreName = `${style.title} core`;
     TYPE_COLOR.root = style.color;
-    if (api?.screens?.skilltree?.classList?.contains?.("is-active")) updateTree();
+    if (!api) return;
+    if (!syncStyle() && api.screens?.skilltree?.classList?.contains?.("is-active")) updateTree();
   }
 
   // a link counts once its parent has the level it asks for (needLv, 1 by default)
@@ -233,10 +265,11 @@
 
   function updateTree() {
     skillPts = skillTotal - spent();
+    window.MTX_SKILLSTATE?.save();   // shared with the Tactical Loadout (each style spends its own points from the same total)
     api.$$("#s-skilltree .tnode").forEach(t => {
       const id = t.dataset.id, n = TN.get(id), lv = lvOf(id), own = lv > 0;
       t.classList.toggle("is-owned", own);
-      t.classList.toggle("is-equipped", false);
+      t.classList.toggle("is-equipped", own && isEquipped(id));   // yellow diamond tag, top right (user 2026-11-18)
       t.classList.toggle("is-ready", !own && canUnlock(id));
       t.classList.toggle("is-upgradable", own && canLevelUp(id) && skillPts >= costOf(n, lv + 1));
       const nd = t.querySelector(".node");
@@ -379,7 +412,7 @@
     const { id, lv } = viewTarget(), n = TN.get(id);
     if (!n) return { label: "", state: "locked" };
     if (n.base && !n.granted) return { label: "Core", state: "done" };
-    if (lv <= lvOf(id)) return n.kind === "attribute" ? { label: "Unlocked", state: "done" } : { label: equipped.has(id) ? "Equipped" : "Equip", state: equipped.has(id) ? "done" : "equip" };
+    if (lv <= lvOf(id)) return n.kind === "attribute" ? { label: "Unlocked", state: "done" } : { label: isEquipped(id) ? "Equipped" : "Equip", state: isEquipped(id) ? "done" : "equip" };
     return lv === lvOf(id) + 1 && canLevelUp(id) ? { label: "Unlock", state: "ready" } : { label: "Locked", state: "locked" };
   }
 
@@ -392,7 +425,7 @@
     if (!orn || !n || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // the ornament and its ripples are shifted by the parallax (--plx on the camera), so take it off to land on the node (user 2026-11-17)
     const plx = parseFloat(api.bind("treeCamera")?.style.getPropertyValue("--plx")) || 0;
-    const cx = n.x - parseFloat(orn.style.left), cy = n.y + (n.type === "root" ? ROOT_DY : 0) - parseFloat(orn.style.top) - plx;
+    const cx = n.x - parseFloat(orn.style.left), cy = DY(n.y) + (n.type === "root" ? ROOT_DY : 0) - parseFloat(orn.style.top) - plx;
     const r = document.createElement("i");
     r.className = "tree__ripple";
     r.style.setProperty("--cx", cx + "px");
@@ -450,11 +483,14 @@
     }
     if (want <= lv) {
       if (n.kind === "attribute") { api.toast(`${n.name} · passive, always active`); return; }
-      // Equip: prototype only marks it; the preset itself is built in Tactical Loadout
-      equipped.add(id);
+      // Equip = put it in the first free slot of this style's Tactical Loadout preset (saved); full -> say so
+      if (isEquipped(id)) { api.toast(`${nodeLabel(n)} · already in your loadout`); return; }
+      const slot = LOADOUT()?.equipNode?.(styleId, id);
+      if (slot == null) { api.rumble(120, 0.2); api.toast("Loadout slots full · change it in Tactical Loadout"); return; }
+      updateTree();
       renderDetail();
       api.rumble(60, 0.3);
-      api.toast(`${nodeLabel(n)}${n.levels ? " Lv " + lv : ""} equipped`);
+      api.toast(`${nodeLabel(n)}${n.levels ? " Lv " + lv : ""} equipped · slot ${slot + 1}`);
       return;
     }
     if (want > lv + 1) {
@@ -494,7 +530,7 @@
     const n = TN.get(id), lv = lvOf(id);
     if (!lv || n.base) return;
     const back = costOf(n, lv);
-    if (lv > 1) owned.set(id, lv - 1); else { owned.delete(id); equipped.delete(id); }
+    if (lv > 1) owned.set(id, lv - 1); else { owned.delete(id); LOADOUT()?.unequipNode?.(styleId, id); }
     const extra = pruneInvalid();
     if (detailOpen === id && n.levels) viewLv = defaultViewLv(id);
     updateTree();
@@ -521,10 +557,10 @@
     const nodesEl = api.bind("treeNodes");
     if (!nodesEl) return;
     nodesEl.innerHTML = TREE.nodes.map(n => n.type === "root"
-      ? `<a class="tnode tnode--root" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${n.y + ROOT_DY}px">
+      ? `<a class="tnode tnode--root" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${DY(n.y) + ROOT_DY}px">
           <span class="tnode__focus" aria-hidden="true"></span><span class="node-core"><span class="node-core__circle"></span><span class="node-core__diamond"></span><img class="node-core__emblem" data-bind="coreEmblem" src="mtx/assets/svg/style-phranakhon-sel.svg" alt=""></span>
           <span class="tnode__label">${esc(n.name)}</span></a>`
-      : `<a class="tnode tnode--${n.type}" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${n.y}px${moveArt(n) ? `;--fm:url(${moveArt(n).replace(LO, "../assets/svg/loadout/")})` : ""}">
+      : `<a class="tnode tnode--${n.type}" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${DY(n.y)}px${moveArt(n) ? `;--fm:url(${moveArt(n).replace(LO, "../assets/svg/loadout/")})` : ""}">
           <span class="tnode__focus" aria-hidden="true"></span>
           <span class="tnode__lock"></span>
           <span class="tnode__star"><i class="glow"></i><i class="edge"></i><i class="fill"></i></span>
@@ -533,7 +569,8 @@
           ${n.levels ? `<span class="tnode__perk"><img class="tnode__perk-frame" src="${LO}perk-frame-2.svg" alt=""><img class="tnode__perk-icon" src="${LO}perk-icon-${perkIcon(n)}.svg" alt=""></span>` : ""}
           <span class="tnode__label">${esc(nodeLabel(n))}${n.levels ? ' <em class="tnode__lv"></em>' : ""}</span></a>`).join("");
 
-    const octi = (a, b) => {
+    const octi = (p, q) => {
+      const a = { x: p.x, y: DY(p.y) }, b = { x: q.x, y: DY(q.y) };
       const dx = b.x - a.x, dy = b.y - a.y, ax = Math.abs(dx), ay = Math.abs(dy);
       if (!dx || !dy) return `M${a.x} ${a.y}L${b.x} ${b.y}`;
       return ay >= ax ? `M${a.x} ${a.y}L${b.x} ${a.y + Math.sign(dy) * ax}L${b.x} ${b.y}`
@@ -543,29 +580,29 @@
     api.bind("treeLinks").innerHTML = TREE.edges.map(e => { const d = octi(TN.get(e.from), TN.get(e.to)); return `<path class="base" d="${d}"/>`; }).join("") +
       TREE.edges.map(e => `<path class="lit" d="${octi(TN.get(e.from), TN.get(e.to))}" data-from="${e.from}" data-to="${e.to}"/>`).join("");
 
-    const hubs = [0, ...GATES.slice(1)].map((g, i) => i === 0 ? 0 : (TREE.nodes.filter(n => n.y > g).sort((p, q) => p.y - q.y)[0] || { y: g }).y);
+    const hubs = [0, ...GATES.slice(1)].map((g, i) => DY(i === 0 ? 0 : (TREE.nodes.filter(n => n.y > g).sort((p, q) => p.y - q.y)[0] || { y: g }).y));
     api.bind("treeFrames").innerHTML = hubs.map(cy => [240, 360, 480].map(r => `<path d="M0 ${cy - r}L${r * 1.15} ${cy}L0 ${cy + r}L${-r * 1.15} ${cy}Z"/>`).join("")).join("") +
-      `<circle cx="0" cy="${ROOT_DY}" r="140"/>`;
+      `<circle cx="0" cy="${DY(0) + ROOT_DY}" r="140"/>`;
 
     // yantra script ornaments around the core (skill-orn-*.svg) removed on request (2026-11-17)
     // Tier ornament strip (user image 2026-11-17, mtx/assets/skill-tree-yan.png (Yan PanakornTheme, 1513x4998; was skill-tree-bg.webp with the roosters), 5 motifs stacked): whole image, not sliced,
     // spanning gate 1 -> tree end at 132 % (110 % then +20 %, user), centred on that span. Replaces the Tier 1 yantra.
     const cam = api.bind("treeCamera");
     if (cam && !cam.querySelector(".tree__yantra")) {
-      const span = maxY + 60 - GATES[0], h = Math.round(span * 1.32), w = Math.round(h * 1513 / 4998), top = GATES[0] + (span - h) / 2;
-      cam.insertAdjacentHTML("afterbegin", `<div class="tree__yantra" aria-hidden="true" style="left:${-w / 2}px;top:${top}px;width:${w}px;height:${h}px;background-size:100% 100%"></div>`);
+      const span = maxY + 60 - GATES[0], h = Math.round(span * 1.32), w = Math.round(h * 1513 / 4998), top = (FLIP ? -60 : GATES[0]) + (span - h) / 2;
+      cam.insertAdjacentHTML("afterbegin", `<div class="tree__yantra" aria-hidden="true" style="left:${-w / 2}px;top:${top}px;width:${w}px;height:${h}px;background:none"><div class="tree__yantra-art tree__yantra-art--plain"></div><div class="tree__yantra-art tree__yantra-art--n0"></div><div class="tree__yantra-art tree__yantra-art--n1"></div><div class="tree__yantra-art tree__yantra-art--n2"></div><div class="tree__shine"><i></i></div></div>`);   // v5 baked noise crossfade, see screens.css (user 2026-11-18)
     }
-    api.bind("treeGates").innerHTML = GATES.map((y, i) => `<div class="tree__gate" style="top:${y}px"><span>ขั้น ${THAI_NUM[i] || i + 1}</span></div>`).join("");
+    api.bind("treeGates").innerHTML = GATES.map((y, i) => `<div class="tree__gate${FLIP ? " tree__gate--up" : ""}" style="top:${DY(y)}px"><span>ขั้น ${THAI_NUM[i] || i + 1}</span></div>`).join("");
     const rail = api.bind("treeRail");
-    if (rail) rail.innerHTML = GATES.map((y, i) => `<i style="top:${y / (maxY + 60) * 620 - 6}px"></i>`).join("") + "<b></b>";
+    if (rail) rail.innerHTML = GATES.map((y, i) => `<i style="top:${DY(y) / (maxY + 60) * 620 - 6}px"></i>`).join("") + "<b></b>";
   }
 
   // DSM / SPE owned face = the Tactical Loadout D-pad slot art (Decisive dc-slot, Special sp-slot); a / b art alternate
-  const MOVE_NODES = { dsm: TREE.nodes.filter(n => n.type === "dsm"), spe: TREE.nodes.filter(n => n.type === "spe"), sgm: TREE.nodes.filter(n => n.type === "sgm") };
+  const ofType = t => TREE.nodes.filter(n => n.type === t);
   function moveArt(n) {
-    if (n.type === "dsm") return `${LO}dc-slot-${n.family === "salabfanpla" ? "b" : "a"}.svg`;
-    if (n.type === "spe") return `${LO}sp-slot-${MOVE_NODES.spe.indexOf(n) % 2 ? "b" : "a"}.svg`;
-    if (n.type === "sgm") return `${LO}sg-slot-${MOVE_NODES.sgm.indexOf(n) % 2 ? "b" : "a"}.svg`;
+    if (n.type === "dsm") return `${LO}dc-slot-${/salabfanpla|dsmb$/.test(n.family || "") ? "b" : "a"}.svg`;
+    if (n.type === "spe") return `${LO}sp-slot-${ofType("spe").indexOf(n) % 2 ? "b" : "a"}.svg`;
+    if (n.type === "sgm") return `${LO}sg-slot-${ofType("sgm").indexOf(n) % 2 ? "b" : "a"}.svg`;
     return "";
   }
 
@@ -629,7 +666,7 @@
   function focusCamera(id) {
     const n = TN.get(id);
     if (!n) return;
-    setCamera(clampCam(CAM_H / 2 + 20 - n.y), n.y);
+    setCamera(clampCam(CAM_H / 2 + 20 - DY(n.y)), DY(n.y));
   }
 
   function setCamera(ty, railY) {
@@ -677,7 +714,7 @@
     }
     let nodes = [];
     if (cat === "decisive") {
-      const fam = Object.values(FAMILIES).find(f => f.name === name);
+      const fam = Object.values(FAMILIES()).find(f => f.name === name);
       if (fam) nodes = fam.tiers.map(id => TN.get(id));
     } else if (cat === "signature" || cat === "special") {
       const slots = TREE.nodes.filter(n => n.kind === cat).sort(byY);
@@ -827,6 +864,8 @@
     setViewLevel,
     getEquipped,
     getMastery,
+    useStyle,
+    getStyleId: () => styleId,
     actions: {
       toggleSkill(el) { openDetail(el.dataset.id); },
       toggleSkillDirect(el) {

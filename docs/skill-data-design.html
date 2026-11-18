@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skill Data Design</title>
+<style>
+  :root { --bg:#0b0c10; --panel:#14161d; --line:#2a2d3a; --text:#e8e8ee; --dim:#9a9eab; --gold:#f4dd2f;
+          --attr:#3fd28b; --perk:#e5e5e5; --dsm:#ff4060; --spe:#c7f029; --sgm:#4da3ff; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.55 system-ui, "Segoe UI", "Noto Sans Thai", sans-serif; }
+  main { max-width:1360px; margin:0 auto; padding:28px 16px 80px; }
+  h1 { font-size:26px; margin:0 0 4px } h2 { font-size:19px; margin:40px 0 10px; padding-top:14px; border-top:1px solid var(--line) }
+  h3 { font-size:15px; margin:18px 0 6px; color:var(--gold) }
+  .sub { color:var(--dim) } code, pre { font:12.5px/1.5 Consolas, monospace }
+  pre { background:var(--panel); border:1px solid var(--line); padding:12px 14px; overflow:auto; border-radius:4px }
+  table { border-collapse:collapse; width:100%; margin:6px 0 }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top }
+  th { background:#1a1d26; font-weight:600 } td code { color:#ffd98a }
+  .grid5 { display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px }
+  @media (max-width:900px) { .grid5 { grid-template-columns:repeat(2, minmax(0,1fr)) } }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px; position:relative; overflow:hidden }
+  .card h4 { margin:0; font-size:15px } .card .tag { font-size:12px; color:var(--dim) }
+  .card svg { width:100%; height:auto; display:block; margin-top:6px }
+  .bg { border-radius:3px; height:150px; margin-top:6px; position:relative; overflow:hidden }
+  .bg .emb { position:absolute; left:50%; top:50%; width:96px; transform:translate(-50%,-50%); opacity:.22 }
+  .bg .strip { position:absolute; left:50%; top:0; bottom:0; width:70px; transform:translateX(-50%);
+               background:url(../mtx/assets/skill-tree-yan-n0.webp) center/cover; filter:grayscale(1) brightness(1.3); mix-blend-mode:screen; opacity:.5 }
+  .bg .tint { position:absolute; inset:0; mix-blend-mode:color }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; font-size:12.5px; color:var(--dim); margin:6px 0 }
+  .legend i { display:inline-block; width:10px; height:10px; margin-right:5px; vertical-align:-1px }
+  .q { background:#1b1a10; border:1px solid #4a4420; padding:10px 14px; border-radius:4px; margin:8px 0 }
+  .q b { color:var(--gold) }
+  .cells { display:flex; gap:14px; flex-wrap:wrap }
+  .cell { width:140px; height:140px; border:2px solid #3a3d4f; background:#101218; position:relative; display:flex; align-items:flex-end; justify-content:center; padding:6px; font-size:12px }
+  .cell .f { position:absolute; inset:18px 30px 38px; transform:rotate(45deg) scale(.7); border:3px solid #c08a52 }
+  .cell.l { filter:grayscale(1); opacity:.55 } .cell.l .f { border-color:#666 }
+  .cell .lk { position:absolute; top:6px; right:8px; font-size:11px; color:var(--dim) }
+  .cell.e { border-color:var(--gold) } .cell .n { position:absolute; top:6px; left:8px; background:#fff; color:#000; font-weight:700; padding:0 5px; font-size:11px }
+  .cell .lv { position:absolute; top:6px; right:8px; color:var(--gold); font-size:11px }
+  .warn { color:#ffb36b }
+</style>
+</head>
+<body>
+<main>
+  <h1>Skill Tree ↔ Tactical Loadout · 5 สไตล์</h1>
+  <div class="sub">แบบร่างขั้นที่ 1 (ยังไม่สร้างจริง) · 2026-11-18 · ข้อมูลจาก wiki 08-data-tables/10-14 · ตัดสินใจท้ายหน้า</div>
+
+  <h2>1 · ไฟล์ข้อมูลกลาง</h2>
+  <table>
+    <tr><th>ไฟล์</th><th>หน้าที่</th></tr>
+    <tr><td><code>tools/skilltree/build-v6.mjs</code></td><td>อ่าน wiki 10-14 + layout ต่อสไตล์ → เขียนไฟล์ข้อมูลด้านล่าง (แทน build-v5)</td></tr>
+    <tr><td><code>mtx/data/skills.json</code></td><td>ข้อมูลสกิลทั้ง 5 สไตล์ (static, ห้ามแก้มือ)</td></tr>
+    <tr><td><code>mtx/js/data/skills-data.js</code></td><td>ตัวเดียวกันห่อเป็น <code>window.MTX_SKILLS = {...}</code> โหลดแบบ sync เหมือน skilltree-data.js (เปิด file:// ได้, ไม่ต้องรอ fetch) · แทน skilltree-data.js</td></tr>
+    <tr><td><code>mtx/js/skill-state.js</code></td><td>runtime กลาง <code>MTX_SKILLSTATE</code>: level ที่ปลด + preset ที่ใส่ ต่อสไตล์ · บันทึก localStorage <code>mtx.skills.v1</code> · event <code>on(fn)</code> ให้ Tree / Loadout / Attributes ฟัง</td></tr>
+  </table>
+
+<pre>// skills.json (ย่อ)
+{ "version": 6,
+  "styleOrder": ["phranakhon","south","isan","north","west"],      // id เดิมของ screen-tactical
+  "styles": {
+    "phranakhon": {
+      "name": "Phra Nakorn", "th": "พระนคร", "wiki": "10-Skill-Tree-PhraNakorn", "status": "filled",   // filled | skeleton
+      "prefix": "pn",
+      "layout": "classic",                       // ดูข้อ 2
+      "bg": { "tint": "#e6003f", "dark": "#680920", "ornament": "skill-tree-yan", "emblem": "style-phranakhon-sel.svg" },
+      "weakPosture": null,                       // ข้อความ Weak Posture ของสไตล์ (จากโน้ตใน wiki)
+      "families": { "monyanlak": { "name":"Mon Yan Lak", "th":"มอญยันหลัก", "tiers":["pn6_dsmA1","pn20_dsmA2","pn49_dsmA3"] } },
+      "nodes": [
+        { "id":"pn_fin", "code":"1-1-1", "chapter":1, "kind":"perk", "tag":"defend", "usage":"Condition",
+          "name":"Finesse Counter", "th":"ชั้นเชิงสวนกลับ", "x":-125, "y":280, "icon":"…",
+          "cooldown":5, "levels":[ {"lv":1,"cost":1,"desc":"…","descTh":"…"}, {"lv":2,…}, {"lv":3,…,"flaw":"…"} ] },
+        { "id":"pn2_block", "kind":"attribute", "bonus":[{"stat":"Block Gauge","value":6}], … },
+        { "id":"pn6_dsmA1", "kind":"decisive", "family":"monyanlak", "tier":1, "stats":{…,"placeholder":true}, … },
+        { "id":"pn_dsm_granted", "kind":"decisive", "base":true, "granted":true, … }   // ย้ายจากโค้ด screen-skilltree มาไว้ในข้อมูล
+      ],
+      "edges": [ { "from":"pn1_root", "to":"pn2_block", "needLv":1 } ] },
+    "south": { "status":"skeleton", "prefix":"cy", … }, "isan": { "prefix":"kr" }, "north": { "prefix":"ts" }, "west": { "prefix":"lb" } } }
+
+// runtime (MTX_SKILLSTATE) — ไม่อยู่ใน json
+{ "phranakhon": { "owned": { "pn_fin":2, "pn2_block":1 },
+                  "presets": [ { "perk":["pn_fin",null,null,null], "special":[…], "decisive":["monyanlak",…], "signature":[…] } ], "active":0 } }</pre>
+
+  <h3>wiki → field</h3>
+  <table>
+    <tr><th>คอลัมน์ wiki</th><th>field</th><th>หมายเหตุ</th></tr>
+    <tr><td>Chapter / Chunk</td><td><code>code</code>, <code>chapter</code></td><td>แถวว่างใต้ code = ลูกตัวถัดไปของกลุ่มเดียวกัน (<code>ref "1-1-2+1"</code> แบบ v5)</td></tr>
+    <tr><td>Name TH / Name EN</td><td><code>th</code> / <code>name</code></td><td>ว่าง → ชื่อ placeholder <code>"Perk 2-1-1"</code> + <code>placeholder:true</code></td></tr>
+    <tr><td>Type</td><td><code>kind</code></td><td>Mini-Perk→attribute · Perk→perk · DSM→decisive · Special Move→special · Signature Move→signature · แถว 0→core</td></tr>
+    <tr><td>Usage / Genre</td><td><code>usage</code> / <code>tag</code></td><td>tag = attack / defend / sustain (สีการ์ด perk เดิม)</td></tr>
+    <tr><td>Level + Description / In-game Description</td><td><code>levels[].descTh</code> / <code>levels[].desc</code></td><td>Lv3 ตัดที่ "However / แต่" → <code>flaw</code></td></tr>
+    <tr><td>Description (Mini-Perk)</td><td><code>bonus[{stat,value}]</code></td><td>แยก "Block Gauge +6" → stat + value → ป้อน .attr-bonus</td></tr>
+    <tr><td>Cooldown(s)</td><td><code>cooldown</code></td><td>"-" = ไม่มี</td></tr>
+  </table>
+
+  <h3 class="warn">wiki ไม่ตรงกันระหว่างสไตล์ (ต้องให้ทีม data แก้ หรือรับตามที่ build ตีความ)</h3>
+  <table>
+    <tr><th>#</th><th>จุด</th><th>build จะทำอย่างไร</th></tr>
+    <tr><td>1</td><td>ไชยา/โคราช/ท่าเสา/ลพบุรี <b>ไม่มีชื่อ ไม่มีค่า</b> ทุกแถว (มีแต่ Type/Usage/Genre) · ไม่มีคอลัมน์ In-game Description (9 คอลัมน์ vs 10)</td><td>โครงครบ ชื่อ/ค่า placeholder · status = skeleton</td></tr>
+    <tr><td>2</td><td>4 สไตล์นี้มี <b>โน้ตคอนเซปต์ perk</b> (ชื่อ: บัฟ · ผล · ระยะ · คูลดาวน์ / Flaw) วางผิดคอลัมน์ข้ามแถว 1-1 ถึง 1-2-2 (Description = บัฟ, Cooldown = Flaw)</td><td>ไม่เดา map ลง node · เก็บเป็น <code>conceptNotes[]</code> แสดงใน dev เท่านั้น (ดูตารางล่าง)</td></tr>
+    <tr><td>3</td><td>นิยาม <b>Weak Posture</b> อยู่ในคอลัมน์ Name TH/EN (ไชยา 1-2-2, โคราช/ท่าเสา/ลพบุรี 2-1-1) ทำให้แถวเลื่อน (โคราช 2-1-1 มี 11 ช่อง)</td><td>ย้ายเป็น <code>style.weakPosture</code> · ชื่อ node ยังเป็น placeholder</td></tr>
+    <tr><td>4</td><td>แถว <b>0 (Core)</b> มีแค่พระนคร</td><td>ทุกสไตล์มี core + granted DSM เหมือนพระนคร</td></tr>
+    <tr><td>5</td><td><b>3-2</b>: พระนคร = Mini-Perk Kick Power · อีก 4 สไตล์ = Signature Move (Usage "Passive" ซึ่ง Signature อื่นเป็น Trigger Use)</td><td>ตาม wiki: พระนคร SGM 3 / attribute 12 · อื่น SGM 4 / attribute 11 · Usage ถือเป็น Trigger Use</td></tr>
+    <tr><td>6</td><td>DSM ใน 4 สไตล์ไม่มีชื่อ → ไม่รู้ว่าแถวไหน family ไหน tier ไหน</td><td>ใช้ลำดับเดียวกับพระนคร: A1 1-1-2 · B1 1-2-2 · A2 2-1-2 · C1 2-2-2 · B2 3-1-2 · C2 3-2-2 · B3 4-2-2 · A3 4-1-1 · C3 5-2 · ชื่อ "DSM A/B/C"</td></tr>
+    <tr><td>7</td><td>ชื่อ perk หลุดมาบางแถว: ท่าเสา 2-2-1 "Block Combo", ลพบุรี 2-2-1 "Charge" (คำอธิบายอยู่ช่อง Name EN)</td><td>ใช้เป็นชื่อ node 2-2-1 + desc ร่าง</td></tr>
+    <tr><td>8</td><td>พระนคร 3-2 ไม่มีชื่อ (มีแค่ desc "Kick Power +5")</td><td>ชื่อ = stat ใน desc (เหมือน v5)</td></tr>
+    <tr><td>9</td><td>cooldown มีแค่ Finesse 5s, Tiger Trap 8s · พิมพ์ผิด "Effciency", "WEak", "เเปิด"</td><td>คงตาม wiki · แก้คำผิดตอน build</td></tr>
+  </table>
+
+  <h3>โน้ตคอนเซปต์ที่เจอ (ยังไม่ใส่ลง node)</h3>
+  <table>
+    <tr><th>สไตล์</th><th>คอนเซปต์ perk (บัฟ / Flaw)</th></tr>
+    <tr><td>ไชยา</td><td>ศาลาเหล็ก / กำแพงร้าว · หมัดหนักแน่น / เกราะล้า · คลุมไตรภพ / ยกการ์ดไม่ขึ้น</td></tr>
+    <tr><td>โคราช</td><td>หมัดเปิด (Buffalo Charge) / เปิดช่องโหว่ · ชุดโซ่ตรวน (Heavy Chain) / หนี้สำลัก · หมัดน็อค (One-Punch Miracle) / เหนื่อยหอบ</td></tr>
+    <tr><td>ท่าเสา</td><td>ศรไกล / เสียขบวน · จังหวะไหล / เกราะบาง · หมัดแม่ไม้ / ถลันเสียหลัก · Block Combo</td></tr>
+    <tr><td>ลพบุรี</td><td>พลังสะสม Momentum / เสียหลัก · ท่าลิงชิงจังหวะ / หลบเพลิน · จังหวะไหล / โงนเงน · Charge</td></tr>
+  </table>
+
+  <h2>2 · Layout ต่อสไตล์</h2>
+  <div class="sub">6 pack · ทุก pack สมมาตรซ้าย-ขวา · รูปทรงดึงจากไอคอนสไตล์: พระนคร = ดาว 8 แฉก · ไชยา = เพชร 4 เม็ดทแยง (กรอบสี่เหลี่ยม) · โคราช = ใบโคลเวอร์ 4 กลีบ · ท่าเสา = เพชร 4 ทิศ (ข้าวหลามตัด) · ลพบุรี = ดาว 4 แฉกโค้งเว้า<br>
+  กราฟ (link / ขั้น ๑-๕ / จำนวน node) เหมือนกันทุกสไตล์ เพราะ wiki ใช้โครงเดียวกัน · ที่ต่างคือ “ทรง” · เส้นประ = ขั้น (gate) · จุดขาวใหญ่ = Core</div>
+  <h3 style="font-size:18px">✔ เลือกแล้ว: Pack E ↑ · Silhouette จากล่างขึ้นบน (ร่าง ยังไม่ลงเกม)</h3>
+  <div class="sub">Core อยู่ล่างสุด (ปลายล่างของไอคอน) · ต้นไม้งอกขึ้นบน ขั้น ๑ → ๕ จากล่างขึ้นบน · ความกว้างแต่ละแถว = ความกว้างไอคอนที่ระดับนั้น · เส้นจางด้านหลัง = เค้าไอคอน (ใช้เป็น ornament ได้) · ทุกสไตล์ y เท่ากัน จำนวนแถวเท่ากัน</div>
+  <div class="grid5" id="eup"></div>
+  <h3>ภาพจอ 16:9 ตอนเปิดเข้า (กล้องเริ่มที่ Core ล่างจอ · เลื่อนขึ้นตาม focus)</h3>
+  <div class="grid5" id="eupframe"></div>
+  <table>
+    <tr><th>เรื่อง</th><th>เปลี่ยนจากตอนนี้</th></tr>
+    <tr><td>ตำแหน่ง</td><td>y กลับด้าน (core ล่าง) · x = x เดิม × ความกว้างไอคอนที่ระดับนั้น · ไม่มี node ทับกัน (แถวเดิม)</td></tr>
+    <tr><td>ปุ่ม</td><td>rows nav ใช้ต่อได้ · ขึ้น = ลึกเข้าไปในต้นไม้ · LB/RB กระโดดขั้นเหมือนเดิม (ทิศกลับ)</td></tr>
+    <tr><td>กล้อง</td><td>เปิดมาเห็น core ที่ ~80% ความสูงจอ · เลื่อนขึ้น · rail ขั้นด้านข้าง ๑ อยู่ล่าง ๕ อยู่บน</td></tr>
+    <tr><td>Gate</td><td>เส้นขั้นแนวนอนเดิม · ป้าย "ขั้น ๑" อยู่ใต้เส้น (ฝั่ง core)</td></tr>
+    <tr><td>Ornament</td><td>Yan strip เดิมกลับหัวไม่ได้ (มีตัวอักษร) → ใช้เค้าไอคอนสไตล์ + Yan ย้อมสีวางเป็นพื้นหลังแทน</td></tr>
+  </table>
+  <h3>6 pack เดิม (เทียบ)</h3>
+  <div id="packs"></div>
+  <h3>ผลต่อการควบคุม</h3>
+  <table>
+    <tr><th>Pack</th><th>เลื่อน focus</th><th>กล้อง</th></tr>
+    <tr><td>A Mandala · B Lattice · F Arms</td><td>เปลี่ยนเป็นเลื่อนตามทิศ (node ใกล้สุดในทิศที่กด) แทน rows</td><td>เริ่มที่ Core กลางจอ · zoom out ทั้งวง + เลื่อนอิสระ (RS)</td></tr>
+    <tr><td>C Fan</td><td>ตามทิศ · LB/RB กระโดดขั้น (ส่วนโค้ง)</td><td>Core ล่างกลาง · เลื่อนขึ้น</td></tr>
+    <tr><td>D Wings</td><td>ตามทิศ · LB/RB กระโดดขั้น (คอลัมน์)</td><td>Core กลาง · เลื่อนซ้าย-ขวา</td></tr>
+    <tr><td>E Silhouette</td><td>rows เดิมใช้ได้เลย (y ไม่เปลี่ยน)</td><td>เลื่อนลงเหมือนเดิม</td></tr>
+  </table>
+  <h3>แบบแรก (ถูกตีกลับ: ทรงเสาคล้ายกัน)</h3>
+  <div class="legend">
+    <span><i style="background:var(--attr);border-radius:50%"></i>Attribute</span>
+    <span><i style="background:var(--perk);transform:rotate(45deg)"></i>Perk (3 Lv)</span>
+    <span><i style="background:var(--dsm)"></i>Decisive (family A/B/C × tier)</span>
+    <span><i style="background:var(--spe)"></i>Special</span>
+    <span><i style="background:var(--sgm)"></i>Signature</span>
+    <span><i style="border:1px dashed #888"></i>Gate ขั้น</span>
+  </div>
+  <div class="grid5" id="trees"></div>
+
+  <h2>3 · เงื่อนไขปลด / ใส่</h2>
+  <table>
+    <tr><th>เรื่อง</th><th>กฎ</th></tr>
+    <tr><td>ค่าปลด</td><td>1 Skill point ต่อ level (perk 3 level = 3 แต้ม, อื่น 1 level) · ตามเดิม</td></tr>
+    <tr><td>Prerequisite</td><td>Lv1 ต้องมี link ที่ครบ <code>needLv</code> (dev rule all / any เหมือนเดิม) · Lv2-3 ต้องการแค่ level ก่อนหน้า</td></tr>
+    <tr><td>Gate ขั้น</td><td>เป็นตัวแบ่งภาพ + rail · ไม่มีเงื่อนไขเพิ่ม (ปลดผ่าน link เท่านั้น) · เหมือนเดิม</td></tr>
+    <tr><td>ถอด (Remove)</td><td>ลด 1 level คืน 1 แต้ม · ลูกที่ link ไม่ครบถูกถอดตาม (prune) · ถ้าถึง Lv0 → หลุดจาก preset ทุกช่อง</td></tr>
+    <tr><td>Skill point</td><td class="warn">ต้องเลือก (คำถาม Q3): แยกต่อสไตล์ หรือกองเดียว</td></tr>
+    <tr><td>สไตล์ที่ล็อก (โคราช/ท่าเสา/ลพบุรี มี req)</td><td>เปิดดู tree ได้ · ปลดไม่ได้ (CTA "Style locked") · Loadout ล็อกทั้ง hub ตามเดิม</td></tr>
+  </table>
+
+  <h3>Tree → Loadout</h3>
+  <table>
+    <tr><th>Loadout</th><th>ดึงจาก tree ของสไตล์นั้น</th><th>ปลดแล้วเมื่อ</th></tr>
+    <tr><td>Perk (4 ช่อง)</td><td>node kind perk (14) · กรอบ = level ที่ปลด (1 copper / 2 silver / 3 gold ตามไฟล์เดิม) · การ์ด info แสดง Lv1-3, level ที่ยังไม่ปลด = "Locked Lv N"</td><td>Lv ≥ 1 · ใส่ที่ level สูงสุดที่มี (เลือก level ต่ำกว่าไม่ได้)</td></tr>
+    <tr><td>Decisive (4 ช่อง)</td><td>1 ช่อง = 1 family (A/B/C) + granted DSM · การ์ดบอก "Tier N" = tier สูงสุดที่ปลด · stats ตาม tier นั้น</td><td>Tier 1 ของ family</td></tr>
+    <tr><td>Special (4 ช่อง)</td><td>node kind special (4)</td><td>ปลดแล้ว</td></tr>
+    <tr><td>Signature (4 ช่อง)</td><td>node kind signature (พระนคร 3 / อื่น 4)</td><td>ปลดแล้ว</td></tr>
+    <tr><td>Attribute</td><td>ไม่อยู่ใน Loadout · ป้อน .attr-bonus <code>{source:"Skill Tree", value}</code> ของสไตล์ที่เลือก</td><td>ปลดแล้ว</td></tr>
+  </table>
+  <div class="sub">grid 15 ช่องเดิม: เรียง ปลดแล้ว → ล็อก ตามลำดับใน tree · ช่องเกินจำนวน = null slot · MOVES / PERKS mock ใน screen-loadout.js ถูกแทน</div>
+
+  <h3>สถานะในช่อง grid ของ Loadout</h3>
+  <div class="cells">
+    <div class="cell l"><div class="f"></div><span class="lk">🔒</span>Locked</div>
+    <div class="cell"><div class="f"></div><span class="lv">Lv 2</span>Owned</div>
+    <div class="cell e"><div class="f" style="border-color:var(--gold)"></div><span class="n">2</span><span class="lv">Lv 3</span>Equipped</div>
+  </div>
+  <table>
+    <tr><th>สถานะ</th><th>Loadout grid</th><th>Info card (Y)</th><th>Skill Tree node</th></tr>
+    <tr><td>Locked</td><td>เทา + ไอคอนล็อก · A = rumble ไม่ใส่</td><td>"Unlock in Skill Tree" + node ที่ต้องปลดก่อน</td><td>ตามเดิม (ล็อก/ready)</td></tr>
+    <tr><td>Owned</td><td>สีปกติ + Lv (perk) / Tier (DSM)</td><td>ข้อมูลเต็ม level ที่ปลด</td><td>is-owned</td></tr>
+    <tr><td>Equipped</td><td>เลขช่อง 1-4 (MTX / Number Key) + ขอบสีประเภท ตามเดิม</td><td>"Equipped · slot N"</td><td>is-equipped (ป้ายเพชรทอง 7px ที่ทำวันนี้) = อยู่ใน preset ที่ใช้งาน</td></tr>
+  </table>
+  <div class="sub">Equip จาก tree: ใส่ช่องว่างแรกของหมวดนั้นใน preset ที่ใช้งาน · เต็มแล้ว → เปิด Loadout ที่หมวดนั้นให้เลือกช่องแทน · ถอดจาก Loadout → ป้ายใน tree หายทันที (event เดียวกัน)</div>
+
+  <h2>4 · พื้นหลังต่อสไตล์</h2>
+  <div class="sub">เฟสนี้ (สร้างได้ทันที): ใช้ ornament Yan 3 ภาพเดิม (crossfade) ย้อมสีสไตล์ + ตรา style-*-sel.svg จาง + gradient จากสี dark ของสไตล์ · ไม่มีลายพู่กัน/กราฟฟิตี้ · ภายหลังใส่ภาพจริงชื่อ <code>skill-tree-yan-&lt;style&gt;-n0..2.webp</code> แล้วจะใช้อัตโนมัติ</div>
+  <div class="grid5" id="bgs"></div>
+
+  <h2>5 · ให้เลือก</h2>
+  <div class="q"><b>Q1 ไฟล์ข้อมูล</b> — แนะนำ: <code>mtx/data/skills.json</code> + ตัวห่อ <code>mtx/js/data/skills-data.js</code> (โหลด sync, build สร้างทั้งคู่) · ทางเลือก: json อย่างเดียว + fetch (ต้องรอโหลดก่อน init ทุกจอ, เปิด file:// ไม่ได้)</div>
+  <div class="q"><b>Q2 Layout</b> — แนะนำ: รูปทรงต่อสไตล์ตามข้อ 2 (y เดิม, x ต่าง) · ทางเลือก: ทุกสไตล์ layout เดียวกับพระนคร เปลี่ยนแค่สี/พื้นหลัง</div>
+  <div class="q"><b>Q3 Skill point</b> — แนะนำ: แยกกองต่อสไตล์ (จาก S level ของสไตล์นั้น, player.js มี styles[id].level อยู่แล้ว) · ทางเลือก: กองเดียว skillTotal ใช้ร่วมทุกสไตล์</div>
+  <div class="q"><b>Q4 เนื้อหา 4 สไตล์</b> — แนะนำ: placeholder ทั้งหมด (ชื่อ "Perk 2-1-1", ค่า mock) + Block Combo / Charge ตาม wiki · ทางเลือก: map โน้ตคอนเซปต์ (ศาลาเหล็ก ฯลฯ) ลง perk 1-1-1 / 1-2-1 / 2-1-1 ตามลำดับเป็นร่าง</div>
+  <div class="q"><b>Q5 Preset</b> — แนะนำ: 1 preset ต่อสไตล์ (ตาม Loadout ตอนนี้) · ทางเลือก: 3 preset ต่อสไตล์ สลับ Z/C (ตามที่เคยตัดสินใจใน Style preset v2)</div>
+</main>
+<script src="../mtx/js/skilltree-data.js"></script>
+<script>
+(() => {
+  const T = window.MTX_TREE;
+  const STY = [
+    { id:"phranakhon", name:"Phra Nakorn · พระนคร", color:"#e6003f", dark:"#680920", shape:"classic", note:"Classic (เดิม) · สมดุล 4 คอลัมน์สมมาตร",
+      motif:"ยันต์พระนคร (ภาพเดิม)", fx:x=>x },
+    { id:"south", name:"Chaiya · ไชยา", color:"#5fc8e6", dark:"#1c5163", shape:"shield", note:"Shield · บนกว้าง ล่างแคบเข้า เหมือนโล่/การ์ดปิด (สายป้องกัน)",
+      motif:"ลายคลื่นทะเลใต้ + ตารางโล่", fx:(x,t)=>x*(1.08-0.5*Math.pow(t,1.4)) },
+    { id:"isan", name:"Korat · โคราช", color:"#c9ff00", dark:"#76980a", shape:"pyramid", note:"Pyramid · บนแคบ ล่างแผ่กว้าง ฐานหนัก (สายพลัง)",
+      motif:"หินทรายปราสาทหิน + เขาควาย", fx:(x,t)=>x*(0.5+0.72*t) },
+    { id:"north", name:"Tha Sao · ท่าเสา", color:"#4b00d6", dark:"#230064", shape:"zigzag", note:"Zigzag · แต่ละขั้นเหลื่อมซ้าย/ขวาสลับ (สายความเร็ว)",
+      motif:"ลายล้านนา + เส้นภูเขา", fx:(x,t,c)=>x*0.82+(c===0?0:(c%2?-110:110)) },
+    { id:"west", name:"Lopburi · ลพบุรี", color:"#f96000", dark:"#6e2a00", shape:"asym", note:"Offset · ซ้ายกว้าง ขวาแคบ แกนกลางเยื้อง (สายหลอกล่อ)",
+      motif:"ปรางค์สามยอด + หางลิงขด", fx:x=>x<0?x*1.22-30:x*0.72-30 }
+  ];
+  const KC = { core:"#fff", attribute:"var(--attr)", perk:"var(--perk)", decisive:"var(--dsm)", special:"var(--spe)", signature:"var(--sgm)" };
+  const maxY = Math.max(...T.nodes.map(n=>n.y));
+  const gates = [70, 600, 1140, 1560, 1990];
+  function nodesFor(s) {
+    const ns = T.nodes.map(n => ({ ...n }));
+    ns.push({ id:"granted", kind:"decisive", x:0, y:140, chapter:0, base:true });
+    if (s.id !== "phranakhon") ns.forEach(n => { if (n.ref === "3-2") n.kind = "signature"; });
+    ns.forEach(n => { n.sx = s.fx(n.x, n.y / maxY, n.chapter); });
+    return ns;
+  }
+  function shape(n) {
+    const x = n.sx, y = n.y, c = KC[n.kind];
+    if (n.kind === "core") return `<circle cx="${x}" cy="${y}" r="42" fill="none" stroke="${c}" stroke-width="8"/>`;
+    if (n.kind === "attribute") return `<circle cx="${x}" cy="${y}" r="20" fill="${c}"/>`;
+    if (n.kind === "perk") return `<rect x="${x-26}" y="${y-26}" width="52" height="52" transform="rotate(45 ${x} ${y})" fill="#1a1c24" stroke="${c}" stroke-width="7"/>`;
+    return `<rect x="${x-26}" y="${y-26}" width="52" height="52" fill="${c}" ${n.base ? 'opacity=".55"' : ""}/>`;
+  }
+  const W = 1000, H = maxY + 160;
+  document.getElementById("trees").innerHTML = STY.map(s => {
+    const ns = nodesFor(s), M = new Map(ns.map(n => [n.id, n]));
+    const edges = T.edges.map(e => { const a = M.get(e.from), b = M.get(e.to); return a && b ? `<line x1="${a.sx}" y1="${a.y}" x2="${b.sx}" y2="${b.y}"/>` : ""; }).join("");
+    const g = gates.map((y, i) => `<line x1="-480" x2="480" y1="${y}" y2="${y}" stroke="#666" stroke-dasharray="14 10" stroke-width="3"/><text x="-470" y="${y-10}" fill="#888" font-size="34">ขั้น ${"๑๒๓๔๕"[i]}</text>`).join("");
+    const cnt = k => ns.filter(n => n.kind === k).length;
+    return `<div class="card" style="border-top:3px solid ${s.color}"><h4>${s.name}</h4><div class="tag">${s.note}</div>
+      <svg viewBox="-500 -80 ${W} ${H}" style="background:linear-gradient(${s.dark}55, #0c0d12)">${g}<g stroke="${s.color}" stroke-opacity=".55" stroke-width="5">${edges}</g>${ns.map(shape).join("")}</svg>
+      <div class="tag">attr ${cnt("attribute")} · perk ${cnt("perk")} · DSM ${cnt("decisive")} · SPE ${cnt("special")} · SGM ${cnt("signature")}</div></div>`;
+  }).join("");
+  // ---- 6 symmetric packs, shape from each style icon ----
+  const PI = Math.PI, abs = Math.abs;
+  const ICON = {
+    phranakhon: { arms:[0,1,2,3,4,5,6,7].map(k=>k*PI/4), R:p=>0.72+0.28*Math.pow(abs(Math.cos(4*p)),3) },          // 8-point star
+    south:      { arms:[1,3,5,7].map(k=>k*PI/4),        R:p=>1/(Math.SQRT2*Math.max(abs(Math.sin(p)),abs(Math.cos(p)))) }, // square, corners diagonal
+    isan:       { arms:[0,1,2,3].map(k=>k*PI/2),        R:p=>0.66+0.34*Math.pow(abs(Math.cos(2*p)),0.6) },          // clover, lobes N/E/S/W
+    north:      { arms:[0,1,2,3].map(k=>k*PI/2),        R:p=>1/(abs(Math.sin(p))+abs(Math.cos(p))) },               // rhombus, corners N/E/S/W
+    west:       { arms:[0,1,2,3].map(k=>k*PI/2),        R:p=>0.42+0.58*Math.pow(Math.pow(abs(Math.sin(p)),2/3)+Math.pow(abs(Math.cos(p)),2/3),-1.5) } // concave 4-point star
+  };
+  const pol = (r, a) => [r*Math.sin(a), -r*Math.cos(a)];
+  const ang = x => x/450*PI*0.96;
+  const rad = y => y ? 150 + y*0.42 : 0;
+  // half-width profile of the icon outline, top (t=0) to bottom (t=1)
+  function profile(R) {
+    const bins = new Array(41).fill(0);
+    for (let i = 0; i < 1440; i++) { const p = i/1440*2*PI, r = R(p), x = abs(r*Math.sin(p)), y = r*Math.cos(p);
+      const b = Math.round((1 - y) / 2 * 40); if (b >= 0 && b <= 40) bins[b] = Math.max(bins[b], x); }
+    const m = Math.max(...bins); return t => Math.max(0.32, bins[Math.round(t*40)] / m);
+  }
+  const ringPath = (r, R) => { let d = ""; for (let i = 0; i <= 180; i++) { const p = i/180*2*PI, [x, y] = pol(r*R(p), p); d += (i ? "L" : "M") + x.toFixed(0) + " " + y.toFixed(0); } return d + "Z"; };
+  const mandala = (n, s) => { const a = ang(n.x); return pol(rad(n.y)*ICON[s.id].R(a), a); };
+  // lattice per icon: grid space <-> xy
+  const GRID = {
+    phranakhon: { to:([x,y])=>[Math.atan2(x,-y)/(PI/8), Math.hypot(x,y)/130], from:([i,j])=>pol(j*130, i*PI/8), axis:i=>[0,i[1]] },   // 8-spoke polar
+    south:      { to:([x,y])=>[x/125, y/125], from:([i,j])=>[i*125, j*125], axis:i=>[0,i[1]] },                                      // square grid
+    isan:       { to:([x,y])=>[Math.atan2(x,-y)/(PI/6), Math.hypot(x,y)/150], from:([i,j])=>pol(j*150, i*PI/6), axis:i=>[0,i[1]] },   // 12-spoke polar (lobes)
+    north:      { to:([x,y])=>[(x+y)/125, (y-x)/125], from:([u,v])=>[(u-v)*62.5, (u+v)*62.5], axis:([u,v])=>{ const m=(u+v)/2; return [m,m]; } }, // diamond grid
+    west:       { to:([x,y])=>[Math.atan2(x,-y)/(PI/4), Math.hypot(x,y)/120], from:([i,j])=>pol(j*120, i*PI/4), axis:i=>[0,i[1]] }    // 8 rays
+  };
+  function lattice(ns, s) {
+    const G = GRID[s.id], used = new Set(), key = g => g.map(v => Math.round(v)).join(",");
+    const byXY = new Map(ns.map(n => [n.x + "," + n.y, n]));
+    ns.filter(n => n.x <= 0).sort((a, b) => a.y - b.y || b.x - a.x).forEach(n => {
+      let g = G.to(mandala(n, s)); if (!n.x) g = G.axis(g);
+      const base = g.map(Math.round), cand = [];
+      for (let di = -3; di <= 3; di++) for (let dj = -3; dj <= 3; dj++) {
+        let c = [base[0] + di, base[1] + dj]; if (!n.x) c = G.axis(c).map(Math.round);
+        const xy = G.from(c); if (n.x && xy[0] > -40) continue; if (!n.x && Math.abs(xy[0]) > 1) continue;
+        cand.push([Math.hypot(c[0] - g[0], c[1] - g[1]), c, xy]);
+      }
+      cand.sort((a, b) => a[0] - b[0]);
+      const pick = cand.find(c => !used.has(key(c[1]))) || cand[0];
+      used.add(key(pick[1])); [n.sx, n.sy] = n.y ? pick[2] : [0, 0];
+      const m = byXY.get(-n.x + "," + n.y); if (m && n.x) { m.sx = -n.sx; m.sy = n.sy; }
+    });
+  }
+  const PACKS = [
+    { id:"A", name:"Mandala · วงยันต์", note:"Core กลาง · ขั้น = วงรอบ 360° · แต่ละวงถูกบีบเป็นทรงไอคอน (ดาว 8 / สี่เหลี่ยม / โคลเวอร์ / ข้าวหลามตัด / ดาวเว้า)",
+      pos:mandala, gate:(y,s)=>`<path d="${ringPath(rad(y), ICON[s.id].R)}"/>` },
+    { id:"B", name:"Lattice · ตาราง", note:"ทรง A แล้ววาง node ลงตารางของไอคอน: พระนคร 8 ซี่ล้อ · ไชยา ตารางสี่เหลี่ยม · โคราช 12 ซี่ · ท่าเสา ตารางข้าวหลามตัด · ลพบุรี 8 รัศมี · เส้นตรงเป็นระเบียบแบบลายยันต์",
+      all:lattice, gate:(y,s)=>`<path d="${ringPath(rad(y), ICON[s.id].R)}" stroke-opacity=".35"/>` },
+    { id:"C", name:"Fan · พัด", note:"Core ล่างกลาง · แผ่ขึ้นครึ่งวง 180° · ขอบพัดเป็นทรงไอคอน · จอ 16:9 เห็นได้กว้าง",
+      pos:(n,s)=>{ const a = n.x/450*PI*0.5; return pol(rad(n.y)*1.25*ICON[s.id].R(a*0.9), a); },
+      gate:(y,s)=>{ let d=""; for(let i=0;i<=60;i++){ const a=(-0.5+i/60)*PI*0.98, [x,yy]=pol(rad(y)*1.25*ICON[s.id].R(a*0.9),a); d+=(i?"L":"M")+x.toFixed(0)+" "+yy.toFixed(0);} return `<path d="${d}" fill="none"/>`; } },
+    { id:"D", name:"Wings · ปีก", note:"Core กลาง · ครึ่งซ้ายของกราฟบินไปซ้าย ครึ่งขวาไปขวา · ขั้น = คอลัมน์ · กิ่งกลาง (x 0) ตั้งเป็นแกนขึ้นบน · ความสูงปีกตามทรงไอคอน",
+      pos:(n,s)=>{ if (!n.y) return [0,0]; const R = ICON[s.id].R, t = n.y/maxY;
+        if (!n.x) return [0, -(200 + n.y*0.3)];
+        const hh = R(PI/2 - t*PI/2.2) * 1.0;   // wing height follows the icon outline, from the side point outward
+        return [Math.sign(n.x)*(150 + n.y*0.5), (abs(n.x) - 240) * (1 + t*2.2) * 2.4 * hh]; },
+      gate:(y,s)=>`<line x1="${150+y*0.5}" x2="${150+y*0.5}" y1="-800" y2="800"/><line x1="${-150-y*0.5}" x2="${-150-y*0.5}" y1="-800" y2="800"/>` },
+    { id:"E", name:"Silhouette · เงาไอคอน", note:"y เดิม (เลื่อนลงแบบเดิม, rows nav ใช้ได้) · ความกว้างแต่ละแถว = ความกว้างของไอคอนที่ระดับนั้น ทั้งต้นไม้กลายเป็นรูปไอคอน",
+      pos:(n,s)=>{ const w = profile(ICON[s.id].R); return [n.x*2.1*Math.pow(w(n.y/maxY),1.4), n.y]; }, gate:y=>`<line x1="-900" x2="900" y1="${y}" y2="${y}"/>` },
+    { id:"F", name:"Arms · แฉก", note:"Core กลาง · node ถูกดูดเข้าหาแฉกของไอคอน (พระนคร 8 แฉก · ไชยา 4 แฉกทแยง · อื่น 4 แฉกทิศหลัก) · ช่องว่างระหว่างแฉก = ornament",
+      pos:(n,s)=>{ if (!n.y) return [0,0]; const a = ang(n.x), arms = ICON[s.id].arms.map(v => v > PI ? v - 2*PI : v);
+        const near = arms.reduce((b, v) => abs(v - a) < abs(b - a) ? v : b, arms[0]); const a2 = n.x ? near + (a - near)*0.32 : a;   // centre column stays on the axis
+        return pol(rad(n.y)*1.1, a2); }, gate:(y,s)=>`<circle r="${rad(y)*1.1}" stroke-opacity=".35"/>` }
+  ];
+  const GATE_Y = [600, 1140, 1560, 1990];
+  document.getElementById("packs").innerHTML = PACKS.map(pk => `<h3>Pack ${pk.id} · ${pk.name}</h3><div class="sub">${pk.note}</div><div class="grid5">` +
+    STY.map(s => {
+      const ns = nodesFor(s); if (pk.all) pk.all(ns, s); else ns.forEach(n => { [n.sx, n.sy] = pk.pos(n, s); });
+      const M = new Map(ns.map(n => [n.id, n]));
+      const xs = ns.map(n => n.sx), ys = ns.map(n => n.sy), pad = 90;
+      const x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad, w = Math.max(...xs) + pad - x0, h = Math.max(...ys) + pad - y0;
+      const sz = Math.max(w, h), vx = x0 - (sz - w)/2, vy = y0 - (sz - h)/2;
+      const edges = T.edges.map(e => { const a = M.get(e.from), b = M.get(e.to); return a && b ? `<line x1="${a.sx}" y1="${a.sy}" x2="${b.sx}" y2="${b.sy}"/>` : ""; }).join("");
+      const shp = n => shape({ ...n, y: n.sy });
+      return `<div class="card" style="border-top:3px solid ${s.color}"><h4><img src="../mtx/assets/svg/style-${s.id}-sel.svg" style="width:22px;vertical-align:-5px"> ${s.name.split(" · ")[1]}</h4>
+        <svg viewBox="${vx} ${vy} ${sz} ${sz}" style="background:radial-gradient(circle at 50% 50%, ${s.dark}66, #0c0d12 70%)">
+        <g fill="none" stroke="#777" stroke-dasharray="14 10" stroke-width="3">${GATE_Y.map(y => pk.gate(y, s)).join("")}</g>
+        <g stroke="${s.color}" stroke-opacity=".6" stroke-width="5">${edges}</g>${ns.map(shp).join("")}</svg></div>`;
+    }).join("") + `</div>`).join("");
+
+  // ---- Pack E bottom-up ----
+  const XS = 2.1, POW = 1.4, TOP = maxY + 140, KMIN = 0.95;   // KMIN: narrowest row factor so nodes + labels do not touch
+  function eupNodes(s) {
+    const w = profile(ICON[s.id].R), ns = nodesFor(s);
+    ns.forEach(n => { n.sx = n.x * Math.max(KMIN, XS * Math.pow(w(1 - n.y / maxY), POW)); n.sy = -n.y; });
+    return ns;
+  }
+  function iconOutline(R) {   // icon outline fitted to the tree: bottom tip = core (y 60), top tip = y -TOP
+    let m = 0; for (let i = 0; i < 720; i++) { const p = i/720*2*PI; m = Math.max(m, abs(R(p)*Math.sin(p))); }
+    let d = ""; for (let i = 0; i <= 360; i++) { const p = i/360*2*PI, r = R(p);
+      const x = r*Math.sin(p)/m * 375*XS*1.12, y = -((r*Math.cos(p) + 1)/2) * (TOP + 60) + 60;
+      d += (i ? "L" : "M") + x.toFixed(0) + " " + y.toFixed(0); }
+    return d + "Z";
+  }
+  function eupSvg(s, view) {
+    const ns = eupNodes(s), M = new Map(ns.map(n => [n.id, n]));
+    const edges = T.edges.map(e => { const a = M.get(e.from), b = M.get(e.to); return a && b ? `<line x1="${a.sx}" y1="${a.sy}" x2="${b.sx}" y2="${b.sy}"/>` : ""; }).join("");
+    const gates = GATE_Y.map((y, i) => `<line x1="-900" x2="900" y1="${-y}" y2="${-y}" stroke="#777" stroke-dasharray="14 10" stroke-width="3"/><text x="-880" y="${-y + 40}" fill="#999" font-size="38">ขั้น ${"๑๒๓๔๕"[i]}</text>`).join("")
+      + `<text x="-880" y="${-GATE_Y[3] - 30}" fill="#999" font-size="38">ขั้น ๕</text>`;
+    return `<svg viewBox="${view}" style="background:radial-gradient(ellipse at 50% 100%, ${s.dark}88, #0c0d12 75%)">
+      <path d="${iconOutline(ICON[s.id].R)}" fill="${s.color}" fill-opacity=".05" stroke="${s.color}" stroke-opacity=".35" stroke-width="6"/>
+      ${gates}<g stroke="${s.color}" stroke-opacity=".6" stroke-width="5">${edges}</g>${ns.map(n => shape({ ...n, y: n.sy })).join("")}</svg>`;
+  }
+  document.getElementById("eup").innerHTML = STY.map(s => `<div class="card" style="border-top:3px solid ${s.color}"><h4><img src="../mtx/assets/svg/style-${s.id}-sel.svg" style="width:22px;vertical-align:-5px"> ${s.name.split(" · ")[1]}</h4>
+    ${eupSvg(s, `-950 ${-TOP - 80} 1900 ${TOP + 200}`)}</div>`).join("");
+  // first screen: 1920x1080 at tree scale 1 (current tree zoom), core at 80 % height
+  document.getElementById("eupframe").innerHTML = STY.map(s => `<div class="card" style="border-top:3px solid ${s.color}"><h4>${s.name.split(" · ")[1]}</h4>
+    ${eupSvg(s, `-960 -${1080 - 216} 1920 1080`)}<div class="tag">เห็นขั้น ๑ + ครึ่งขั้น ๒ · ขึ้นต่อด้วย ↑</div></div>`).join("");
+
+  // ---- clean export (white bg, nodes + links only): window.SKILL_EXPORT() -> [{name, svg}] ----
+  const KC_W = { core:"#111", attribute:"#1fae6a", perk:"#111", decisive:"#e0213f", special:"#7fa300", signature:"#2f7fe0" };
+  function cleanSvg(s, up, combo) {
+    const w = profile(ICON[s.id].R), ns = nodesFor(s);
+    ns.forEach(n => { n.sx = n.x * Math.max(KMIN, XS * Math.pow(w(n.y / maxY), POW)); n.sy = up ? -n.y : n.y; });
+    const M = new Map(ns.map(n => [n.id, n]));
+    const xs = ns.map(n => n.sx), ys = ns.map(n => n.sy), pad = 110;
+    const x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad, ww = Math.max(...xs) + pad - x0, hh = Math.max(...ys) + pad - y0;
+    const H = hh, Wd = Math.max(ww, H * 16 / 9), vx = x0 - (Wd - ww) / 2;   // 16:9 frame, tree centred
+    const edges = T.edges.map(e => { const a = M.get(e.from), b = M.get(e.to); return a && b ? `<line x1="${a.sx}" y1="${a.sy}" x2="${b.sx}" y2="${b.sy}"/>` : ""; }).join("");
+    const node = n => { const x = n.sx, y = n.sy, c = KC_W[n.kind];
+      if (n.kind === "core") return `<circle cx="${x}" cy="${y}" r="40" fill="#fff" stroke="${c}" stroke-width="10"/>`;
+      if (n.kind === "attribute") return `<circle cx="${x}" cy="${y}" r="20" fill="${c}"/>`;
+      if (n.kind === "perk") return `<rect x="${x-25}" y="${y-25}" width="50" height="50" transform="rotate(45 ${x} ${y})" fill="#fff" stroke="${c}" stroke-width="7"/>`;
+      return `<rect x="${x-25}" y="${y-25}" width="50" height="50" fill="${c}"/>`; };
+    // labels: real names for Phra Nakorn, otherwise type + wiki code (other styles have no names in the wiki yet)
+    const KL = { core:"Core", attribute:"Attribute", perk:"Perk", decisive:"DSM", special:"Special", signature:"Signature" };
+    const pn = s.id === "phranakhon";
+    const label = n => {
+      if (n.kind === "core") return pn ? "Core · Tier Initial" : "Core";
+      if (n.id === "granted") return pn ? "Hak Nguang Aiyara (granted)" : "Granted DSM";
+      const code = String(n.ref || "").replace(/\+\d+$/, "").replace(/\s/g, "");
+      if (n.kind === "decisive") { const f = { monyanlak:"A", salabfanpla:"B", jorakhefadhang:"C" }[n.family];
+        return pn ? `${n.name} T${n.tier}` : `DSM ${f} · Tier ${n.tier}`; }
+      if (pn) return n.name;
+      return `${KL[n.kind]} ${code}`;
+    };
+    const tx = n => { const t = label(n).replace(/&/g, "&amp;");
+      if (n.kind === "core") return `<text x="${n.sx + 60}" y="${n.sy + 9}">${t}</text>`;
+      if (n.id === "granted") return `<text x="${n.sx}" y="${n.sy + (up ? 58 : -40)}" text-anchor="middle">${t}</text>`;
+      return `<text x="${n.sx}" y="${n.sy + 58}" text-anchor="middle">${t}</text>`; };
+    const lx = vx + 50, ly = y0 + 90, dir = up ? "ล่างขึ้นบน (Core ล่าง)" : "บนลงล่าง (Core บน)";
+    const leg = [["core", "Core (จุดเริ่ม)"], ["attribute", "Attribute · Mini-Perk"], ["perk", "Perk · 3 Level"], ["decisive", "Decisive Move (DSM)"], ["special", "Special Move"], ["signature", "Signature Move"]]
+      .map(([k, t], i) => { const y = ly + 150 + i * 70, c = KC_W[k];
+        const ic = k === "core" ? `<circle cx="${lx + 25}" cy="${y}" r="20" fill="#fff" stroke="${c}" stroke-width="7"/>`
+          : k === "attribute" ? `<circle cx="${lx + 25}" cy="${y}" r="16" fill="${c}"/>`
+          : k === "perk" ? `<rect x="${lx + 7}" y="${y - 18}" width="36" height="36" transform="rotate(45 ${lx + 25} ${y})" fill="#fff" stroke="${c}" stroke-width="6"/>`
+          : `<rect x="${lx + 7}" y="${y - 18}" width="36" height="36" fill="${c}"/>`;
+        return ic + `<text x="${lx + 70}" y="${y + 12}" font-size="34">${t}</text>`; }).join("");
+    const gl = GATE_Y.map((g, i) => { const y = up ? -g : g; return `<line x1="${x0 + pad - 40}" x2="${x0 + ww - pad + 40}" y1="${y}" y2="${y}" stroke="#ccc" stroke-width="3" stroke-dasharray="16 12"/>`
+      + `<text x="${vx + Wd - 260}" y="${y + (up ? 50 : -20)}" font-size="34" fill="#888">ขั้น ${"๑๒๓๔"[i]} ${up ? "↓" : "↑"}</text>`; }).join("")
+      + `<text x="${vx + Wd - 260}" y="${(up ? -GATE_Y[3] : GATE_Y[3]) + (up ? -30 : 50)}" font-size="34" fill="#888">ขั้น ๕ ${up ? "↑" : "↓"}</text>`;
+    const body = `<g stroke="#9a9a9a" stroke-width="5">${edges}</g>${ns.map(node).join("")}<g font-size="24" fill="#333" paint-order="stroke" stroke="#fff" stroke-width="8">${ns.map(tx).join("")}</g>`;
+    if (combo) {   // one column of the group image: tight box, style name on top, gate labels on the left
+      const L = x0 - 130, R = x0 + ww + 20, top = y0 - 150;
+      const g2 = GATE_Y.map((g, i) => { const y = up ? -g : g; return `<line x1="${L + 120}" x2="${R - 20}" y1="${y}" y2="${y}" stroke="#ccc" stroke-width="3" stroke-dasharray="16 12"/>`
+        + `<text x="${L}" y="${y + (up ? 44 : -16)}" font-size="34" fill="#888">ขั้น ${"๑๒๓๔"[i]}</text>`; }).join("")
+        + `<text x="${L}" y="${(up ? -GATE_Y[3] : GATE_Y[3]) + (up ? -16 : 44)}" font-size="34" fill="#888">ขั้น ๕</text>`;
+      return { vb: [L, top, R - L, y0 + hh - top], inner: `<text x="${(L + R) / 2}" y="${top + 80}" text-anchor="middle" font-size="64" font-weight="700" fill="#111">${s.name}</text>${g2}${body}` };
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="${vx} ${y0} ${Wd} ${H}" font-family="Segoe UI, Noto Sans Thai, sans-serif"><rect x="${vx}" y="${y0}" width="${Wd}" height="${H}" fill="#fff"/>
+<text x="${lx}" y="${ly}" font-size="64" font-weight="700" fill="#111">${s.name}</text>
+<text x="${lx}" y="${ly + 70}" font-size="40" fill="#555">Skill Tree · ${dir} · ${pn ? "ชื่อจาก wiki" : "wiki ยังไม่มีชื่อ: แสดงประเภท + code"}</text>
+${leg}${gl}<g stroke="#9a9a9a" stroke-width="5">${edges}</g>${ns.map(node).join("")}<g font-size="24" fill="#333" paint-order="stroke" stroke="#fff" stroke-width="8">${ns.map(tx).join("")}</g></svg>`;
+  }
+  const FILE = { phranakhon:"1-phranakorn", south:"2-chaiya", isan:"3-korat", north:"4-thasao", west:"5-lopburi" };
+  // group image: 5 styles side by side, one legend; window.SKILL_EXPORT_GROUP() -> [{name, svg}] (top-down, bottom-up)
+  function groupSvg(up) {
+    const cols = STY.map(s => cleanSvg(s, up, true)), cw = Math.max(...cols.map(c => c.vb[2])), ch = Math.max(...cols.map(c => c.vb[3]));
+    const head = 330, W = cw * 5, Ht = ch + head, dir = up ? "ล่างขึ้นบน (Core ล่าง)" : "บนลงล่าง (Core บน)";
+    const leg = [["core", "Core"], ["attribute", "Attribute · Mini-Perk"], ["perk", "Perk · 3 Level"], ["decisive", "Decisive Move (DSM)"], ["special", "Special Move"], ["signature", "Signature Move"]]
+      .map(([k, t], i) => { const x = 60 + i * 640, y = 250, c = KC_W[k];
+        const ic = k === "core" ? `<circle cx="${x + 30}" cy="${y}" r="26" fill="#fff" stroke="${c}" stroke-width="8"/>`
+          : k === "attribute" ? `<circle cx="${x + 30}" cy="${y}" r="20" fill="${c}"/>`
+          : k === "perk" ? `<rect x="${x + 8}" y="${y - 22}" width="44" height="44" transform="rotate(45 ${x + 30} ${y})" fill="#fff" stroke="${c}" stroke-width="7"/>`
+          : `<rect x="${x + 8}" y="${y - 22}" width="44" height="44" fill="${c}"/>`;
+        return ic + `<text x="${x + 80}" y="${y + 16}" font-size="46">${t}</text>`; }).join("");
+    const cells = cols.map((c, i) => `<svg x="${i * cw}" y="${head}" width="${cw}" height="${ch}" viewBox="${c.vb.join(" ")}" preserveAspectRatio="xMidYMid meet">${c.inner}</svg>`
+      + (i ? `<line x1="${i * cw}" x2="${i * cw}" y1="${head}" y2="${Ht - 40}" stroke="#e4e4e4" stroke-width="4"/>` : "")).join("");
+    const ph = 1080, pw = Math.round(ph * W / Ht);   // render height is 1080 (shot viewport)
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${pw}" height="${ph}" viewBox="0 0 ${W} ${Ht}" font-family="Segoe UI, Noto Sans Thai, sans-serif"><rect width="${W}" height="${Ht}" fill="#fff"/>
+<text x="60" y="130" font-size="96" font-weight="700" fill="#111">Skill Tree · 5 สไตล์ · ${dir}</text>
+<text x="${W - 60}" y="130" text-anchor="end" font-size="44" fill="#666">พระนคร = ชื่อจาก wiki · สไตล์อื่น wiki ยังไม่มีชื่อ: แสดงประเภท + code</text>${leg}${cells}</svg>`;
+  }
+  window.SKILL_EXPORT_GROUP = () => [{ name: "group-top-down", svg: groupSvg(false) }, { name: "group-bottom-up", svg: groupSvg(true) }];
+  window.SKILL_EXPORT = () => STY.flatMap(s => [{ name: `${FILE[s.id]}-top-down`, svg: cleanSvg(s, false) }, { name: `${FILE[s.id]}-bottom-up`, svg: cleanSvg(s, true) }]);
+
+  document.getElementById("bgs").innerHTML = STY.map(s => `<div class="card"><h4>${s.name.split(" · ")[1]}</h4><div class="tag">${s.motif}</div>
+    <div class="bg" style="background:radial-gradient(ellipse at 50% 30%, ${s.dark}, #08090c 75%)"><div class="strip"></div><div class="tint" style="background:${s.color};opacity:.35"></div>
+    <img class="emb" src="../mtx/assets/svg/style-${s.id}-sel.svg" alt=""></div></div>`).join("");
+})();
+</script>
+</body>
+</html>
