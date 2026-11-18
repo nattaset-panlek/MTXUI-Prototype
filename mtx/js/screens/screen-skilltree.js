@@ -48,6 +48,7 @@
   let owned = window.MTX_SKILLSTATE ? window.MTX_SKILLSTATE.owned(styleId) : new Map(TREE.nodes.filter(n => n.base).map(n => [n.id, 1]));
   const LOADOUT = () => window.MTX_LOADOUT;
   const isEquipped = id => !!LOADOUT()?.isEquipped?.(styleId, id);
+  const eqLevel = id => LOADOUT()?.equippedLevel?.(styleId, id) || 0;   // perk: level it is equipped at (Loadout state)
   const lvOf = id => owned.get(id) || 0;
   const maxLv = n => n?.levels?.length || 1;
   const costOf = (n, lv) => n?.levels?.[lv - 1]?.cost ?? 1;
@@ -214,6 +215,7 @@
         cancelUnlockHold();
         detailOpen = el.dataset.id;
         viewLv = defaultViewLv(detailOpen);
+        followVideo();
         renderDetail();
       }
     }
@@ -335,16 +337,27 @@
     if (!n || !isMove(n)) return false;
     cancelUnlockHold();
     V().open(api.screens.skilltree, { name: n.name, kind: n.kind, label: KIND_LABEL[n.kind], src: n.video || "" });
+    renderDetail();                                         // card: "Hide video" hint, "Playing" badge
     api.rumble(30, 0.15);
     return true;
   }
   function closeVideo() {
     if (!V().isOpen()) return false;
     V().close();
+    if (detailOpen) renderDetail();
     api.rumble(20, 0.1);
     return true;
   }
   const isVideoOpen = () => !!window.MTX_UI?.nodeDetail?.video.isOpen();
+  // popup variant takes every input; the side panel leaves the tree live
+  const isVideoBlocking = () => !!window.MTX_UI?.nodeDetail?.video.isBlocking?.();
+  // side panel open while moving to another node: a move swaps the clip, anything else closes it
+  function followVideo() {
+    if (!V().isOpen() || V().isBlocking()) return;
+    const n = TN.get(detailOpen);
+    if (n && isMove(n)) V().open(api.screens.skilltree, { name: n.name, kind: n.kind, label: KIND_LABEL[n.kind], src: n.video || "" });
+    else V().close();
+  }
 
   function openDetail(id) {
     cancelUnlockHold();
@@ -372,7 +385,7 @@
 
   function isHoldToUnlockReady() {
     if (api.store.get("unlockInput", "hold") !== "hold") return false;
-    if (api.getCur() !== "skilltree" || !detailOpen || isVideoOpen()) return false;   // video preview open: no unlock hold
+    if (api.getCur() !== "skilltree" || !detailOpen || isVideoBlocking()) return false;   // video popup open: no unlock hold
     const { id, lv } = viewTarget(), n = TN.get(id);
     if (!n || n.base || lvOf(id) >= maxLv(n)) return false;
     return lv === lvOf(id) + 1;   // only the next level (perk) / an unowned tier or node can be bought
@@ -412,7 +425,14 @@
     const { id, lv } = viewTarget(), n = TN.get(id);
     if (!n) return { label: "", state: "locked" };
     if (n.base && !n.granted) return { label: "Core", state: "done" };
-    if (lv <= lvOf(id)) return n.kind === "attribute" ? { label: "Unlocked", state: "done" } : { label: isEquipped(id) ? "Equipped" : "Equip", state: isEquipped(id) ? "done" : "equip" };
+    if (lv <= lvOf(id)) {
+      if (n.kind === "attribute") return { label: "Unlocked", state: "done" };
+      if (n.levels) {   // perk: equip the level of the tab shown; another equipped level = switch
+        const eq = eqLevel(id);
+        return eq === lv ? { label: "Equipped", state: "done" } : { label: "Equip", state: "equip" };   // button text stays plain (user 2026-11-18); the Lv tab shows the level
+      }
+      return { label: isEquipped(id) ? "Equipped" : "Equip", state: isEquipped(id) ? "done" : "equip" };
+    }
     return lv === lvOf(id) + 1 && canLevelUp(id) ? { label: "Unlock", state: "ready" } : { label: "Locked", state: "locked" };
   }
 
@@ -484,13 +504,20 @@
     if (want <= lv) {
       if (n.kind === "attribute") { api.toast(`${n.name} · passive, always active`); return; }
       // Equip = put it in the first free slot of this style's Tactical Loadout preset (saved); full -> say so
-      if (isEquipped(id)) { api.toast(`${nodeLabel(n)} · already in your loadout`); return; }
-      const slot = LOADOUT()?.equipNode?.(styleId, id);
-      if (slot == null) { api.rumble(120, 0.2); api.toast("Loadout slots full · change it in Tactical Loadout"); return; }
+      // perks equip the level of the tab shown (want), any owned level; moves equip as they are
+      const eqLv = n.levels ? want : 0;
+      if (isEquipped(id) && (!n.levels || eqLevel(id) === eqLv)) { api.toast(`${nodeLabel(n)}${eqLv ? " Lv " + eqLv : ""} · already in your loadout`); return; }
+      const was = n.levels && isEquipped(id) ? eqLevel(id) : 0;
+      const wasTier = n.kind === "decisive" && !n.granted ? LOADOUT()?.equippedTier?.(styleId, id) || 0 : 0;   // other tier of this family equipped
+      const slot = LOADOUT()?.equipNode?.(styleId, id, eqLv || undefined);   // free slot, or replaces the last one when full (auto)
+      if (slot == null) { api.rumble(120, 0.2); api.toast("Can not equip this skill"); return; }
+      const out = LOADOUT()?.lastReplaced;
       updateTree();
       renderDetail();
       api.rumble(60, 0.3);
-      api.toast(`${nodeLabel(n)}${n.levels ? " Lv " + lv : ""} equipped · slot ${slot + 1}`);
+      api.toast(was ? `${n.name} · equipped Lv ${was} → Lv ${eqLv}`
+        : wasTier ? `${n.name} · Tier ${wasTier} → Tier ${n.tier}`
+        : `${nodeLabel(n)}${eqLv ? " Lv " + eqLv : ""} equipped · slot ${slot + 1}${out ? ` (replaced ${out})` : ""}`);
       return;
     }
     if (want > lv + 1) {
@@ -585,12 +612,12 @@
       `<circle cx="0" cy="${DY(0) + ROOT_DY}" r="140"/>`;
 
     // yantra script ornaments around the core (skill-orn-*.svg) removed on request (2026-11-17)
-    // Tier ornament strip (user image 2026-11-17, mtx/assets/skill-tree-yan.png (Yan PanakornTheme, 1513x4998; was skill-tree-bg.webp with the roosters), 5 motifs stacked): whole image, not sliced,
+    // Tier ornament strip (user image 2026-11-17, mtx/assets/skill-tree-yan.png (Yan PanakornTheme, 1513x3914 since 2026-11-18; was 1513x4998; was skill-tree-bg.webp with the roosters), 5 motifs stacked): whole image, not sliced,
     // spanning gate 1 -> tree end at 132 % (110 % then +20 %, user), centred on that span. Replaces the Tier 1 yantra.
     const cam = api.bind("treeCamera");
     if (cam && !cam.querySelector(".tree__yantra")) {
-      const span = maxY + 60 - GATES[0], h = Math.round(span * 1.32), w = Math.round(h * 1513 / 4998), top = (FLIP ? -60 : GATES[0]) + (span - h) / 2;
-      cam.insertAdjacentHTML("afterbegin", `<div class="tree__yantra" aria-hidden="true" style="left:${-w / 2}px;top:${top}px;width:${w}px;height:${h}px;background:none"><div class="tree__yantra-art tree__yantra-art--plain"></div><div class="tree__yantra-art tree__yantra-art--n0"></div><div class="tree__yantra-art tree__yantra-art--n1"></div><div class="tree__yantra-art tree__yantra-art--n2"></div><div class="tree__shine"><i></i></div></div>`);   // v5 baked noise crossfade, see screens.css (user 2026-11-18)
+      const span = maxY + 60 - GATES[0], h = Math.round(span * 1.32), w = Math.round(h * 1513 / 3914), top = (FLIP ? -60 : GATES[0]) + (span - h) / 2;
+      cam.insertAdjacentHTML("afterbegin", `<div class="tree__yantra" aria-hidden="true" data-bx="${-w / 2}" data-by="${top}" style="left:${-w / 2 + ornOff.x}px;top:${top + ornOff.y}px;width:${w}px;height:${h}px;background:none"><div class="tree__yantra-art tree__yantra-art--plain"></div><div class="tree__yantra-art tree__yantra-art--n0"></div><div class="tree__yantra-art tree__yantra-art--n1"></div><div class="tree__yantra-art tree__yantra-art--n2"></div><div class="tree__shine"><i></i></div></div>`);   // v5 baked noise crossfade, see screens.css (user 2026-11-18)
     }
     api.bind("treeGates").innerHTML = GATES.map((y, i) => `<div class="tree__gate${FLIP ? " tree__gate--up" : ""}" style="top:${DY(y)}px"><span>ขั้น ${THAI_NUM[i] || i + 1}</span></div>`).join("");
     const rail = api.bind("treeRail");
@@ -607,8 +634,7 @@
   }
 
   // perk art: the loadout's 10 perk icons, in tree order (perks 11-14 reuse them; mock art)
-  const PERKS_IN_ORDER = TREE.nodes.filter(n => n.levels);
-  const perkIcon = n => PERKS_IN_ORDER.indexOf(n) % 10 + 1;
+  const perkIcon = n => Math.max(0, TREE.nodes.filter(x => x.levels).indexOf(n)) % 10 + 1;   // shown style's perks (was fixed to PN: perk-icon-0 404)
 
   // owned perk face = MTX / Perk Frame of its level; the label shows "Lv N"
   function setPerkFace(t, n, lv) {
@@ -618,6 +644,9 @@
     if (fr) { fr.src = `${LO}perk-frame-${fk}.svg`; fr.width = Math.round(fw * PERK_SCALE); fr.height = Math.round(fh * PERK_SCALE); }
     if (ic) { ic.width = Math.round(iw * PERK_SCALE); ic.height = Math.round(ih * PERK_SCALE); }
     t.dataset.lv = lv;
+    // equipped level (Loadout) -> data-eq-lv for the tag look (no text on the node, user 2026-11-18; tag design pending)
+    const eq = lv ? eqLevel(n.id) : 0;
+    if (eq) t.dataset.eqLv = eq; else delete t.dataset.eqLv;
     if (tag) tag.textContent = lv ? `Lv ${lv}` : "";
   }
 
@@ -642,6 +671,15 @@
         (ps.length > 1 ? `<li style="color:var(--text-dim)">${unlockRule === "all" ? "Needs all of these" : (ready ? "Requirement met (connected)" : "Needs any one connected")}</li>` : "");
     api.bind("tiAction").textContent = n.base ? "Always unlocked" : own ? "A · Remove (refunds this and dependent skills)"
       : ready ? (skillPts ? `A · Unlock (1 point, ${skillPts} left)` : "No skill points left") : "Unlock the required skills first";
+  }
+
+  // Dev tools: ornament offset in tree px (store treeYanX / treeYanY, default 0 / +50; user 2026-11-18). Moves the strip's box,
+  // so the ripple (which reads the box left/top) stays aligned.
+  const ornOff = { x: 0, y: 50 };
+  function setOrnamentOffset(x, y) {
+    ornOff.x = +x || 0; ornOff.y = +y || 0;
+    const orn = api?.$?.("#s-skilltree .tree__yantra");
+    if (orn) { orn.style.left = (+orn.dataset.bx + ornOff.x) + "px"; orn.style.top = (+orn.dataset.by + ornOff.y) + "px"; }
   }
 
   let plxPct = 45;
@@ -745,34 +783,12 @@
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : "";
 
   // card content per node type (Figma Node Detail · Pack I 833:93841)
+  // card content = the global skill card model (components/node-detail.js MTX_UI.nodeDetail.model, shared with Loadout etc.);
+  // the tree adds its CTA (unlock / equip by tab), Video hint and the style core name
   function detailModel(n) {
-    const tc = window.MTX_UI.nodeDetail.COLOR[n.kind];
-    const m = { kind: n.kind, label: KIND_LABEL[n.kind], name: n.name, video: isMove(n), tabs: null, rows: [], cta: ctaOf(),
-      hints: [["b", "Close"], ...(isMove(n) ? [["y", "Video"]] : [])] };
-    const st = n.stats || {};
-    if (n.kind === "core") {
-      m.name = coreName;
-      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Decisive Move", value: n.name }];
-    } else if (n.kind === "attribute") {
-      m.rows = [{ t: "desc", text: n.desc }, ...(n.bonus || []).map(b => ({ t: "row", label: b.stat, value: "+" + b.value, color: tc }))];
-    } else if (n.kind === "perk") {
-      const L = n.levels[viewLv - 1];
-      m.tabs = { labels: n.levels.map(l => "Lv " + l.lv), view: viewLv, owned: lvOf(n.id) };
-      // frame follows the Lv tab shown, same art as the tree node (Lv 1 copper, Lv 2 silver, Lv 3 gold); gold = Figma 200x194
-      const fk = LV_FRAME[viewLv], [fw, fh] = PERK_FRAME_SVG[fk], k = 194 / 124;
-      m.frame = { src: `${LO}perk-frame-${fk}.svg`, w: Math.round(fw * k), h: Math.round(fh * k) };
-      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff) }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: esc(L.flaw) }] : []),
-        { t: "row", label: "Cooldown", value: n.cooldown ? n.cooldown + "s" : "-" }];
-    } else if (n.kind === "decisive") {
-      const ids = tierIds(n), T = TN.get(ids[viewLv - 1]) || n, ts = T.stats || {};
-      // no Tier tabs in the Skill Tree; the tier is a row in the info list ("Tier  Tier 3"), name stays plain (user 2026-11-17)
-      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Tier", value: "Tier " + (n.tier || 1) }, { t: "row", label: "Base Damage", value: ts.baseDamage, color: tc },
-        { t: "row", label: "Damage Part", html: esc(ts.damagePart).replace(/ \/ /g, ' <i class="nd-sep">/</i> ') }, { t: "row", label: "Type", value: cap(n.tag) }];
-    } else {
-      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Damage", value: st.damage, color: tc },
-        { t: "row", label: "Target Attack", value: st.target }, { t: "row", label: "Stamina Cost", value: st.stamina },
-        ...(n.kind === "signature" && st.input ? [{ t: "keys", label: "Input", keys: st.input }] : [])];
-    }
+    const m = window.MTX_UI.nodeDetail.model(styleId, n.id, { lv: viewLv, cta: ctaOf(), videoOn: isMove(n) && isVideoOpen(),
+      hints: [["b", "Close"], ...(isMove(n) ? [["y", isVideoOpen() ? "Hide video" : "Video"]] : [])] });
+    if (n.kind === "core") { m.name = coreName; m.rows.push({ t: "row", label: "Decisive Move", value: n.name }); }
     return m;
   }
 
@@ -845,6 +861,7 @@
     cancelUnlockHold,
     finishUnlockHold,
     setParallax,
+    setOrnamentOffset,
     canUnlock,
     pruneInvalid,
     isLinked,
@@ -861,6 +878,7 @@
     detailVideo,
     closeVideo,
     isVideoOpen,
+    isVideoBlocking,
     setViewLevel,
     getEquipped,
     getMastery,

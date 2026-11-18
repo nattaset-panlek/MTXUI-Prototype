@@ -5,6 +5,8 @@
   //   5 attributes per style; each attribute = the sum of its sub-stats and starts at the sheet's Base Stat.
   //   Points go into sub-stats (A = +1). An attribute can't pass its cap for this style's Style Level
   //   (5 levels: base + the "Default Distribution" rows), so the cap bar shows all five notches.
+  //   Bonuses (feeds below) sit on top of the sub-stats: yellow segment + "+N" on the sub-stat rows only;
+  //   the attribute number and Overall count them, the Style Level ladder does not.
   //   A sub-stat stops at SUB_MAX. Overall = average of the 5 attributes; at OVERALL_MAX this style takes no more points.
   // Input: W / S (stick, D-pad) move between sub-stats only, A / D (left / right) remove / add a point,
   // Q / E (LT / RT) switch attribute, hold Space / A confirms.
@@ -60,22 +62,8 @@
     }
   });
 
-  // Feed: Mastery. TEMPORARY placeholder: Mastery is being reworked and has no attribute bonus data yet.
-  // On the rework, replace (or re-register "mastery" from the Mastery code) with the real feed; nothing else here changes.
-  // [Style Level reached, sub-stat, amount]
-  const MASTERY_PLACEHOLDER = [
-    [2, "Knee Power", 2], [2, "Kick Power", 3], [2, "Head Armor", 3],
-    [3, "Strike Speed", 3], [3, "Stamina Regeneration", 3],
-    [4, "Punch Power", 3], [4, "Critical Rate", 3], [4, "Max Stamina", 5],
-    [5, "Damage Reduction", 5], [5, "DSM Charge", 5], [5, "Combo Power", 5]
-  ];
-  window.MTX_ATTR_BONUS.register("mastery", {
-    label: "Mastery", color: "#f6df2f",
-    entries({ styleId }) {
-      const lv = window.MTX_PLAYER?.styleOf?.(styleId)?.level || 1;
-      return MASTERY_PLACEHOLDER.filter(([l]) => l <= lv).map(([l, sub, v]) => ({ sub, value: v, detail: "Style Lv " + String(l).padStart(2, "0") }));
-    }
-  });
+  // Mastery placeholder feed removed (user 2026-11-18): bonuses come only from unlocked Skill Tree nodes.
+  // A real Mastery feed can be added later with MTX_ATTR_BONUS.register("mastery", ...).
   let hold = null;   // MTX_UI.createHold, made in init
   //#endregion
 
@@ -141,6 +129,13 @@
   }
   const bonusSum = list => sum(list.map(b => b.value));
 
+  // attribute bonus = all feed bonuses on its sub-stats. It sits on top of the point value and raises
+  // the attribute's cap: cap = Max (from points) + bonus, never past Capped (a.hard). raw = before the clamp.
+  function attrBonus(key) {
+    const a = attr(key), raw = sum(a.subs.map(([n]) => bonusSum(bonusOf(n))));
+    const eff = Math.max(0, Math.min(raw, a.hard - a.max));
+    return { raw, eff, cap: a.max + eff };
+  }
   const attrValue = key => sum(values()[key]) + pendingIn(key);
   const overallValue = () => sum(KEYS.map(attrValue)) / KEYS.length;
   const overallFull = () => overallValue() >= OVERALL_MAX;
@@ -199,6 +194,8 @@
     // hero: attribute total vs this level's cap + the cap bar: five equal segments = Mastery Lv 1-5.
     // Segment 1 runs 0 -> Lv1 cap and already holds the base (grey); each next one spans the cap it adds.
     // White = invested, green = unconfirmed, dark = room in an unlocked level, hatched = locked level.
+    // User 2026-11-18: the ladder stays points-only (bonus shows on the sub-stat rows only);
+    // the big number is the real total (sub-stats incl. bonus) / level cap + bonus (bonus raises the cap from the start).
     const saved = total - gainHere;
     const pc = v => Math.max(0, Math.min(100, v)).toFixed(3) + "%";
     const ladder = a.caps.map((to, k) => {
@@ -214,7 +211,7 @@
     api.bind("attrHead").innerHTML =
       `<p class="attr-hero__kicker">Attribute</p>` +
       `<h2 class="attr-hero__name">${SHORT[tab]}</h2>` +
-      `<p class="attr-hero__total${atCap ? " is-cap" : ""}"><span>${total}</span><small>/ ${cap}</small></p>` +
+      `<p class="attr-hero__total${atCap ? " is-cap" : ""}"><span>${total + attrBonus(tab).eff}</span><small>/ ${cap + attrBonus(tab).eff}</small></p>` +
       `<p class="attr-capbar__label">Style Level</p>` +
       `<div class="attr-capbar">${ladder}</div>`;
 
@@ -222,18 +219,21 @@
     rows.innerHTML = a.subs.map(([n, b], i) => {
       // sub-stat bar on a fixed 0-100 scale
       const v = vals[i], g = pending[`${tab}:${i}`] || 0;
-      const pv = Math.min(100, v), pg = Math.min(100 - pv, g);
+      const pv = Math.min(100, v);
       const canAdd = left > 0 && !atCap && !full && v + g < SUB_MAX, canRemove = g > 0;
       const G = api.getGlyphs?.()[api.getDevice?.()] || {};
-      // additional value from other sources (registered feeds): red "+N" after the value, total only
+      // Skill Tree bonus (user 2026-11-18): added into the sub-stat value; shown as the yellow bar segment + the "+N" badge after the value
       const bl = bonusOf(n), bn = bonusSum(bl);
+      // bar order (user 2026-11-18): points (white) -> bonus (yellow, same as the +N chip) -> unconfirmed (green)
+      const pb = Math.min(100 - pv, bn), pg = Math.min(100 - pv - pb, g);
       return `<a class="attr-row focus-ring" data-nav data-id="a${i}" data-fn="upgradeAttr">` +
         `<span class="attr-row__name">${n}</span>` +
-        `<span class="attr-row__bar"><i class="attr-row__fill" style="width:${pv}%"></i><i class="attr-row__gain" style="width:${pg}%"></i><i class="attr-row__rest"></i>` +
-        `<span class="attr-row__tick${g ? " is-gain" : ""}" style="left:calc(5px + ${(pv + pg) / 100} * (100% - 11px))"></span></span>` +
+        `<span class="attr-row__bar"><i class="attr-row__fill" style="width:${pv}%"></i>` +
+        `<i class="attr-row__bonusfill" style="width:${pb}%" title="${bl.map(b => `${b.label} +${b.value}${b.detail ? " · " + b.detail : ""}`).join("\n")}"></i><i class="attr-row__gain" style="width:${pg}%"></i><i class="attr-row__rest"></i>` +
+        `<span class="attr-row__tick${g ? " is-gain" : ""}" style="left:calc(5px + ${(pv + pb + pg) / 100} * (100% - 11px))"></span></span>` +
         `<span class="attr-row__adjust">` +
         `<span class="glyph attr-row__key${canRemove ? "" : " is-off"}" data-btn="dl" aria-hidden="true">${G.dl || "A"}</span>` +
-        `<span class="attr-row__value">${v + g}</span>` +
+        `<span class="attr-row__value">${v + g + bn}</span>` +
         `<span class="glyph attr-row__key${canAdd ? "" : " is-off"}" data-btn="dr" aria-hidden="true">${G.dr || "D"}</span></span>` +
         `<span class="attr-row__bonus">${bn ? `<em class="attr-bonus">+${bn}</em>` : ""}</span>` +
         `<span class="attr-row__gaintag">${g ? "+" + g : ""}</span></a>`;
@@ -256,9 +256,12 @@
     // side column: overall (top half) + points to spend (bottom half)
     // overall = average of the five main attributes (Attack + Defense + Striking Arts + Agility + Endurance) / 5;
     // a fresh fighter shows the base average (e.g. 30). Rounded down, so 100 only shows once the style is locked.
-    const overall = Math.min(OVERALL_MAX, overallValue());
+    // shown overall = (sum of the five real totals, bonus included) / 5; the points limit still uses overallValue()
+    const overall = sum(KEYS.map(k => attrValue(k) + attrBonus(k).eff)) / KEYS.length;
     api.bind("overall").textContent = Math.floor(overall);
-    api.bind("overallRing").style.setProperty("--p", (overall / OVERALL_MAX * 100).toFixed(2));
+    // ring scale (user 2026-11-18): Overall's max = sum of the five Capped values / 5 (Phra Nakhon 600 / 5 = 120)
+    const overallTop = sum(style().attrs.map(x => x.hard)) / KEYS.length;
+    api.bind("overallRing").style.setProperty("--p", (Math.min(overallTop, overall) / overallTop * 100).toFixed(2));
     api.bind("attrPoints").textContent = left;
     api.bind("attrPointsBox").classList.toggle("is-empty", left <= 0);
     api.bind("attrPointsLabel").textContent = left > 0 ? "Attribute points" : "No points left";
@@ -268,7 +271,7 @@
 
   // +1 / -1 on the focused sub-stat (only points not confirmed yet can be taken back)
   function adjust(i, dir) {
-    const key = `${tab}:${i}`, a = attr(tab), lv = level(), cap = a.caps[lv - 1];
+    const key = `${tab}:${i}`, a = attr(tab);
     if (dir < 0) {
       if (!pending[key]) { api.rumble(80, 0.15); api.toast("Only unconfirmed points can be removed"); return; }
       pending[key]--;
@@ -280,6 +283,7 @@
     if (pendingTotal() >= pts()) { api.rumble(120, 0.2); api.toast("No points left"); return; }
     if (overallFull()) { api.rumble(120, 0.2); api.toast(`Overall is at ${OVERALL_MAX} · this style can't go higher`); return; }
     if (values()[tab][i] + (pending[key] || 0) >= SUB_MAX) { api.rumble(120, 0.2); api.toast(`${a.subs[i][0]} is at its max (${SUB_MAX})`); return; }
+    const lv = level(), cap = a.caps[lv - 1];
     if (attrValue(tab) >= cap) {
       api.rumble(120, 0.2);
       api.toast(lv < 5 ? `${SHORT[tab]} is at its Lv ${pad2(lv)} cap (${cap}) · Style Lv ${pad2(lv + 1)} raises it to ${a.caps[lv]}` : `${SHORT[tab]} is maxed (${a.hard})`);

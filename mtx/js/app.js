@@ -360,7 +360,7 @@
     if (window.MTX_LOADING?.isOpen?.() || window.MTX_MATCH_FOUND?.isPlaying?.() || window.MTX_UI?.wipe?.isPlaying?.()) return;   // load screen / Match Found video / screen wipe: no input
     if (window.MTX_MATCH_RESULT?.isOpen?.()) { if (dev) setDevice(dev); window.MTX_MATCH_RESULT.input(a); return; }   // Match Result after a fight: A / LT / RT
     // Skill video preview open: nothing else works until it is closed (Y / B close it)
-    if (window.MTX_UI?.nodeDetail?.video?.isOpen?.()) {
+    if (window.MTX_UI?.nodeDetail?.video?.isBlocking?.()) {   // popup variant; the side panel leaves input live
       if (dev) setDevice(dev);
       if (a === "y" || a === "back") window.MTX_SCREENS?.skilltree?.closeVideo?.();
       return;
@@ -404,7 +404,8 @@
           return;
         }
         // Video Panel open: Y / B close it, everything else waits
-        if (scrSkill.isVideoOpen?.()) { if (a === "y" || a === "back") scrSkill.closeVideo?.(); return; }
+        if (scrSkill.isVideoBlocking?.()) { if (a === "y" || a === "back") scrSkill.closeVideo?.(); return; }
+        if (a === "back" && scrSkill.isVideoOpen?.()) { scrSkill.closeVideo?.(); return; }   // side panel: B closes it before the card
         if (a === "a" && scrSkill.isHoldToUnlockReady?.()) return;
         // Node Detail card (Figma 833:93841): LB / RB = Lv or Tier tab, Y = Video on moves, no Remove key
         ({ a: () => scrSkill.detailPrimary?.(),
@@ -543,8 +544,8 @@
     if (window.MTX_SHADER?.isOpen?.() || window.MTX_UI?.wipe?.isPlaying?.()) return;
     if (!started) { setDevice("kb"); startGame(); logIn("Click"); return; }
     const scrSkill = window.MTX_SCREENS?.skilltree;
-    if (cur === "skilltree" && scrSkill?.isDetailOpen?.()) {
-      if (scrSkill.isVideoOpen?.()) {
+    if (cur === "skilltree" && scrSkill?.isDetailOpen?.() && !window.MTX_LOADOUT?.isOpen?.()) {   // Loadout over the tree handles its own card
+      if (scrSkill.isVideoBlocking?.()) {
         if (e.target.closest("[data-nd-video-close]") || !e.target.closest(".nd-video__panel")) { logIn("Click"); scrSkill.closeVideo?.(); }
         return;
       }
@@ -624,7 +625,7 @@
   // Mouse on a menu item: one click acts (stage click above). Where A is a hold, press and hold the mouse instead.
   let navHeld = false;
   const aIsHold = () => { const s = window.MTX_SCREENS || {}, sim = s.management || s.simulation;
-    return !!(holdScr()?.isHoldReady?.() || sim?.isSelectHoldReady?.() || s.skilltree?.isHoldToUnlockReady?.() || (cur === "rewards" && s.rewards?.isClaimHoldReady?.())
+    return !!(holdScr()?.isHoldReady?.() || sim?.isSelectHoldReady?.() || (s.skilltree?.isHoldToUnlockReady?.() && !window.MTX_LOADOUT?.isOpen?.()) || (cur === "rewards" && s.rewards?.isClaimHoldReady?.())
       || (!sim?.isModalOpen?.() && (focused?.dataset?.fn === "holdSimulateDay" || focused?.dataset?.holdAction === "simulate"))); };
   document.addEventListener("pointerdown", e => {
     navHeld = false;
@@ -851,6 +852,16 @@
       toast(`Mastery unlock: ${unlockInputSel.value === "confirm" ? "modal confirm" : "hold"}`);
     });
   }
+  // Dev > Skill tree > Skill video: popup (current, centred, blocks input) or side panel (Figma 863:75488 V3)
+  const skillVideoSel = $("#skillVideo");
+  if (skillVideoSel) {
+    skillVideoSel.value = store.get("skillVideo", "popup");
+    skillVideoSel.addEventListener("change", () => {
+      store.set("skillVideo", skillVideoSel.value);
+      window.MTX_SCREENS?.skilltree?.closeVideo?.();
+      toast(`Skill video: ${skillVideoSel.value === "side" ? "side panel" : "popup"}`);
+    });
+  }
   // Skill tree glow on / off (store key treeGlow, default on): .no-glow on the Mastery screen drops every glow
   const treeGlowChk = $("#treeGlow");
   const applyTreeGlow = on => screens.skilltree?.classList.toggle("no-glow", !on);
@@ -877,6 +888,15 @@
     plxIn.value = store.get("treePlx", "45");
     applyPlx(plxIn.value);
     plxIn.addEventListener("input", () => { store.set("treePlx", plxIn.value); applyPlx(plxIn.value); });
+  }
+  // Dev > Ornament offset X / Y (store keys treeYanX / treeYanY, tree px, default 0 / 50)
+  const yanX = $("#treeYanX"), yanY = $("#treeYanY");
+  if (yanX && yanY) {
+    const applyYan = () => window.MTX_SCREENS?.skilltree?.setOrnamentOffset?.(yanX.value, yanY.value);
+    yanX.value = store.get("treeYanX", "0");
+    yanY.value = store.get("treeYanY", "50");
+    applyYan();
+    [[yanX, "treeYanX"], [yanY, "treeYanY"]].forEach(([el, k]) => el.addEventListener("input", () => { store.set(k, el.value); applyYan(); }));
   }
   // Dev > Rumble on / off (store key rumble)
   const rumbleChk = $("#rumbleOn");

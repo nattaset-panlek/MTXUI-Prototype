@@ -417,34 +417,14 @@
 .tab-card {
   position: relative;
   width: 346px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px
-}
-
-.tab-card__tab {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18px 0 24px;
-  background: var(--surface-card);
-  transition: background .12s
-}
-
-.tab-card__label {
-  font: 600 25px/1.5 var(--font-ui);
-  letter-spacing: -.022em;
-  text-transform: uppercase;
-  color: var(--text-1)
+  padding-top: 72px   /* no header line any more (the name showed twice): the body keeps its old place (Figma 863:121646) */
 }
 
 .tab-card__body {
   position: relative;
   height: 376px;
   background: linear-gradient(rgb(0 0 0 / .3), rgb(0 0 0 / .3)), var(--surface-card);
-  --tex-o: .2;
-  transition: box-shadow .2s
+  --tex-o: .2   /* scratch texture 20% (.tex::before): under the art, over the style title bar */
 }
 
 .tab-card__art {
@@ -456,13 +436,32 @@
 .tab-card__art>img {
   width: 100%;
   height: 100%;
-  object-fit: cover
+  object-fit: cover;
+  transition: transform .35s cubic-bezier(.2, .7, .2, 1)
 }
 
 /* heads and the belt sit high in these two pictures */
 .tab-card[data-id="attributes"] .tab-card__art>img,
 .tab-card[data-id="reward"] .tab-card__art>img {
   object-position: 50% 0
+}
+
+/* selected: picture zooms in, with the same 20% scratch over it as Figma */
+.tab-card.is-focused .tab-card__art>img {
+  transform: scale(1.1)
+}
+
+.tab-card__art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--tex-scratch) center/cover;
+  opacity: 0;
+  pointer-events: none
+}
+
+.tab-card.is-focused .tab-card__art::after {
+  opacity: .2
 }
 
 .tab-card__title {
@@ -478,20 +477,18 @@
   white-space: nowrap
 }
 
-.tab-card.is-focused .tab-card__tab {
-  background: var(--style-color)
+/* selected: the style colour sits on the title bar (was the header tab) */
+.tab-card.is-focused .tab-card__body {
+  background: linear-gradient(transparent 265px, var(--style-color) 265px), var(--surface-card)
 }
 
-.tab-card.is-focused .tab-card__label {
-  color: var(--style-fg, #fcf0d6)
-}
-
-
+/* focus ring: 4px prismatic line ~6px outside the card (Figma ring 366 x 398 at -10 / -11) */
 .tab-card__body::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -11px -10px;
   padding: 4px;
+  border-radius: 4px;
   background: var(--grad-focus);
   opacity: 0;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -501,10 +498,6 @@
 
 .tab-card.is-focused .tab-card__body::after {
   opacity: 1
-}
-
-.tab-card.is-focused .tab-card__body {
-  box-shadow: 0 0 24px color-mix(in srgb, var(--style-color) 45%, transparent)
 }
 
 /* ================= Tactical Style map (Figma 87:151) ================= */
@@ -3897,6 +3890,12 @@ html body .attr__trigger .glyph[data-btn] {
   box-shadow: 0 0 0 1px #050505;
   pointer-events: none
 }
+
+/* Perk equipped tier = tag pack E "Nested diamond" (user 2026-11-18, docs/skill-equip-tag-options.html): 11 px diamond on the
+   same spot; Lv 1 gold outline, Lv 2 outline + gold core, Lv 3 solid gold. data-eq-lv set by screen-skilltree.js setPerkFace. Moves keep the 7 px tag. */
+.tnode--perk.is-equipped[data-eq-lv]::after { right: -3px; top: -3px; width: 11px; height: 11px; box-sizing: border-box; border: 2px solid #f3c23f; background: #050505 }
+.tnode--perk.is-equipped[data-eq-lv="2"]::after { padding: 2px; background: var(--grad-gold) content-box, #050505 }
+.tnode--perk.is-equipped[data-eq-lv="3"]::after { border-color: #f2df57; background: var(--grad-gold) }
 
 
 /* Main Screen Hold to Simulate CTA */
@@ -8116,11 +8115,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
    (skill-tree-yan-n0..2.webp = the strip x two noise tiles 600 / 900 at 3 drift phases) and crossfaded with opacity only,
    so nothing is masked or repainted per frame. Layers: .tree__yantra (box, blend) > .tree__yantra-art x3 (+ --plain) + .tree__shine */
 #s-skilltree .tree__yantra { position: absolute; pointer-events: none; overflow: hidden; mix-blend-mode: soft-light; opacity: .8 }
-#s-skilltree .tree__yantra-art { position: absolute; inset: 0; background: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat }
+#s-skilltree .tree__yantra-art { position: absolute; inset: 0; background: url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat }
 /* tier ornament shimmer (user 2026-11-17: "some movement"): a warm light band sweeps down the strip every 8 s, masked to the ornament.
    v4: the mask stays still, the band moves by transform (was background-position). 12 % tall band, -15 % -> 115 % like before. */
 #s-skilltree .tree__shine { position: absolute; inset: 0; overflow: hidden;
-  -webkit-mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat }
+  -webkit-mask: url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat }
 #s-skilltree .tree__shine i { position: absolute; left: 0; top: 0; width: 100%; height: 12%; will-change: transform;
   background: linear-gradient(transparent 0, rgba(255, 228, 170, .9) 50%, transparent 100%);
   animation: tree-shine 8s linear infinite }
@@ -8129,7 +8128,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* unlock / level-up ripple: a warm ring grows from the node (--cx/--cy, px in the ornament box), masked to the ornament lines */
 @property --rr { syntax: "<length>"; inherits: false; initial-value: 0px }
 #s-skilltree .tree__ripple { position: absolute; pointer-events: none; mix-blend-mode: screen;
-  -webkit-mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png) 0 0 / 100% 100% no-repeat;   /* x4: the strip's alpha is weak (mostly < 50 %), layers add up */
+  -webkit-mask: url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat; mask: url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat, url(../assets/skill-tree-yan.png?v=2) 0 0 / 100% 100% no-repeat;   /* x4: the strip's alpha is weak (mostly < 50 %), layers add up */
   background: radial-gradient(circle at var(--cx) var(--cy), transparent calc(var(--rr) - 90px), rgba(255, 226, 160, 1) calc(var(--rr) - 10px), rgba(255, 255, 230, 1) var(--rr), transparent calc(var(--rr) + 14px));
   animation: tree-ripple 2.8s cubic-bezier(.2, .6, .3, 1) forwards }
 @keyframes tree-ripple { 0% { --rr: 0px; opacity: .6 } 70% { opacity: .5 } 100% { --rr: 1100px; opacity: 0 } }   /* slower + fainter (user 2026-11-17) */
@@ -8155,9 +8154,9 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 @keyframes tnode-opening { 0% { opacity: 1; transform: rotate(45deg) scale(.6) } 100% { opacity: 0; transform: rotate(45deg) scale(1.8) } }
 /* ornament noise fade (user 2026-11-17 "FractalNoise", v5 baked 2026-11-18): soft noisy patches of the yantra fade out and back.
    Each variant peaks once per 15 s cycle, 5 s apart; .7 at the crossover keeps the combined alpha near 1 (no dip). */
-#s-skilltree .tree__yantra-art--n0 { background-image: url(../assets/skill-tree-yan-n0.webp) }
-#s-skilltree .tree__yantra-art--n1 { background-image: url(../assets/skill-tree-yan-n1.webp) }
-#s-skilltree .tree__yantra-art--n2 { background-image: url(../assets/skill-tree-yan-n2.webp) }
+#s-skilltree .tree__yantra-art--n0 { background-image: url(../assets/skill-tree-yan-n0.webp?v=2) }
+#s-skilltree .tree__yantra-art--n1 { background-image: url(../assets/skill-tree-yan-n1.webp?v=2) }
+#s-skilltree .tree__yantra-art--n2 { background-image: url(../assets/skill-tree-yan-n2.webp?v=2) }
 #s-skilltree .tree__yantra-art--n0, #s-skilltree .tree__yantra-art--n1, #s-skilltree .tree__yantra-art--n2 {
   opacity: 0; will-change: opacity; animation: tree-yan-fade 15s linear infinite }
 #s-skilltree .tree__yantra-art--n1 { animation-delay: -10s }
@@ -8185,3 +8184,6 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-skilltree[data-tree-style="isan"] .tree__yantra { filter: hue-rotate(88deg) saturate(1.1) brightness(1.1) }
 #s-skilltree[data-tree-style="north"] .tree__yantra { filter: hue-rotate(273deg) saturate(1.2) }
 #s-skilltree[data-tree-style="west"] .tree__yantra { filter: hue-rotate(38deg) saturate(1.1) }
+
+/* ---- Attributes: sub-stat bonus segment after the points, same yellow as the +N chip ---- */
+.attr-row__bonusfill { background: var(--yellow) }

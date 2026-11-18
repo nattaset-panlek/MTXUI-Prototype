@@ -30,8 +30,8 @@
   const COLOR = { attribute: "#3fd28b", signature: "#4da3ff", decisive: "#ff4060", special: "#c7f029", perk: "#e5e5e5", core: "#ed153f" };
   const CHECK = '<svg viewBox="0 0 25 25"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.5 0C19.4036 0 25 5.59635 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59635 25 0 19.4036 0 12.5C0 5.59635 5.59635 0 12.5 0ZM6.64896 13.2422L10.2089 16.5115C10.7281 16.9896 11.5318 16.9641 12.0203 16.4604L18.3714 10.3797C18.888 9.88281 18.9036 9.06094 18.4068 8.54479C17.9099 8.02812 17.088 8.0125 16.5719 8.50937L11.0703 13.776L8.40781 11.3307C7.88021 10.8453 7.05833 10.8792 6.57292 11.4068C6.08698 11.9349 6.12135 12.7562 6.64896 13.2422Z" fill="currentColor"/></svg>';
 
-  function html({ attrs = "" } = {}) {
-    return `<aside class="skill-detail nd" ${attrs} data-figma="833:93841 Node Detail · Pack I">
+  function html({ attrs = "", cls = "" } = {}) {
+    return `<aside class="skill-detail nd${cls ? " " + cls : ""}" ${attrs} data-figma="833:93841 Node Detail · Pack I">
       <p class="nd__kind" data-nd="kind"></p>
       <div class="nd__card">
         <div class="nd__art"><img class="nd__bg" src="${IMG}card-art.webp" alt="">
@@ -71,12 +71,14 @@
     fr.style.cssText = m.frame ? `left:${227 - m.frame.w / 2}px;top:${137 - m.frame.h / 2}px;width:${m.frame.w}px;height:${m.frame.h}px` : "";
     q("icon").src = `${ND}icon-${art}.svg`;
     q("video").hidden = !m.video;
+    const vl = q("video").querySelector("span:last-child");
+    if (vl) vl.textContent = m.videoOn ? "Playing" : "Video";
     const tabs = q("tabs");
     tabs.hidden = !m.tabs;
     el.classList.toggle("has-tabs", !!m.tabs);
     if (m.tabs) {
       q("pager").innerHTML = m.tabs.labels.map((t, k) =>
-        `<span data-lv-tab="${k + 1}" class="${k + 1 === m.tabs.view ? "is-on" : ""} ${(Array.isArray(m.tabs.owned) ? m.tabs.owned[k] : k + 1 <= m.tabs.owned) ? "is-owned" : ""}">${esc(t)}</span>`).join("");
+        `<span data-lv-tab="${k + 1}" class="${k + 1 === m.tabs.view ? "is-on" : ""} ${(Array.isArray(m.tabs.owned) ? m.tabs.owned[k] : k + 1 <= m.tabs.owned) ? "is-owned" : ""}${k + 1 === m.tabs.eq ? " is-eq" : ""}">${esc(t)}</span>`).join("");
       q("pager").classList.toggle("is-wide", m.tabs.labels.some(t => t.length > 4));
     }
     q("stack").innerHTML = m.rows.map(row).join('<i class="nd-div"></i>') + (m.rows.length ? '<i class="nd-div"></i>' : "");
@@ -97,9 +99,39 @@
   // ---- Video Skill Preview (Figma 837:100435, 912x581) centred over 80% black: Y on a card with the VIDEO badge opens it;
   // B (or Y again) closes. One hint only (B Back): both keys mean the same.
   // No move clips yet: the player shows the card art and a running 0:00 / 0:12 clock (placeholder).
-  let vid = null, vidTimer = 0;
-  function videoOpen(host, { name, kind, label, src = "", length = 12 }) {
-    videoClose();
+  // Dev Tools > Skill tree > Skill video: "popup" (this one, blocks input) or "side" (Figma 863:75488 V3: a panel that slides
+  // out left from behind the card, full card height, 18 px gap; the tree stays live, B / Y close it).
+  let vid = null, vidTimer = 0, vidMode = "popup";
+  const videoMode = () => window.MTX?.api?.store?.get?.("skillVideo", "popup") === "side" ? "side" : "popup";
+  function startClock(el, length) {
+    clearInterval(vidTimer);
+    const t0 = performance.now(), time = el.querySelector(".nd-video__time");
+    const show = s => { time.textContent = `0:${String(s).padStart(2, "0")} / 0:${String(length).padStart(2, "0")}`; };
+    show(0);
+    vidTimer = setInterval(() => show(Math.floor((performance.now() - t0) / 1000) % (length + 1)), 250);
+  }
+  const media = src => src ? `<video src="${src}" autoplay loop muted playsinline></video>` : `<img src="${IMG}card-art.webp" alt="">`;
+  function sideOpen(host, { kind, src = "", length = 12 }) {
+    if (vid && vidMode === "side" && vid.isConnected) {   // already out: swap the clip, no new slide
+      vid.dataset.kind = kind;
+      vid.querySelector(".nd-video__player").firstElementChild.outerHTML = media(src);
+      startClock(vid, length);
+      return;
+    }
+    videoClose(true);
+    vidMode = "side";
+    host.insertAdjacentHTML("beforeend", `<div class="nd-vside" data-kind="${kind}" data-figma="863:75488 V3 · Separate panel">
+      <div class="nd-video__player">${media(src)}<span class="nd-video__time"></span></div></div>`);
+    vid = host.lastElementChild;
+    startClock(vid, length);
+    void vid.offsetWidth;                                   // start position painted, then slide in
+    vid.classList.add("is-in");
+  }
+  function videoOpen(host, opts) {
+    if (videoMode() === "side") return sideOpen(host, opts);
+    const { name, kind, label, src = "", length = 12 } = opts;
+    videoClose(true);
+    vidMode = "popup";
     host.insertAdjacentHTML("beforeend", `<div class="nd-video" data-kind="${kind}" data-figma="837:100435 Video Skill Preview">
       <div class="nd-video__panel">
         <p class="nd-video__title">${esc(name)}</p>
@@ -109,18 +141,20 @@
       </div></div>`);
     vid = host.lastElementChild;
     relabel(vid);
-    const t0 = performance.now(), time = vid.querySelector(".nd-video__time");
-    vidTimer = setInterval(() => {
-      const s = Math.floor((performance.now() - t0) / 1000) % (length + 1);
-      time.textContent = `0:${String(s).padStart(2, "0")} / 0:${String(length).padStart(2, "0")}`;
-    }, 250);
+    startClock(vid, length);
   }
-  function videoClose() {
+  // instant = no slide back (switching mode / reopening)
+  function videoClose(instant = false) {
     clearInterval(vidTimer);
-    vid?.remove();
+    const el = vid;
     vid = null;
+    if (!el) return;
+    if (instant || !el.classList.contains("nd-vside")) { el.remove(); return; }
+    el.classList.remove("is-in");                          // slide back behind the card, then go
+    setTimeout(() => el.remove(), 200);
   }
   const videoIsOpen = () => !!vid;
+  const videoIsBlocking = () => !!vid && vidMode === "popup";   // only the popup takes every input
 
   // long names shrink until they fit one line of the 440 px title box
   function fitTitle(h) {
@@ -128,5 +162,64 @@
     for (let s = 40; s > 24 && h.scrollWidth > h.clientWidth + 1; s -= 2) h.style.fontSize = s - 2 + "px";
   }
 
-  UI.nodeDetail = { html, render, relabel, COLOR, video: { open: videoOpen, close: videoClose, isOpen: videoIsOpen } };
+  //#region global skill card content: one model per skill, any screen (user 2026-11-18: "global component")
+  // MTX_UI.nodeDetail.model(styleId, id, opts) -> render() model, from the skill data (MTX_SKILLS) + unlock state (MTX_SKILLSTATE).
+  //   id   = tree node id, or a decisive family id (shows its top owned tier, else Tier 1)
+  //   opts = { lv: perk level tab shown (default: equipped, else owned, else 1), cta, hints, videoOn }
+  // Content per kind = the Skill Tree card (Figma Node Detail · Pack I 833:93841). Screens add their own CTA / hints.
+  const KIND_LABEL = { core: "Style core", attribute: "Attribute", perk: "Perk", decisive: "Decisive Move", signature: "Signature Move", special: "Special Move" };
+  const LO = "mtx/assets/svg/loadout/", LV_FRAME = { 1: 2, 2: 1, 3: 3 }, PERK_FRAME_SVG = { 1: [124, 122], 2: [120, 117], 3: [129, 124] };
+  const fxHtml = t => esc(t).replace(/\([^)]*\)|[+-]?\d+(?:\.\d+)?%?/g, m => m[0] === "(" ? m.replace(/\d+(?:\.\d+)?%?/g, d => `<b class="nd-num nd-num--cond">${d}</b>`) : `<b class="nd-num">${m}</b>`);
+  const cap = s => s ? s[0].toUpperCase() + s.slice(1) : "";
+  const lvOf = (sid, id) => window.MTX_SKILLSTATE?.level(sid, id) || 0;
+  function findSkill(sid, id, o = {}) {
+    const S = window.MTX_SKILLS?.styles?.[sid];
+    if (!S) return null;
+    const n = S.nodes.find(x => x.id === id);
+    if (n) return { S, n };
+    const f = S.families?.[id];
+    if (!f) return null;
+    const owned = f.tiers.filter(t => lvOf(sid, t) > 0).length, eq = window.MTX_LOADOUT?.equippedTier?.(sid, f.tiers[0]) || 0;
+    const tier = Math.min(f.tiers.length, Math.max(1, o.lv || eq || owned || 1));   // tier shown: asked, equipped, else top owned
+    return { S, n: S.nodes.find(x => x.id === f.tiers[tier - 1]), fam: { f, tier, owned, eq } };
+  }
+  function model(sid, id, o = {}) {
+    const hit = findSkill(sid, id, o);
+    if (!hit) return null;
+    const { S, n } = hit, tc = COLOR[n.kind], st = n.stats || {}, own = lvOf(sid, n.id);
+    const isMove = n.kind === "decisive" || n.kind === "signature" || n.kind === "special";
+    const m = { kind: n.kind, label: KIND_LABEL[n.kind], name: n.kind === "core" ? `${S.name} core` : n.name, video: isMove, tabs: null, rows: [],
+      cta: o.cta ?? null, videoOn: !!o.videoOn, hints: o.hints ?? [["b", "Close"]], node: n, owned: own };
+    if (n.kind === "core") {
+      m.rows = [{ t: "desc", text: n.desc }];
+    } else if (n.kind === "attribute") {
+      m.rows = [{ t: "desc", text: n.desc }, ...(n.bonus || []).map(b => ({ t: "row", label: b.stat, value: "+" + b.value, color: tc }))];
+    } else if (n.kind === "perk") {
+      const eq = window.MTX_LOADOUT?.equippedLevel?.(sid, n.id) || 0;
+      const v = Math.min(3, Math.max(1, o.lv || eq || own || 1)), L = n.levels[v - 1];
+      m.lv = v;
+      m.tabs = { labels: n.levels.map(l => "Lv " + l.lv), view: v, owned: own, eq };   // eq = equipped level: its tab is outlined yellow
+      const fk = LV_FRAME[v], [fw, fh] = PERK_FRAME_SVG[fk], k = 194 / 124;   // frame follows the tab: Lv 1 copper, Lv 2 silver, Lv 3 gold
+      m.frame = { src: `${LO}perk-frame-${fk}.svg`, w: Math.round(fw * k), h: Math.round(fh * k) };
+      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff) }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: esc(L.flaw) }] : []),
+        { t: "row", label: "Cooldown", value: n.cooldown ? n.cooldown + "s" : "-" }];
+    } else if (n.kind === "decisive") {
+      // Loadout: one item per family -> Tier tabs (Tier 1-3, owned / equipped like the perk Lv tabs); the Skill Tree shows no tabs
+      if (hit.fam && o.tierTabs) {
+        const { f, tier, owned, eq } = hit.fam;
+        m.lv = tier;
+        m.tabs = { labels: f.tiers.map((_, k) => "Tier " + (k + 1)), view: tier, owned, eq };
+      }
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Tier", value: "Tier " + (n.tier || 1) }, { t: "row", label: "Base Damage", value: st.baseDamage, color: tc },
+        { t: "row", label: "Damage Part", html: esc(st.damagePart).replace(/ \/ /g, ' <i class="nd-sep">/</i> ') }, { t: "row", label: "Type", value: cap(n.tag) }];
+    } else {
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Damage", value: st.damage, color: tc },
+        { t: "row", label: "Target Attack", value: st.target }, { t: "row", label: "Stamina Cost", value: st.stamina },
+        ...(n.kind === "signature" && st.input ? [{ t: "keys", label: "Input", keys: st.input }] : [])];
+    }
+    return m;
+  }
+  //#endregion
+
+  UI.nodeDetail = { html, render, relabel, COLOR, model, fxHtml, video: { open: videoOpen, close: videoClose, isOpen: videoIsOpen, isBlocking: videoIsBlocking, mode: videoMode } };
 })();

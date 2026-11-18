@@ -60,3 +60,9 @@ MTX_UI.itemCard("glove_black", { label: MTX_UI.itemLabel("status", "Owned"), cls
 
 ## Visual keyboard
 `mtx/js/components/visual-keyboard.js`, `MTX_UI.createVk(...)`. Text and PIN entry for pad and keyboard; usage is in the file header, styles are `.vk` in `css/screens.css`. Used by Create Lobby and Tournament setting.
+
+## Skill detail card (`components/node-detail.js`, `css/node-detail.css`) — 2026-11-18
+The Skill Tree card is the one skill card for every screen. `MTX_UI.nodeDetail.html({ cls, attrs })` makes the shell;
+`MTX_UI.nodeDetail.model(styleId, id, { lv, cta, hints })` builds its content from `MTX_SKILLS` + `MTX_SKILLSTATE`
+(id = tree node id or decisive family id; perk `lv` = level tab); `render(el, model)` fills it. Used by Skill Tree and Tactical Loadout (Y info).
+Old `components/skill-info.js` is no longer used by them.

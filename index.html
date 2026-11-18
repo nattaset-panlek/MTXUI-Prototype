@@ -28,12 +28,12 @@
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
   <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
   <link rel="stylesheet" href="mtx/css/no-brand.css?v=8c">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=st71">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st77">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
   <link rel="stylesheet" href="mtx/css/loadout.css?v=10">
-  <link rel="stylesheet" href="mtx/css/node-detail.css?v=7">
+  <link rel="stylesheet" href="mtx/css/node-detail.css?v=8-eq1">
 </head>
 
 <body>
@@ -340,10 +340,9 @@ board</h3>
             <img class="mastery__emblem" data-bind="emblem" src="mtx/assets/svg/style-phranakhon-sel.svg" alt="">
             <h1 class="mastery__name" data-bind="styleName">Phranakhon</h1>
           </div>
-          <nav class="mastery__cards" data-figma="Tab card row (was 3 cards x ~10 loose layers each)">
+          <nav class="mastery__cards" data-figma="863:121646 Style HUD cards, no header line (title bar takes the style colour when selected)">
             <a class="tab-card" data-nav data-id="attributes" data-go="attributes"
               data-figma="NEW (Figma note 14:1337: missing Attributes slot, uses E value)">
-              <div class="tab-card__tab"><span class="tab-card__label">Attributes</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/attributes.jpg?v=5" alt="">
                 </div>
@@ -352,7 +351,6 @@ board</h3>
             </a>
             <a class="tab-card" data-nav data-id="mastery" data-go="skilltree"
               data-figma="1:1812 + 1:1914 + 1:1926 + 1:1935 + 1:1944 (Mastery card)">
-              <div class="tab-card__tab"><span class="tab-card__label">Mastery</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/mastery.jpg?v=5" alt="">
                 </div>
@@ -361,7 +359,6 @@ board</h3>
             </a>
             <a class="tab-card" data-nav data-id="reward" data-go="rewards"
               data-figma="1:1811 + 1:1920 + 1:1928 + 1:1941 (Reward card)">
-              <div class="tab-card__tab"><span class="tab-card__label">Rewards</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/rewards.jpg?v=5" alt="">
                 </div>
@@ -370,7 +367,6 @@ board</h3>
             </a>
             <a class="tab-card" data-nav data-id="quest" data-go="quests"
               data-figma="1:1810 + 1:1917 + 1:1927 + 1:1938 (Quest card)">
-              <div class="tab-card__tab"><span class="tab-card__label">Quest</span></div>
               <div class="tab-card__body tex">
                 <div class="tab-card__art"><img src="mtx/assets/img/style-hub/quest.jpg?v=5" alt="">
                 </div>
@@ -1490,6 +1486,10 @@ Mention</h1>
               <option value="hold">Hold</option>
               <option value="confirm">Modal confirm</option>
             </select></label>
+          <label>Skill video <select id="skillVideo">
+              <option value="popup">Popup (current)</option>
+              <option value="side">Side panel (Figma V3)</option>
+            </select></label>
           <label>Tree glow (nodes, frames, links) <input type="checkbox" id="treeGlow"></label>
           <label>VFX: ornament (yantra) <input type="checkbox" data-tree-vfx="ornament"></label>
           <label>VFX: ornament shimmer <input type="checkbox" data-tree-vfx="shimmer"></label>
@@ -1497,6 +1497,8 @@ Mention</h1>
           <label>VFX: unlock ripple (ornament) <input type="checkbox" data-tree-vfx="ripple"></label>
           <label>VFX: node forge (flash / rings) <input type="checkbox" data-tree-vfx="forge"></label>
           <label>Ornament parallax <input type="range" id="treePlx" min="0" max="80" step="5"> <output id="treePlxVal"></output></label>
+          <label>Ornament offset X <input type="number" id="treeYanX" step="10" style="width:70px"></label>
+          <label>Ornament offset Y <input type="number" id="treeYanY" step="10" style="width:70px"></label>
           <label>Controller rumble <input type="checkbox" id="rumbleOn"></label>
           <p class="dev-note">Earned with S levels: each S level up gives Skill points + MP</p>
           <div class="dev-row">
@@ -1612,7 +1614,7 @@ Mention</h1>
 
   <script src="mtx/js/components/hold.js?v=402"></script>
   <script src="mtx/js/components/skill-info.js?v=2"></script>
-  <script src="mtx/js/components/node-detail.js?v=6"></script>
+  <script src="mtx/js/components/node-detail.js?v=11-tt1"></script>
   <script src="mtx/js/components/visual-keyboard.js?v=400"></script>
   <script src="mtx/js/components/motion.js?v=3"></script>
   <script src="mtx/js/components/glyph.js?v=400-cb1"></script>
@@ -1636,7 +1638,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
   <script src="mtx/js/screens/screen-career.js?v=402"></script>
   <script src="mtx/js/screens/screen-tactical.js?v=400"></script>
-  <script src="mtx/js/screens/screen-skilltree.js?v=547"></script>
+  <script src="mtx/js/screens/screen-skilltree.js?v=555-eq4"></script>
   <script src="mtx/js/sim-data.js?v=400"></script>
   <script src="mtx/js/sim-scenarios.js?v=400"></script>
   <script src="mtx/js/sim-events.js?v=400"></script>
@@ -1645,7 +1647,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-rewards.js?v=db1-buy2"></script>
   <script src="mtx/js/attr-data.js?v=400"></script>
   <script src="mtx/js/screens/screen-attributes.js?v=401"></script>
-  <script src="mtx/js/screens/screen-loadout.js?v=9"></script>
+  <script src="mtx/js/screens/screen-loadout.js?v=19"></script>
   <script src="mtx/js/screens/screen-customize.js?v=hb3"></script>
   <script src="mtx/js/screens/screen-store.js?v=db9-r2"></script>
   <script src="mtx/js/screens/screen-leaderboard.js?v=402"></script>
@@ -1662,7 +1664,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-lobby.js?v=sb19v60"></script>
   <script src="mtx/js/screens/screen-login.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-campaign.js?v=hb1"></script>
-  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsp-r6-uw3-nd4pv"></script>
+  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsq-r6-uw3-nd4pv-vs1-lo1"></script>
   <script src="mtx/js/components/character3d.js?v=sb7"></script>
   <script src="mtx/js/dev-text.js?v=400"></script>
   <script src="mtx/js/dev-bake.js?v=400"></script>

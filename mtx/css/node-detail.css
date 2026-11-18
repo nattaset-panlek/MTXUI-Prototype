@@ -44,6 +44,7 @@
 .nd__pager.is-wide span { width: 96px }
 .nd__pager span.is-on { background: #f4dd2f; box-shadow: none; color: #16181f }
 .nd__pager span:not(.is-on):hover { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }
+.nd__pager span.is-eq:not(.is-on) { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }   /* equipped level = the hover look (user 2026-11-18) */
 
 /* info panel 454 wide at card (18,276) h340; with tabs (18,329) h287 */
 .nd__panel { position: absolute; left: 18px; top: 276px; width: 454px; height: 340px; box-sizing: border-box; padding: 20px 20px 0;
@@ -78,6 +79,23 @@
 .nd__hints { display: flex; align-items: center; gap: 20px }
 .nd__hints .hint-inline { display: flex; align-items: center; gap: 8px; font: 500 15px/1 var(--font-ui); text-transform: uppercase; color: #9da4a5 }
 .nd__hints .glyph { --g: 25px; font-size: 12px; margin: 0 }
+
+/* Skill video, side panel variant (Figma 863:75488 V3 · Separate panel; Dev Tools > Skill video = Side panel).
+   Full card height (846) next to the card with an 18 px gap, from a 60 px left margin (the Figma group is wider than
+   the screen); bg #060606 + stroke #d4d4d4 25 % 2 px; player inset 45 px, stroke #5b5b5b 3 px; time pill 34 px high,
+   25 / 26 px from the player's bottom-left. Slides out from behind the card: transform + opacity only. */
+.nd-vside { position: absolute; left: 60px; top: 117px; width: 1269px; height: 846px; z-index: 4; box-sizing: border-box;
+  background: #060606; box-shadow: inset 0 0 0 2px rgb(212 212 212 / .25); pointer-events: none;
+  opacity: 0; transform: translateX(320px); transition: transform .18s cubic-bezier(.7, 0, .84, 0), opacity .18s ease-in }
+.nd-vside.is-in { opacity: 1; transform: none; transition: transform .28s cubic-bezier(.2, .8, .2, 1), opacity .2s ease-out }
+.nd-vside .nd-video__player { position: absolute; left: 45px; top: 45px; width: 1179px; height: 756px; overflow: hidden }
+.nd-vside .nd-video__player > img, .nd-vside .nd-video__player > video { width: 100%; height: 100%; object-fit: cover; display: block }
+.nd-vside .nd-video__player::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 3px #5b5b5b; pointer-events: none }
+/* time pill = Figma "drawer time" 182x34, r15, #000 70 %, Industry Medium 24 centred; 25 px from the player's left, 26 px
+   from its bottom (top / width / padding of the popup pill are reset) */
+.nd-vside .nd-video__time { position: absolute; left: 25px; top: auto; bottom: 26px; width: 182px; height: 34px; padding: 0; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center; border-radius: 15px; background: rgb(0 0 0 / .7);
+  font: 500 24px/1 var(--font-ui); color: #fff; white-space: nowrap }
 
 /* Video Skill Preview (Figma 837:100435), 912x581 centred on a 80% black screen:
    title Modi 24/25 #cecece at (0,0) · player 912x513 at (0,34), stroke #5b5b5b 3 px inside · time pill 120x30 r15 #000 70% at (16,503) · hint at (0,556) */

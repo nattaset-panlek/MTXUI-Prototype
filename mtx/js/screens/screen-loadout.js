@@ -39,20 +39,28 @@
   let MOVES = { special: [], decisive: [], signature: [] }, MOVE_DESC = { special: [], decisive: [], signature: [] };
   let MOVE_OWN = { special: [], decisive: [], signature: [] }, IDS = { perk: [], special: [], decisive: [], signature: [] };
   const lvIn = (sid, id) => window.MTX_SKILLSTATE?.level(sid, id) || 0;
+  // equipped perk level per style: { [sid]: { perkNodeId: 1-3 } }. A perk can be equipped at any owned level
+  // (Lv 3 has a drawback); default = highest owned. Set from the Skill Tree tab or the Loadout info card (RS).
+  const EQ_LV = {};
+  const eqLvOf = (sid, id) => { const own = lvIn(sid, id), v = EQ_LV[sid]?.[id]; return own ? Math.min(own, v || own) : 0; };
+  // decisive family: tiers owned (Tier 1..n in order) and the tier it is equipped at (default = top owned)
+  const famOf = (sid, fid) => window.MTX_SKILLS?.styles?.[sid]?.families?.[fid];
+  const famTop = (sid, fid) => (famOf(sid, fid)?.tiers || []).filter(id => lvIn(sid, id) > 0).length;
+  const famTier = (sid, fid) => { const top = famTop(sid, fid), v = EQ_LV[sid]?.[fid]; return top ? Math.min(top, v || top) : 0; };
   function listsFor(sid) {
     const S = window.MTX_SKILLS?.styles?.[sid];
     const L = { perks: [], moves: { special: [], decisive: [], signature: [] }, desc: { special: [], decisive: [], signature: [] }, own: { special: [], decisive: [], signature: [] }, ids: { perk: [], special: [], decisive: [], signature: [] } };
     if (!S) return L;
     S.nodes.filter(n => n.kind === "perk").forEach(n => {
       const lv = lvIn(sid, n.id);
-      L.perks.push({ id: n.id, name: n.name, kind: n.tag in KIND ? n.tag : "attack", lv: Math.max(1, lv), locked: !lv, fx: n.levels.map(l => l.buff || l.desc), draw: n.levels[2]?.flaw || "" });
+      L.perks.push({ id: n.id, name: n.name, kind: n.tag in KIND ? n.tag : "attack", lv: Math.max(1, eqLvOf(sid, n.id)), own: lv, locked: !lv, fx: n.levels.map(l => l.buff || l.desc), draw: n.levels[2]?.flaw || "" });
       L.ids.perk.push(n.id);
     });
     const add = (tid, id, name, desc, own) => { L.ids[tid].push(id); L.moves[tid].push(name); L.desc[tid].push(desc); L.own[tid].push(own); };
     ["special", "signature"].forEach(k => S.nodes.filter(n => n.kind === k).forEach(n => add(k, n.id, n.name, n.desc, lvIn(sid, n.id) > 0)));
     S.nodes.filter(n => n.granted).forEach(n => add("decisive", n.id, n.name, n.desc, true));
     Object.values(S.families || {}).forEach(f => {
-      const top = f.tiers.filter(id => lvIn(sid, id) > 0).length, n = S.nodes.find(x => x.id === f.tiers[Math.max(0, top - 1)]);
+      const top = famTier(sid, f.id), n = S.nodes.find(x => x.id === f.tiers[Math.max(0, top - 1)]);
       add("decisive", f.id, f.name, (top ? `Tier ${top} · ` : "") + (n?.desc || ""), top > 0);
     });
     return L;
@@ -70,7 +78,9 @@
     const sid = style().id, L = listsFor(sid);
     PERKS = L.perks; MOVES = L.moves; MOVE_DESC = L.desc; MOVE_OWN = L.own; IDS = L.ids;
     // skills removed in the tree leave the loadout (working copy and saved)
+    const before = JSON.stringify(saved[sid]);
     [presets[sid], saved[sid]].forEach(p => p && Object.keys(p).forEach(tid => p[tid] = p[tid].map(v => v != null && isOwnedIn(L, tid, v) ? v : null)));
+    if (JSON.stringify(saved[sid]) !== before) persist();
   }
   const PF = {
     grid: { 1: [122, 122, 96, 94], 2: [119, 116, 96, 94], 3: [128, 124, 84, 82] },
@@ -129,6 +139,10 @@
   let api = null, root = null, open = false;
   let presets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));   // working copy (what the hub shows / edits)
   let saved = JSON.parse(JSON.stringify(DEFAULT_PRESETS));     // last saved loadouts; leaving with a difference asks first
+  // saved loadouts + equipped perk levels survive a reload (like the Skill Tree unlocks, MTX_SKILLSTATE); dev: MTX_LOADOUT.reset()
+  const LKEY = "mtx.loadout.v1";
+  try { const o = JSON.parse(localStorage.getItem(LKEY) || "null"); if (o?.saved) { saved = o.saved; presets = JSON.parse(JSON.stringify(o.saved)); Object.assign(EQ_LV, o.eqLv || {}); } } catch { /* no storage */ }
+  const persist = () => { try { localStorage.setItem(LKEY, JSON.stringify({ saved, eqLv: EQ_LV })); } catch { /* private mode */ } };
   let page = 2;                // 0 Profile, 1 Inventory, 2 Loadout
   let styleIdx = 0;
   let view = "hub";            // always "hub" since Hub B (kept for the open() / set() API)
@@ -154,7 +168,7 @@
   const entrySlot = tid => { const l = preset()[tid]; return ENTRY_ORDER[tid].find(i => l[i] == null) ?? ENTRY_ORDER[tid][0]; };
   const clone = o => JSON.parse(JSON.stringify(o));
   const dirty = () => { const id = style().id; return JSON.stringify(preset()) !== JSON.stringify(saved[id] || { perk: [null, null, null, null], special: [null, null, null, null], decisive: [null, null, null, null], signature: [null, null, null, null] }); };
-  const saveLoadout = () => { saved[style().id] = clone(preset()); rumble(60, .25); };
+  const saveLoadout = () => { saved[style().id] = clone(preset()); persist(); rumble(60, .25); };
   const discardLoadout = () => { const id = style().id; if (saved[id]) presets[id] = clone(saved[id]); else delete presets[id]; };
   // unsaved changes: ask before the action that leaves this loadout (close, other tab, other style)
   function guard(action) {
@@ -217,12 +231,12 @@
     if (page < 2) h = page === 0
       ? [["b", "Close"], ["a", { label: "Select", off: true }], ["y", "History"], ["x", { label: "Edit", off: true }], [tabKeys, "Tab"], ["menu", "Options"], ["view", "Friends"]]
       : [["b", "Close"], ["a", { label: "Select", off: true }], [tabKeys, "Tab"], ["menu", "Options"], ["view", "Friends"]];
-    else if (info) {                                                                                     // 740:111571 + every key it uses
-      h = [["b", "Close"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["dall", "Move"]];
-      if (T().id === "perk") h.push(["rs", "Level"]);
-      h.push(["y", "Close info"], ["menu", "Options"], ["view", "Friends"]);
+    else if (mode === "grid") {   // card always open: RS level (perk), Y video (moves)
+      h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["dall", "Move"]];
+      if (T().id === "perk") h.push(["lt+rt", "Level"]);   // Q / E (RS still works)
+      else { if (isFam(cell)) h.push(["lt+rt", "Tier"]); h.push(["y", { label: VID()?.isOpen() ? "Hide video" : "Video", off: cell >= itemCount(T().id) }]); }
+      h.push(["menu", "Options"], ["view", "Friends"]);
     }
-    else if (mode === "grid") h = [["b", "Cancel"], ["a", { label: "Equip", off: !owned(T().id, cell) }], ["dall", "Move"], ["y", { label: "Info", off: cell >= itemCount(T().id) }], ["menu", "Options"], ["view", "Friends"]];   // 740:110461
     else if (mode === "group") {                                                                         // 741:60423 + every key it uses
       const locked = isLocked(style());
       h = [["b", "Close"], ["a", { label: locked ? "Locked" : "Open", off: locked }], ["dall", "Move"], ["rs", { label: "Save", off: !dirty() }], [styleKeys, "Style"], [tabKeys, "Tab"], ["menu", "Options"], ["view", "Friends"]];
@@ -231,7 +245,7 @@
       const locked = isLocked(style()), filled = preset()[T().id][slot] != null;
       h = [["b", "Back"], ["a", { label: "Select", off: locked }], ["dall", "Move"]];
       if (device() === "kb") h.push(["n1-4", "Slot"]);
-      h.push(["x", { label: "Remove", off: locked || !filled }], ["y", { label: "Info", off: locked }], ["rs", { label: "Save", off: !dirty() }], ["menu", "Options"], ["view", "Friends"]);
+      h.push(["x", { label: "Remove", off: locked || !filled }], ["rs", { label: "Save", off: !dirty() }], ["menu", "Options"], ["view", "Friends"]);
     }
     const item = ([k, v]) => k === "n1-4"   // keyboard number keys: no glyph in the set, plain keycap text
       ? `<span class="hint" data-hint-key="n1-4"><span class="glyph" aria-hidden="true">1-4</span><span>${esc(v)}</span></span>`
@@ -381,7 +395,7 @@
     const p = PERKS[v], [kname, kcol] = KIND[p.kind];
     return `<div class="tl-card">
       <div class="tl-card__art">${perkArt(v, "list")}</div>
-      <span class="tl-card__kind" style="color:${kcol}">${kname}</span>
+      <span class="tl-card__kind" style="color:${kcol}">${kname} · ${p.locked ? "Locked" : `Lv ${p.lv}${p.own > p.lv ? ` / ${p.own}` : ""}`}</span>
       <span class="tl-card__name">${esc(p.name)}</span><i class="tl-card__rule"></i>
       <p class="tl-card__fx">${fxHtml(p.fx[p.lv - 1])}</p>
       ${p.lv === 3 ? `<p class="tl-card__draw">${esc(p.draw)}</p>` : ""}</div>`;
@@ -444,7 +458,9 @@
     let name, text, v;
     if (mode === "grid") {
       v = cell < itemCount(tid) ? cell : null;
-      name = v == null ? "Locked" : MOVES[tid][v]; text = v == null ? "Not available yet." : moveDesc(tid, v);
+      name = v == null ? "Locked" : MOVES[tid][v];
+      // skill data: description when owned, else where to get it (Skill Tree of this style)
+      text = v == null ? "Not available yet." : owned(tid, v) ? moveDesc(tid, v) : `Locked · unlock it in the ${style().name} Skill Tree`;
     } else {
       v = loadout[slot];
       name = v == null ? "Empty slot" : MOVES[tid][v];
@@ -459,14 +475,16 @@
   // Perks show the level pager (RS); moves show kind, name and description.
   let infoItem = "", infoLv = 0;
   function infoShellHtml() {
-    return window.MTX_UI.skillInfo.html({ attrs: "data-tl-info hidden", primary: "Equip", cta: true });   // Equip = Accept Button / 06 Pill (740:114191)   // shared component (components/skill-info.js)
+    // global skill card (components/node-detail.js), same as the Skill Tree (user 2026-11-18); was skill-info.js
+    // no data-bind="sdPrimary" on this CTA: that hook is the Skill Tree card (app.js routes its clicks / hold to the tree)
+    return window.MTX_UI.nodeDetail.html({ cls: "tl-info", attrs: "data-tl-info hidden" }).replace(" data-bind=\"sdPrimary\"", "");   // Equip = Accept Button / 06 Pill (740:114191)   // shared component (components/skill-info.js)
   }
 
   function infoData() {
     const tid = T().id;
     if (tid === "perk") {
       const p = PERKS[cell], [kind, col] = KIND[p.kind];
-      return { kind, col, badge: p.locked ? "Locked" : "Owned Lv" + p.lv, name: p.name, levels: true, lv: info.lv, fx: p.fx[info.lv - 1], draw: info.lv === 3 ? p.draw : "", own: !p.locked };
+      return { kind, col, badge: p.locked ? "Locked" : preset().perk.includes(cell) ? `Equipped Lv${p.lv} · Owned Lv${p.own}` : "Owned Lv" + p.own, name: p.name, levels: true, lv: info.lv, fx: p.fx[info.lv - 1], draw: info.lv === 3 ? p.draw : "", own: !p.locked };
     }
     const own = owned(tid, cell);
     return { kind: T().grid, col: T().color, badge: own ? "Owned" : "Locked", name: MOVES[tid][cell], levels: false, lv: 0, fx: moveDesc(tid, cell), draw: "", own };
@@ -476,17 +494,22 @@
   function syncInfo() {
     const el = root?.querySelector("[data-tl-info]");
     if (!el) return;
+    if (page === 2 && mode === "grid" && !info) info = { lv: tabLv(cell) };   // grid: card always on
     if (!(info && page === 2 && mode === "grid" && cell < itemCount(T().id))) { el.hidden = true; infoItem = ""; return; }
     const d = infoData(), left = 1032 + (cell % 5) * 168 - 16 - 513, item = T().id + ":" + cell, opening = el.hidden;
     el.hidden = false;
     if (opening) { el.style.transition = "none"; el.style.left = left + "px"; void el.offsetWidth; el.style.transition = ""; restart(el, "is-in"); }
     else el.style.left = left + "px";
-    el.style.setProperty("--tc", d.col);
-    const q = k => el.querySelector(`[data-i="${k}"]`);
-    q("kind").textContent = d.kind; q("badge").textContent = d.badge; q("name").textContent = d.name;
-    q("fx").innerHTML = d.levels ? fxHtml(d.fx) : esc(d.fx); q("draw").textContent = d.draw; q("draw").hidden = !d.draw;
-    el.querySelectorAll("[data-i-lv]").forEach(n => { n.hidden = !d.levels; });
-    el.querySelectorAll(".tl-lv span").forEach((n, k) => n.classList.toggle("is-on", k + 1 === d.lv));
+    // card content from the skill data (MTX_UI.nodeDetail.model); CTA = this loadout's equip state
+    const tid = T().id, sid = style().id, inSlot = preset()[tid].includes(cell);
+    const cta = !d.own ? { label: "Locked", state: "locked" }
+      : d.levels ? (inSlot && PERKS[cell].lv === d.lv ? { label: "Equipped", state: "done" } : d.lv <= PERKS[cell].own ? { label: "Equip", state: "equip" } : { label: "Locked", state: "locked" })
+      : isFam(cell) ? famCta(sid, inSlot)   // decisive family: Tier tab shown vs the tier equipped / owned
+      : inSlot ? { label: "Equipped", state: "done" } : { label: "Equip", state: "equip" };
+    const tabs = d.levels || isFam(cell);
+    const m = window.MTX_UI.nodeDetail.model(sid, IDS[tid][cell], { lv: tabs ? info.lv : 0, tierTabs: true, cta, hints: [["b", "Close"]] });
+    if (isFam(cell)) d.lv = info.lv;   // crossfade on a Tier change too
+    if (m) window.MTX_UI.nodeDetail.render(el, m);
     el.querySelector("[data-i-equip]").classList.toggle("is-off", !d.own);
     if (!opening && item !== infoItem) restart(el, "is-swap");        // another item: crossfade every text
     else if (!opening && d.lv !== infoLv) restart(el, "is-lv");       // same item, other level: crossfade the effect
@@ -638,13 +661,39 @@
     else if (dir === "right" && c % 5 < 4) c++;
     else if (dir === "up" && c >= 5) c -= 5;
     else if (dir === "down" && c + 5 < 25) c += 5;
-    if (c !== cell) { cell = c; if (info) info.lv = T().id === "perk" && c < PERKS.length ? PERKS[c].lv : 0; }
+    if (c !== cell) { cell = c; if (info) info.lv = tabLv(c); }
   }
 
+  // grid = the skill card is always shown for the focused cell (no Y; user 2026-11-18). Perk card opens on its equipped / owned level.
   function enterGrid() {
     const v = preset()[T().id][slot];
     cell = v != null ? v : 0;
     mode = "grid";
+    info = { lv: tabLv(cell) };
+  }
+  // the tab the card opens on: perk Lv (equipped / owned), decisive family Tier (equipped / top owned); 0 = no tabs
+  const isFam = c => T().id === "decisive" && !!famOf(style().id, IDS.decisive[c]);
+  function tabLv(c) {
+    if (T().id === "perk") return c < PERKS.length ? PERKS[c].lv : 0;
+    if (isFam(c)) { const sid = style().id, fid = IDS.decisive[c]; return famTier(sid, fid) || 1; }
+    return 0;
+  }
+  function famCta(sid, inSlot) {
+    const fid = IDS.decisive[cell], t = info?.lv || 1;
+    if (inSlot && famTier(sid, fid) === t) return { label: "Equipped", state: "done" };
+    return t <= famTop(sid, fid) ? { label: "Equip", state: "equip" } : { label: "Locked", state: "locked" };
+  }
+  const tabCount = c => T().id === "perk" ? 3 : isFam(c) ? famOf(style().id, IDS.decisive[c]).tiers.length : 0;
+  // Y in the grid = skill video (moves), same Video Panel as the Skill Tree (components/node-detail.js)
+  const VID = () => window.MTX_UI?.nodeDetail?.video;
+  function closeVideo() { if (VID()?.isOpen()) VID().close(true); }
+  function openVideo() {
+    const tid = T().id;
+    if (tid === "perk" || cell >= itemCount(tid)) return false;
+    const n = window.MTX_UI.nodeDetail.model(style().id, IDS[tid][cell])?.node;
+    if (!n) return false;
+    VID().open(root, { name: n.name, kind: n.kind, label: T().label, src: n.video || "" });
+    return true;
   }
 
   function equip() {
@@ -653,6 +702,12 @@
     const was = loadout.indexOf(cell);
     if (was >= 0 && was !== slot) loadout[was] = loadout[slot];   // already in another slot: swap
     loadout[slot] = cell;
+    if (tid === "perk") {   // level = the info card tab when it is open and owned, else the highest owned
+      const sid = style().id, p = PERKS[cell];
+      (EQ_LV[sid] ||= {})[p.id] = info && info.lv >= 1 && info.lv <= p.own ? info.lv : p.own;
+    }
+    if (isFam(cell)) { const sid = style().id, fid = IDS.decisive[cell], top = famTop(sid, fid); (EQ_LV[sid] ||= {})[fid] = info && info.lv >= 1 && info.lv <= top ? info.lv : top; }
+    closeVideo();
     rumble(60, .25);
     return true;
   }
@@ -669,20 +724,18 @@
       return;
     }
     // ---- hub: info card open
-    if (info) {
-      if (a === "back" || a === "y") info = null;
-      else if (a === "rs" && T().id === "perk") info.lv = info.lv % 3 + 1;   // RS (keyboard R)
-      else if (a === "a") { if (equip()) { info = null; mode = "slots"; } }
-      else if (DIRS.includes(a)) moveGrid(a);
-      else return;
-      render(); return;
-    }
-    // ---- hub: grid
+    // ---- hub: grid (skill card always open)
     if (mode === "grid") {
-      if (DIRS.includes(a)) moveGrid(a);
-      else if (a === "back") mode = "slots";
-      else if (a === "a") { if (equip()) mode = "slots"; }
-      else if (a === "y") { if (cell >= itemCount(T().id)) return; info = { lv: T().id === "perk" ? PERKS[cell].lv : 0 }; }
+      if (VID()?.isBlocking?.()) { if (a === "back" || a === "y") { closeVideo(); render(); } return; }   // popup video takes every input
+      if (DIRS.includes(a)) { moveGrid(a); if (VID()?.isOpen()) { closeVideo(); openVideo(); } }
+      else if (a === "back") { closeVideo(); mode = "slots"; info = null; }
+      else if ((a === "lt" || a === "rt") && tabCount(cell)) {   // Q / E (the card's bump keys): previous / next Lv or Tier tab
+        const n = tabCount(cell); if (!info) info = { lv: 1 };
+        info.lv = (info.lv - 1 + (a === "lt" ? n - 1 : 1)) % n + 1;
+      }
+      else if (a === "rs" && tabCount(cell)) { if (!info) info = { lv: 1 }; info.lv = info.lv % tabCount(cell) + 1; }   // RS (keyboard R): Lv / Tier tab
+      else if (a === "a") { if (equip()) { info = null; mode = "slots"; } }
+      else if (a === "y") { if (VID()?.isOpen()) closeVideo(); else if (!openVideo()) return; }
       else return;
       render(); return;
     }
@@ -703,10 +756,6 @@
     else if (/^n[1-4]$/.test(a)) slot = +a[1] - 1;                 // keyboard 1-4 = that slot of the focused category
     else if (a === "a") { if (isLocked(style())) { rumble(80, .4); return; } enterGrid(); }
     else if (a === "x") { if (isLocked(style()) || preset()[T().id][slot] == null) return; preset()[T().id][slot] = null; rumble(40, .2); }
-    else if (a === "y") {
-      if (isLocked(style())) return;
-      enterGrid(); info = { lv: T().id === "perk" ? PERKS[cell].lv : 0 };
-    }
     else if (a === "back") mode = "group";                         // B: back to group select, same group
     else return;
     render();
@@ -734,6 +783,16 @@
     handle(map[key] || action);
   }
   function onClick(e) {
+    // skill card (node-detail.js) in the grid: CTA = Equip (A), Lv / Tier tabs and LB/RB bumps = pick the tab (RS), VIDEO badge = Y
+    const card = mode === "grid" && e.target.closest("[data-tl-info]");
+    if (card) {
+      const tab = e.target.closest("[data-lv-tab]"), bump = e.target.closest(".nd__bump");
+      if (e.target.closest("[data-i-equip]")) { handle("a"); return; }
+      if (tab && info && tabCount(cell)) { info.lv = +tab.dataset.lvTab; render(); return; }
+      if (bump && info && tabCount(cell)) { const n = tabCount(cell); info.lv = (info.lv - 1 + (bump.dataset.btn === "lt" ? n - 1 : 1)) % n + 1; render(); return; }
+      if (e.target.closest(".nd__video")) { handle("y"); return; }
+      return;
+    }
     const t = e.target.closest("[data-tl-tab],[data-tl-style],[data-tl-slot],[data-tl-cell]");
     if (!t) return;
     if (t.dataset.tlTab != null) { const i = +t.dataset.tlTab; if (i === page) return; (page === 2 ? guard : f => f())(() => goPage(i)); return; }
@@ -782,6 +841,7 @@
   }
   function close() {
     open = false;
+    closeVideo();
     if (root) root.hidden = true;
     lastFocus?.focus?.();
   }
@@ -796,23 +856,42 @@
     // dev / compare helpers
     state: () => ({ page, styleIdx, view, type, mode, slot, cell, info, presets }),
     set: o => { ({ page = page, styleIdx = styleIdx, view = view, type = type, mode = mode, slot = slot, cell = cell } = o); if ("info" in o) info = o.info; if ("scroll" in o) { gscroll = o.scroll; lastType = type; } if (o.presets) { presets = o.presets; saved = clone(o.presets); } if (root?.querySelector("[data-tl-sw]")) root.querySelector("[data-tl-sw]").innerHTML = ""; quietRings = true; render(); quietRings = false; },
-    reset: () => { presets = clone(DEFAULT_PRESETS); saved = clone(DEFAULT_PRESETS); styleIdx = 0; },
+    reset: () => { presets = clone(DEFAULT_PRESETS); saved = clone(DEFAULT_PRESETS); Object.keys(EQ_LV).forEach(k => delete EQ_LV[k]); styleIdx = 0; persist(); },
     isDirty: () => dirty(),
     // Skill Tree link (screen-skilltree.js): equipped = in the style's saved loadout
+    // equipped perk level (0 = not equipped / not a perk)
+    equippedLevel(sid, nodeId) { return this.isEquipped(sid, nodeId) && window.MTX_SKILLS?.styles?.[sid]?.nodes.find(n => n.id === nodeId)?.levels ? eqLvOf(sid, nodeId) : 0; },
     isEquipped(sid, nodeId) {
       const it = itemOf(sid, nodeId);
-      return !!it && isOwnedIn(it.L, it.tid, it.i) && (saved[sid]?.[it.tid] || []).includes(it.i);
+      if (!it || !isOwnedIn(it.L, it.tid, it.i) || !(saved[sid]?.[it.tid] || []).includes(it.i)) return false;
+      const n = window.MTX_SKILLS?.styles?.[sid]?.nodes.find(x => x.id === nodeId);
+      return !(n?.kind === "decisive" && !n.granted) || famTier(sid, n.family) === n.tier;   // decisive: only the tier it is equipped at
     },
+    // decisive family of this tier node: the tier equipped (0 = family not in the loadout)
+    equippedTier(sid, nodeId) {
+      const it = itemOf(sid, nodeId), n = window.MTX_SKILLS?.styles?.[sid]?.nodes.find(x => x.id === nodeId);
+      return it && n?.family && !n.granted && (saved[sid]?.[it.tid] || []).includes(it.i) ? famTier(sid, n.family) : 0;
+    },
+    lastReplaced: null,   // name of the item equipNode pushed out when the slots were full
     // puts the node in the first free slot (saved + working copy); returns the slot index, or null when full / not owned
-    equipNode(sid, nodeId) {
+    equipNode(sid, nodeId, lv) {
       const it = itemOf(sid, nodeId);
       if (!it || !isOwnedIn(it.L, it.tid, it.i)) return null;
+      if (it.tid === "perk") (EQ_LV[sid] ||= {})[nodeId] = Math.min(lv || lvIn(sid, nodeId), lvIn(sid, nodeId));
+      const dn = window.MTX_SKILLS?.styles?.[sid]?.nodes.find(x => x.id === nodeId);
+      if (dn?.kind === "decisive" && !dn.granted) (EQ_LV[sid] ||= {})[dn.family] = dn.tier;   // another tier replaces the one equipped
+      this.lastReplaced = null;
       const empty = () => ({ perk: [null, null, null, null], special: [null, null, null, null], decisive: [null, null, null, null], signature: [null, null, null, null] });
       const sv = saved[sid] || (saved[sid] = empty()), pr = presets[sid] || (presets[sid] = clone(sv));
-      if (sv[it.tid].includes(it.i)) return sv[it.tid].indexOf(it.i);
-      const k = ENTRY_ORDER[it.tid].find(j => sv[it.tid][j] == null);
-      if (k == null) return null;
-      sv[it.tid][k] = it.i; if (pr[it.tid][k] == null) pr[it.tid][k] = it.i;
+      if (sv[it.tid].includes(it.i)) { persist(); if (open) render(); return sv[it.tid].indexOf(it.i); }
+      let k = ENTRY_ORDER[it.tid].find(j => sv[it.tid][j] == null);
+      if (k == null) {   // full: replace the last slot (entry order) automatically (user 2026-11-18)
+        k = ENTRY_ORDER[it.tid].at(-1);
+        const old = sv[it.tid][k];
+        this.lastReplaced = it.tid === "perk" ? it.L.perks[old]?.name : it.L.moves[it.tid][old];
+      }
+      sv[it.tid][k] = it.i; pr[it.tid][k] = it.i;
+      persist();
       if (open) render();
       return k;
     },
@@ -821,6 +900,7 @@
       const it = itemOf(sid, nodeId);
       if (!it || isOwnedIn(it.L, it.tid, it.i)) return;
       [saved[sid], presets[sid]].forEach(p => p && (p[it.tid] = p[it.tid].map(v => v === it.i ? null : v)));
+      persist();
       if (open) render();
     }
   };
