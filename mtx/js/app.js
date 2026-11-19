@@ -773,7 +773,7 @@
     const ps = navigator.getGamepads ? navigator.getGamepads() : [];
     if (padIndex == null) for (const gp of ps) if (gp && gp.buttons.some(b => b.pressed)) { padIndex = gp.index; detect(gp); break; }
     const gp = activePad();
-    if (gp) {
+    if (gp && !window.MTX_COMMENTS?.locked?.()) {   // Dev comments: Comment mode locks the prototype (dev-comments.js)
       // one button's error must not stop the loop, or the pad stays dead until a reload
       const safePress = (key, down, action, label) => {
         try { press(key, down, action, label, now); }
@@ -881,23 +881,16 @@
     apply(chk.checked);
     chk.addEventListener("change", () => { store.set("treeVfx_" + k, chk.checked); apply(chk.checked); toast(`Tree VFX ${k}: ${chk.checked ? "on" : "off"}`); });
   });
-  // Dev > Ornament parallax (store key treePlx, % of the camera move, default 45)
-  const plxIn = $("#treePlx"), plxOut = $("#treePlxVal");
-  if (plxIn) {
-    const applyPlx = v => { if (plxOut) plxOut.textContent = v + "%"; window.MTX_SCREENS?.skilltree?.setParallax?.(v); };
-    plxIn.value = store.get("treePlx", "45");
-    applyPlx(plxIn.value);
-    plxIn.addEventListener("input", () => { store.set("treePlx", plxIn.value); applyPlx(plxIn.value); });
-  }
-  // Dev > Ornament offset X / Y (store keys treeYanX / treeYanY, tree px, default 0 / 50)
-  const yanX = $("#treeYanX"), yanY = $("#treeYanY");
-  if (yanX && yanY) {
-    const applyYan = () => window.MTX_SCREENS?.skilltree?.setOrnamentOffset?.(yanX.value, yanY.value);
-    yanX.value = store.get("treeYanX", "0");
-    yanY.value = store.get("treeYanY", "50");
-    applyYan();
-    [[yanX, "treeYanX"], [yanY, "treeYanY"]].forEach(([el, k]) => el.addEventListener("input", () => { store.set(k, el.value); applyYan(); }));
-  }
+  // Dev > Per style > Skill tree ornament: parallax (% of the camera move) + offset X / Y (tree px), per Tactical Style
+  // (style-presets.js + style-dev.js; was the flat store keys treePlx / treeYanX / treeYanY)
+  const applyOrn = () => {
+    const t = window.MTX_STYLE_DEV?.get().tree, st = window.MTX_SCREENS?.skilltree;
+    if (!t || !st) return;
+    st.setParallax?.(t.plx);
+    st.setOrnamentOffset?.(t.yanX, t.yanY);
+  };
+  applyOrn();
+  document.addEventListener("mtx:styledev", e => { const p = e.detail?.path; if (!p || p.startsWith("tree.")) applyOrn(); });
   // Dev > Rumble on / off (store key rumble)
   const rumbleChk = $("#rumbleOn");
   if (rumbleChk) {
@@ -2052,7 +2045,7 @@
     tab.addEventListener("click", () => {
       $$(".figma-tab").forEach(t => t.classList.toggle("is-active", t === tab));
       const target = tab.dataset.tab;
-      const map = { layout: "#tabContentLayout", prototype: "#tabContentPrototype", system: "#tabContentSystem", keys: "#tabContentKeys", pages: "#tabContentPages", char3d: "#tabContentChar3d" };
+      const map = { layout: "#tabContentLayout", prototype: "#tabContentPrototype", system: "#tabContentSystem", keys: "#tabContentKeys", pages: "#tabContentPages", char3d: "#tabContentChar3d", styles: "#tabContentStyles", player: "#tabContentPlayer" };
       Object.entries(map).forEach(([key, sel]) => {
         const el = $(sel);
         if (el) el.style.display = key === target ? "flex" : "none";

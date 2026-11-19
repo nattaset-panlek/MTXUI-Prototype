@@ -8187,3 +8187,177 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 
 /* ---- Attributes: sub-stat bonus segment after the points, same yellow as the +N chip ---- */
 .attr-row__bonusfill { background: var(--yellow) }
+
+/* ================= Attributes v-figma (874:123388, 2026-11-18) =================
+   Unscaled 1920 layout: full-body fighter, Overall + points as a separate card left of the panel (no ring),
+   panel 815 x 652 with a dark header band, rows 679 wide x 62 tall. Data features (cap bar, +N badge, bonus bar) unchanged. */
+#s-attributes .attr__fighter { left: 74px; top: 106px; width: 548px; height: 974px }
+#s-attributes .attr__panel {
+  left: 1044px; top: 201px; width: 815px; height: 652px; transform: none;
+  background: #131416 url(../assets/img/attr-panel-bg.jpg) 0 0 / 815px 652px no-repeat
+}
+#s-attributes .attr__panel::after { display: none }   /* texture is baked into attr-panel-bg.jpg */
+#s-attributes .attr-hero { left: 59px; top: 32px; width: 709px }
+#s-attributes .attr-hero__kicker { font-size: 14px; color: #acacbb }
+#s-attributes .attr-hero__name { margin-top: 9px; font-size: 46px; max-width: 480px; color: #dedede }
+#s-attributes .attr-hero__total { top: 16px }
+#s-attributes .attr-hero__total span { font-size: 40px }
+#s-attributes .attr-capbar__label { margin-top: 46px; width: 679px; margin-left: 2px }
+#s-attributes .attr-capbar { width: 679px; height: 19px; margin: 17px 0 0 2px; gap: 5px }
+#s-attributes .attr-seg b { top: 29px }
+#s-attributes .attr__rows { left: 61px; top: 257px; width: 679px; gap: 7px }
+#s-attributes .attr-row {
+  height: 62px; padding: 0 22px 0 21px; column-gap: 10px;
+  grid-template-columns: 290px 1fr 145px 31px
+}
+#s-attributes .attr-row__adjust { margin-left: 0; height: 43px }
+#s-attributes .attr-row__gaintag { position: absolute; right: -44px; top: 50%; transform: translateY(-50%) }
+#s-attributes .attr-bonus { display: block; width: 31px; box-sizing: border-box; text-align: center; padding: 5px 0 4px }
+
+/* side card: 334 x 652, 15 px left of the panel; emblem watermark + bottom diamond line art from Figma */
+#s-attributes .attr-side {
+  left: -349px; top: 0; bottom: auto; width: 334px; height: 652px; padding: 0;
+  display: block; box-shadow: none; overflow: hidden;
+  background: url(../assets/img/attr-side-emblem.png) 0 0 / 334px 652px no-repeat,
+              url(../assets/img/attr-side-bg.jpg) 0 0 / 334px 652px no-repeat #131416
+}
+#s-attributes .attr-side::before { inset: auto 0 0 0; height: 270px; opacity: 1; mask: none; -webkit-mask: none;
+  background: url(../assets/img/attr-side-diamond.png) 0 0 / 334px 270px no-repeat }
+#s-attributes .attr-side::after { display: none }
+#s-attributes .attr-overall-box { position: absolute; left: 0; top: 0; width: 334px; height: 423px; display: block }
+#s-attributes .attr-overall { position: absolute; inset: 0; width: auto; height: auto; border-radius: 0; background: none; box-shadow: none; display: block }
+#s-attributes .attr-overall::before, #s-attributes .attr-overall__tick { display: none }
+/* Overall value: gold gradient as in Figma (user 2026-11-18) */
+#s-attributes .attr-overall__value {
+  position: absolute; left: 50%; top: 227px; width: max-content; transform: translateX(-50%);
+  display: block; font: 600 85px/86px var(--font-ui);
+  /* Figma 875:126268 fills: gold gradient (#f2df57 > #f3ad3b 82% > #f2df57) under a 10% black layer */
+  background: linear-gradient(rgb(0 0 0 / .1), rgb(0 0 0 / .1)), linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%);
+  -webkit-background-clip: text; background-clip: text; color: transparent
+}
+#s-attributes .attr-overall__label {
+  position: absolute; left: 0; right: 0; top: 326px; text-align: center;
+  font: 700 22px/1 var(--font-ui); color: #707070
+}
+#s-attributes .attr-side > .attr-points {
+  position: absolute; left: 0; right: 0; top: 557px; height: auto; padding: 0;
+  display: flex; flex-direction: column-reverse; align-items: center; gap: 24px; box-shadow: none
+}
+#s-attributes .attr-points__gem { width: auto; height: auto; position: static; opacity: 1 }
+#s-attributes .attr-points__gem svg { display: none }
+#s-attributes .attr-points__gem b { position: static; display: block; font: 400 30px/1 var(--font-display); color: #fff }
+#s-attributes .attr-points__label { font: 700 18px/1 var(--font-ui); color: #676767 }
+#s-attributes .attr-points.is-empty .attr-points__gem { opacity: .5 }
+
+/* Attributes confirm VFX: diamond line art copies run up the side card (ripple), spawned by diamondRipple() in screen-attributes.js */
+#s-attributes .attr-side > .attr-side__ripple {
+  position: absolute; left: 0; bottom: 0; z-index: 0; width: 334px; height: 270px; pointer-events: none;
+  background: url(../assets/img/attr-side-diamond.png) 0 0 / 334px 270px no-repeat;
+  mix-blend-mode: screen; opacity: 0; will-change: transform, opacity;
+  animation: attr-diamond-ripple 1.2s cubic-bezier(.2, .6, .3, 1) both
+}
+@keyframes attr-diamond-ripple {
+  0% { transform: translateY(0); opacity: 0; filter: brightness(1) }
+  12% { opacity: 1; filter: brightness(3) }
+  55% { opacity: .55 }
+  100% { transform: translateY(-460px); opacity: 0; filter: brightness(1.4) }
+}
+
+/* Attributes confirm VFX, option A: the side card inverts for 140 ms (dark -> gold, gold/white -> dark), then eases back */
+#s-attributes .attr-side::after {
+  display: block; content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%);
+  opacity: 0; transition: opacity .18s ease-out
+}
+#s-attributes .attr-side::before { transition: filter .18s ease-out }
+#s-attributes .attr-overall__label, #s-attributes .attr-points__gem b, #s-attributes .attr-points__label { transition: color .18s ease-out }
+#s-attributes .attr-side.is-flash::after { opacity: 1; transition: none }
+#s-attributes .attr-side.is-flash::before { filter: brightness(0); transition: none }
+#s-attributes .attr-side.is-flash .attr-overall__value { background: #131416; -webkit-background-clip: text; background-clip: text }
+#s-attributes .attr-side.is-flash .attr-overall__label,
+#s-attributes .attr-side.is-flash .attr-points__gem b,
+#s-attributes .attr-side.is-flash .attr-points__label { color: #131416; transition: none }
+
+/* Attributes confirm VFX, option 3 Shockwave: gold frame around the side card (animated in screen-attributes.js) + number afterimage */
+#s-attributes .attr__panel > .attr-side__ring {
+  position: absolute; left: -349px; top: 0; width: 334px; height: 652px; box-sizing: border-box; z-index: 2;
+  border: 3px solid rgb(243 196 63 / .3); pointer-events: none; opacity: 0   /* frame at 30 % (user 2026-11-18) */
+}
+#s-attributes .attr-overall__ghost { pointer-events: none }
+
+/* Attributes side card: Style Emblem (Figma 880:126316). Background emblem stays in the card background;
+   the outline (880:126314) shows only in soft noise patches that drift across it (3 panned noise masks) */
+#s-attributes .attr-side > .attr-emblem { position: absolute; left: 0; top: 43px; width: 334px; height: 482px; z-index: 0; pointer-events: none }
+/* static outline hidden (alpha 0): it only shows through the noise layers below (user 2026-11-18 "hidden yantra") */
+#s-attributes .attr-emblem__outline { display: none }
+/* each layer = warm outline masked by a seamless noise tile that pans (patches drift across the emblem), 3 directions / speeds */
+#s-attributes .attr-emblem__n { position: absolute; inset: 0; background: 0 0 / 100% 100% no-repeat;
+  -webkit-mask-size: 334px 482px; mask-size: 334px 482px; -webkit-mask-repeat: repeat; mask-repeat: repeat;
+  animation: attr-noise-a 22s linear infinite }
+#s-attributes .attr-emblem__n:nth-child(3) { animation: attr-noise-b 31s linear infinite; opacity: .8 }
+#s-attributes .attr-emblem__n:nth-child(4) { animation: attr-noise-c 40s linear infinite; opacity: .6 }
+@keyframes attr-noise-a { from { -webkit-mask-position: 0 0; mask-position: 0 0 } to { -webkit-mask-position: 334px -482px; mask-position: 334px -482px } }
+@keyframes attr-noise-b { from { -webkit-mask-position: 0 0; mask-position: 0 0 } to { -webkit-mask-position: -334px -482px; mask-position: -334px -482px } }
+@keyframes attr-noise-c { from { -webkit-mask-position: 0 0; mask-position: 0 0 } to { -webkit-mask-position: 0 -964px; mask-position: 0 -964px } }
+@media (prefers-reduced-motion: reduce) { #s-attributes .attr-emblem__n { animation: none } }
+
+/* Dev > Attributes VFX settings: --emblem-speed (x), --emblem-op (0-1), .no-emblem-noise (set by screen-attributes.js applyVfx) */
+#s-attributes .attr-emblem { opacity: var(--emblem-op, 1) }
+#s-attributes .attr-emblem__n { animation-duration: calc(22s / var(--emblem-speed, 1)) }
+#s-attributes .attr-emblem__n:nth-child(3) { animation-duration: calc(31s / var(--emblem-speed, 1)) }
+#s-attributes .attr-emblem__n:nth-child(4) { animation-duration: calc(40s / var(--emblem-speed, 1)) }
+#s-attributes.no-emblem-noise .attr-emblem { display: none }
+/* sub-stat value: white when unchanged, green while it holds unconfirmed points (user 2026-11-18) */
+#s-attributes .attr-row__value { color: #fff }
+#s-attributes .attr-row__value.is-gain { color: var(--green) }
+
+/* Overall: old number copy that fades out over the new one (setOverall in screen-attributes.js) */
+#s-attributes .attr-overall__old { pointer-events: none }
+
+/* Overall "roll" mode (Dev > Attributes > Overall change): one masked window per digit, gold gradient on each digit */
+#s-attributes .attr-overall__value.is-roll { background: none; color: inherit }
+#s-attributes .attr-overall__value .ov-d { display: inline-block; vertical-align: top; height: 110px; margin: -12px 0; overflow: hidden;
+  -webkit-mask: linear-gradient(transparent 0, #000 20%, #000 80%, transparent 100%);
+  mask: linear-gradient(transparent 0, #000 20%, #000 80%, transparent 100%) }
+#s-attributes .attr-overall__value .ov-d__col { display: block; will-change: transform }
+#s-attributes .attr-overall__value .ov-d i { display: block; height: 110px; line-height: 110px; font-style: normal; white-space: pre;
+  background: linear-gradient(rgb(0 0 0 / .1), rgb(0 0 0 / .1)), linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%);
+  -webkit-background-clip: text; background-clip: text; color: transparent }
+/* side card stroke from Figma 875:126256 (attr-side New): #292929, 1 px inside. Outline so it draws above the card layers */
+#s-attributes .attr-side { outline: 1px solid #292929; outline-offset: -1px }
+/* no red (style colour) glow behind the fighter on Attributes (user 2026-11-18) */
+#s-attributes .attr__tint { display: none }
+/* attribute name (Attack / Defense ...): same gold gradient as the Overall number (user 2026-11-18) */
+#s-attributes .attr-hero__name {
+  width: fit-content;
+  background: linear-gradient(rgb(0 0 0 / .1), rgb(0 0 0 / .1)), linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%);
+  -webkit-background-clip: text; background-clip: text; color: transparent
+}
+
+/* Overall meter (Figma 883:126672 "Double ring", user-edited): grey track + gold arc, r 99.5, 9 px, clockwise from the top.
+   Arc length = --p (0-100, set on .attr-overall by renderAttr). A blurred dark disc (885:126950) sits behind the number so
+   the emblem noise shine never runs through the digits. */
+#s-attributes .attr-overall__backdrop { position: absolute; left: 97px; top: 215px; width: 140px; height: 140px; border-radius: 50%;
+  background: #141617; filter: blur(31.75px); pointer-events: none }
+#s-attributes .attr-overall__meter { position: absolute; left: 0; top: 0; width: 334px; height: 423px; overflow: visible; pointer-events: none }
+#s-attributes .attr-overall__track { fill: none; stroke: #2a2a2a; stroke-width: 9 }
+#s-attributes .attr-overall__arc { fill: none; stroke: url(#attrMeterGold); stroke-width: 9; stroke-dasharray: 100 100;
+  transition: stroke-dashoffset .45s cubic-bezier(.2, .7, .3, 1) }   /* stroke-dashoffset is an attribute set by renderAttr (CSS would override it) */
+#s-attributes .attr-overall__label { top: 313px; font-size: 20px; letter-spacing: .52px }
+/* the dark blurred disc behind the number hides while the card flashes gold on Confirm, then fades back (user 2026-11-19) */
+#s-attributes .attr-overall__backdrop { transition: opacity .18s ease-out }
+#s-attributes .attr-side.is-flash .attr-overall__backdrop { opacity: 0; transition: none }
+/* option B (user 2026-11-19, replaces A): the gold emblem outline noise is cut out in a soft circle around the Overall ring
+   (ring r 99.5 + 9 px stroke, centre 167,285 on the card = 167,242 inside .attr-emblem), so no line reaches the ring or the number */
+#s-attributes .attr-emblem {
+  -webkit-mask: radial-gradient(circle at 167px 242px, transparent 0, transparent 112px, #000 150px);
+  mask: radial-gradient(circle at 167px 242px, transparent 0, transparent 112px, #000 150px) }
+
+/* style_light (Figma 885:126957, user 2026-11-19): colour light from the top-left corner, tinted by the selected Tactical style
+   (--style-color, Phra Nakhon #e6003f). Figma gradient (0,0) -> (36 %, 50 %) of the frame = 127.7 deg, gone at ~40 % of the line */
+#s-attributes .attr__style-light { position: absolute; inset: 0; pointer-events: none; opacity: .35;
+  background: linear-gradient(127.7deg, var(--style-color, #e6003f) 0%, transparent 40.5%) }
+/* second style_light: white light from the left, masked to the fighter cut-out (Figma Mask group 895:68629) */
+#s-attributes .attr__fighter-light { position: absolute; left: 74px; top: 106px; width: 548px; height: 974px; pointer-events: none; opacity: .3;
+  background: linear-gradient(81deg, #fff -12%, transparent 100%);
+  -webkit-mask: url(../assets/img/attr-fighter-full.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/img/attr-fighter-full.png) 0 0 / 100% 100% no-repeat }

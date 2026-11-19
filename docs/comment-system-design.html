@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prototype Comments</title>
+<style>
+  :root { --bg:#0b0c10; --panel:#14161d; --panel2:#1b1e27; --line:#2a2d3a; --text:#e8e8ee; --dim:#9a9eab; --gold:#f4dd2f; --blue:#0d99ff;
+          --st-critical:#ff4060; --st-warning:#ff9f1a; --st-progress:#4da3ff; --st-review:#b48cff; --st-done:#3fd28b; --st-orphan:#6b6f7c; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 system-ui, "Segoe UI", "Noto Sans Thai", sans-serif; }
+  main { max-width:1280px; margin:0 auto; padding:28px 16px 90px; }
+  h1 { font-size:26px; margin:0 0 4px } h2 { font-size:19px; margin:44px 0 10px; padding-top:14px; border-top:1px solid var(--line) }
+  h3 { font-size:15px; margin:18px 0 6px; color:var(--gold) }
+  .sub { color:var(--dim) } code, pre { font:12.5px/1.5 Consolas, monospace }
+  pre { background:var(--panel); border:1px solid var(--line); padding:12px 14px; overflow:auto; border-radius:4px; margin:6px 0 }
+  table { border-collapse:collapse; width:100%; margin:6px 0 }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top }
+  th { background:#1a1d26; font-weight:600 } td code { color:#ffd98a }
+  .tw { overflow-x:auto }
+  .q { background:#1b1a10; border:1px solid #4a4420; padding:10px 14px; border-radius:4px; margin:8px 0 }
+  .q b { color:var(--gold) }
+  .ok { color:var(--st-done) } .no { color:var(--st-critical) }
+  .rec { border-left:3px solid var(--st-done); padding-left:10px }
+  .toc { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:13px; margin:10px 0 0 } .toc a { color:var(--dim) }
+  .pill { display:inline-flex; align-items:center; gap:6px; padding:1px 9px 1px 7px; border-radius:999px; font-size:12px; font-weight:600; background:#222532; white-space:nowrap }
+  .pill i { width:9px; height:9px; border-radius:50%; display:inline-block }
+
+  /* ---------- mockup ---------- */
+  .mockwrap { margin:10px 0 4px }
+  .mockbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:12.5px; color:var(--dim); margin-bottom:6px }
+  .mockbar button { font:inherit; color:var(--text); background:var(--panel2); border:1px solid var(--line); border-radius:4px; padding:3px 10px; cursor:pointer }
+  .mockbar button.on { border-color:var(--gold); color:var(--gold) }
+  .mock { position:relative; width:100%; aspect-ratio:16/9; background:#000; border:1px solid var(--line); overflow:hidden; user-select:none; container-type:inline-size }
+  .stage { position:absolute; inset:0; background:radial-gradient(120% 90% at 30% 40%, #2a2016 0, #0d0d10 60%); }
+  .stage[data-screen="store"] { background:radial-gradient(120% 90% at 70% 40%, #12202a 0, #0b0d12 60%); }
+  .el { position:absolute; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:#cfd2dc; font-size:1.1cqw; display:flex; align-items:center; justify-content:center; text-align:center }
+  .el.logo { color:var(--gold); font-weight:800; letter-spacing:.06em; font-size:1.5cqw; background:none; border:none }
+  .el.btn { background:#f4dd2f; color:#111; font-weight:800; border:none }
+  .el.tab { background:none; border:none; border-bottom:2px solid transparent; color:#aaa } .el.tab.cur { color:#fff; border-bottom-color:var(--gold) }
+  .el.hint { background:none; border:none; justify-content:flex-start; color:#aaa; font-size:1cqw }
+  .el.fighter { background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0)); border:none; color:#666 }
+  /* tools row (top right, outside the stage scale, like #tools) */
+  .tools { position:absolute; right:8px; top:8px; display:flex; flex-direction:column; align-items:flex-end; gap:6px; z-index:20 }
+  .tools .row { display:flex; gap:4px }
+  .chip { font:600 11px/1 system-ui, sans-serif; color:#ddd; background:rgba(30,30,30,.92); border:1px solid #383838; border-radius:6px; padding:6px 9px; cursor:pointer }
+  .chip b { color:var(--gold); margin-left:3px } .chip.on { background:var(--blue); border-color:var(--blue); color:#fff } .chip.on b { color:#fff }
+  .cbar { display:none; gap:4px; align-items:center; background:rgba(30,30,30,.95); border:1px solid #383838; border-radius:6px; padding:4px }
+  .mock.c-on .cbar { display:flex }
+  .seg { display:inline-flex } .seg .chip:first-child { border-radius:6px 0 0 6px } .seg .chip:last-child { border-radius:0 6px 6px 0; border-left:none }
+  .fat { font:11px system-ui; color:#999; padding:0 4px }
+  .el.gone { display:none }
+  .cbar .chip { padding:5px 8px } .cbar .sep { width:1px; height:16px; background:#383838 }
+  .kbd { font:600 10px/1 Consolas, monospace; color:#999; border:1px solid #444; border-radius:3px; padding:1px 4px; margin-left:4px }
+  /* overlay */
+  .ov { position:absolute; inset:0; z-index:10; pointer-events:none; display:none }
+  .mock.c-on .ov { display:block }
+  .mock.picking .stage { cursor:crosshair }
+  .hl { position:absolute; border:2px solid var(--blue); background:rgba(13,153,255,.08); pointer-events:none; display:none }
+  .hov { position:absolute; border:1px dashed #8fc7ff; background:rgba(143,199,255,.06); pointer-events:none; display:none }
+  .hov span { position:absolute; left:-1px; bottom:100%; margin-bottom:2px; background:rgba(20,32,43,.95); color:#8fc7ff; border:1px solid #8fc7ff; font:600 10.5px/1 system-ui; padding:3px 6px; white-space:nowrap; border-radius:3px }
+  .hov.pt { width:14px !important; height:14px !important; margin:-7px 0 0 -7px; border-radius:50%; border-style:solid }
+  .mockbar button:disabled { opacity:.4; cursor:not-allowed }
+  .hl span { position:absolute; left:-2px; top:-20px; background:var(--blue); color:#fff; font:600 10.5px/1 system-ui; padding:4px 6px; white-space:nowrap; border-radius:3px 3px 3px 0 }
+  .anchorbox { position:absolute; border:1px dashed rgba(255,255,255,.55); pointer-events:none; display:none }
+  .pin { position:absolute; width:26px; height:26px; margin:-26px 0 0 0; border-radius:50% 50% 50% 0; border:2px solid #fff; display:flex; align-items:center; justify-content:center;
+         font:700 11px/1 system-ui; color:#fff; pointer-events:auto; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.6); transition:transform .12s }
+  .pin:hover, .pin.open { transform:scale(1.15); transform-origin:0 100% }
+  .pin.orphan { background:var(--st-orphan) !important; border-style:dashed }
+  .pin.flash { animation:flash .9s 2 }
+  @keyframes flash { 50% { box-shadow:0 0 0 8px rgba(255,255,255,.35) } }
+  .thread { position:absolute; width:300px; max-height:78%; overflow:auto; background:#1e1e1e; border:1px solid #3a3a3a; border-radius:8px; pointer-events:auto; z-index:30;
+            box-shadow:0 8px 28px rgba(0,0,0,.6); font-size:12.5px; color:#e6e6e6; display:none }
+  .thread.show { display:block }
+  .th-head { display:flex; gap:6px; align-items:flex-start; padding:9px 10px 6px; border-bottom:1px solid #2e2e2e }
+  .th-title { flex:1; font-weight:700; font-size:13px; outline:none; border-radius:3px; padding:1px 3px }
+  .th-title[contenteditable="true"] { background:#2b2b2b; box-shadow:0 0 0 1px var(--blue) }
+  .ib { background:none; border:1px solid transparent; color:#aaa; cursor:pointer; border-radius:4px; font:12px/1 system-ui; padding:3px 5px } .ib:hover { border-color:#444; color:#fff }
+  .th-meta { display:flex; gap:6px; align-items:center; padding:6px 10px; border-bottom:1px solid #2e2e2e; font-size:11.5px; color:#999 }
+  select.st { font:600 11.5px system-ui; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:999px; padding:2px 6px }
+  .msg { padding:8px 10px; border-bottom:1px solid #262626; position:relative }
+  .msg .who { font-weight:700; font-size:12px } .msg .at { color:#888; font-size:11px; margin-left:6px }
+  .msg .txt { margin-top:2px; white-space:pre-wrap; outline:none; border-radius:3px }
+  .msg .txt[contenteditable="true"] { background:#2b2b2b; box-shadow:0 0 0 1px var(--blue); padding:2px 4px }
+  .msg .ed { color:#888; font-size:11px; font-style:italic }
+  .msg .acts { position:absolute; right:8px; top:6px; display:none; gap:2px } .msg:hover .acts { display:flex }
+  .reply { display:flex; gap:6px; padding:8px 10px }
+  .reply textarea, .composer textarea, .composer input { flex:1; width:100%; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:5px; font:12.5px/1.4 system-ui; padding:6px 8px; resize:none }
+  .send { background:var(--blue); color:#fff; border:none; border-radius:5px; font:700 12px system-ui; padding:0 12px; cursor:pointer }
+  .composer { padding:10px; display:flex; flex-direction:column; gap:6px }
+  .composer .row2 { display:flex; gap:6px; justify-content:space-between; align-items:center }
+  .anchorinfo { font:11px/1.4 Consolas, monospace; color:#8fc7ff; background:#14202b; border-radius:4px; padding:5px 7px }
+  /* side list */
+  .side { position:absolute; right:0; top:0; bottom:0; width:280px; background:#1a1a1a; border-left:1px solid #333; z-index:25; display:none; flex-direction:column; font-size:12.5px; color:#ddd }
+  .side.show { display:flex }
+  .side header { padding:10px; border-bottom:1px solid #2e2e2e; display:flex; flex-direction:column; gap:7px }
+  .side header .t { display:flex; justify-content:space-between; font-weight:700 }
+  .flt { display:flex; flex-wrap:wrap; gap:4px }
+  .flt button { font:600 11px system-ui; background:#262626; color:#bbb; border:1px solid #3a3a3a; border-radius:999px; padding:3px 8px; cursor:pointer; display:inline-flex; gap:5px; align-items:center }
+  .flt button.on { border-color:#ddd; color:#fff } .flt i { width:8px; height:8px; border-radius:50%; display:inline-block }
+  .side ol { list-style:none; margin:0; padding:0; overflow:auto; flex:1 }
+  .side li { padding:8px 10px; border-bottom:1px solid #262626; cursor:pointer } .side li:hover { background:#232323 }
+  .side li .l1 { display:flex; gap:6px; align-items:center } .side li .n { font-weight:700 } .side li .scr { margin-left:auto; color:#888; font-size:11px }
+  .side li .l2 { color:#aaa; font-size:11.5px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .side .grp { padding:6px 10px; background:#151515; color:#888; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em }
+  .toast { position:absolute; left:50%; bottom:14px; transform:translateX(-50%); background:#222; border:1px solid #444; color:#fff; font-size:12px; padding:6px 12px; border-radius:6px; z-index:40; display:none }
+  .legend { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 }
+  .flow { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:10px }
+  .flow div { background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:10px }
+  .flow b { color:var(--gold); display:block; margin-bottom:2px }
+</style>
+</head>
+<body>
+<main>
+  <h1>Prototype Comments — ร่างระบบ (ยังไม่สร้าง)</h1>
+  <div class="sub">mtx-controller-flow · Dev Tools · 2026-11-19 · หน้านี้ใช้รีวิวโครงสร้างก่อนเริ่มเขียนโค้ด mockup ด้านล่างคลิกได้ แต่ไม่บันทึกอะไร</div>
+  <div class="toc"><a href="#mock">Mockup</a><a href="#flow">Flow</a><a href="#status">Status</a><a href="#anchor">Anchor</a><a href="#model">Data model</a><a href="#storage">Storage</a><a href="#sync">Sync + สิทธิ์</a><a href="#backup">Backup</a><a href="#devtools">Dev Tools</a><a href="#phases">Phases</a><a href="#questions">คำถาม</a></div>
+
+  <h2 id="mock">1. Mockup (คลิกได้)</h2>
+  <div class="sub">ลอง: <b>Play</b> = คลิกเล่น prototype ได้ปกติ ไม่เห็นหมุด (ลองกด tab Packs ในหน้า Store) · <b>Comment</b> (หรือ <code>Shift+C</code>) = เมาส์ใช้ทำ comment อย่างเดียว และ prototype ถูกล็อก (ปุ่ม Main/Store ด้านบนกดไม่ได้): <b>ชี้</b> = กรอบเส้นประ + ชื่อ element ที่จะเลือก · <b>คลิก</b> = กรอบทึบ + ช่องเขียน · <code>Alt+คลิก</code> = จุด x,y ไม่ผูก element · คลิกหมุด = เปิด thread · <b>↻ Fetch</b> = ดึงของใหม่ (mock: มีคนตอบ thread #2) · <code>Esc</code> = ปิด thread</div>
+  <div class="mockwrap">
+    <div class="mockbar">Screen ในตัวอย่าง:
+      <button type="button" data-goto="main" class="on">Main</button><button type="button" data-goto="store">Store</button>
+      <span style="margin-left:auto">คุณคือ <b id="meName">nattaset</b> (ใน mock)</span>
+    </div>
+    <div class="mock" id="mock" tabindex="0">
+      <div class="stage" id="stage" data-screen="main"></div>
+      <div class="ov" id="ov"><div class="anchorbox" id="abox"></div><div class="hov" id="hov"><span></span></div><div class="hl" id="hl"><span></span></div></div>
+      <div class="tools">
+        <div class="row">
+          <button class="chip" type="button">Log <b>0</b></button>
+          <button class="chip" type="button">Dev</button>
+          <span class="seg"><button class="chip on" type="button" id="playBtn" title="Play mode (Shift+C)">Play</button><button class="chip" type="button" id="cBtn" title="Comment mode (Shift+C)">Comment <b id="cCount">0</b></button></span>
+          <button class="chip" type="button">Hide UI</button>
+        </div>
+        <div class="cbar">
+          <button class="chip" type="button" id="fetchBtn" title="Fetch new comments">↻ Fetch</button>
+          <span class="fat" id="fetchAt">updated just now</span>
+          <span class="sep"></span>
+          <button class="chip" type="button" id="doneBtn" title="Show / hide Complete">Show Complete</button>
+          <button class="chip" type="button" id="listBtn" title="Thread list (L)">List<span class="kbd">L</span></button>
+        </div>
+      </div>
+      <div class="thread" id="thread"></div>
+      <aside class="side" id="side">
+        <header>
+          <div class="t"><span>Comments</span><button class="ib" type="button" id="sideClose">×</button></div>
+          <div class="flt" id="fltScope"><button type="button" data-scope="screen" class="on">This screen</button><button type="button" data-scope="all">All screens</button><button type="button" data-scope="mine">Mine</button></div>
+          <div class="flt" id="fltStatus"></div>
+        </header>
+        <ol id="sideList"></ol>
+      </aside>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+  <h2 id="flow">2. Interaction flow</h2>
+  <div class="flow">
+    <div><b>2 โหมด: Play / Comment</b>ปุ่มคู่ <code>Play | Comment n</code> ในแถว <code>#tools</code> (ข้าง Dev) + คีย์ <code>Shift+C</code> สลับ (<code>C</code> เดี่ยวเป็น R2 อยู่แล้ว) · ตัวเลข = thread ที่ยังไม่ Complete ของหน้านี้ (ไม่ต้องเข้าโหมดก็เห็น) · <code>Hide UI</code> (H) ซ่อนด้วย</div>
+    <div><b>Play</b>ไม่มีหมุดบนจอเลย · เมาส์ / คีย์ / จอย คุม prototype ปกติ · ใช้เปลี่ยนหน้า เปลี่ยน tab ไปหาจุดที่จะ comment</div>
+    <div><b>Comment</b>เมาส์ใช้ทำ comment <b>อย่างเดียว</b> คลิกไม่ส่งต่อให้ prototype (ดักใน capture phase) · <b>ชี้ (hover)</b> = กรอบเส้นประฟ้า + ป้ายชื่อ (<code>data-figma</code> หรือ selector) บอกว่ากำลังจะเลือกอะไร · กด <code>Alt</code> ค้าง ป้ายเปลี่ยนเป็นจุด x,y · <b>คลิก</b> = กรอบทึบ highlight element นั้น + ช่องเขียน comment · <code>Alt+คลิก</code> = จุด x,y เปล่า · <b>prototype ล็อกทั้งหมด</b> (คีย์บอร์ด / จอย / เมาส์ ไม่ไปถึง) จนกว่าจะกลับไป Play · ยกเว้น jump จาก List ที่เปลี่ยนหน้าให้เอง</div>
+    <div><b>เขียน</b>กล่องขึ้นข้างจุด: Title, ข้อความ, Status (ค่าเริ่ม <b>Warning</b>) · <code>Ctrl+Enter</code> ส่ง · ส่งแล้วหมุดขึ้นทันที · ระหว่างพิมพ์ คีย์ไม่ไปถึง prototype</div>
+    <div><b>หมุด</b>สีตาม status, ตัวเลข = ลำดับ thread · <b>คลิก</b> = เปิด thread + highlight element ที่ผูก · คลิกที่อื่น / Esc = ปิด · ขนาดคงที่ ไม่ย่อตามสเกล stage · <b>โชว์เฉพาะเมื่อ element นั้นแสดงอยู่บนจอจริง</b> (หน้าอื่น / tab อื่น / ถูกซ่อน = ไม่มีหมุด)</div>
+    <div><b>ใน thread</b>Reply · แก้ Title (ดินสอ) · เปลี่ยน Status (dropdown) · แก้/ลบข้อความตัวเอง (โผล่เมื่อชี้) · แสดง "(edited)" · ลบ thread = เมนู ⋯</div>
+    <div><b>List</b><code>L</code> → แผงขวา: This screen / All screens / Mine + ตัวกรอง status · คลิกแถว = ไป screen นั้น (<code>MTX.show(key)</code>) + เปิด tab ที่บันทึกไว้ (ถ้ามี) + หมุดกะพริบ + เปิด thread</div>
+  </div>
+
+  <h2 id="status">3. Status</h2>
+  <div class="legend" id="statusLegend"></div>
+  <div class="sub">ใช้สี + ชื่อเต็มเสมอ (ไม่ใช้สีอย่างเดียว) · Complete เก็บถาวรจนกว่าจะมีคนลบเอง · หมุดของ Complete ซ่อนจากจอโดยค่าเริ่ม (ปุ่ม Show Complete) แต่ยังอยู่ใน List เสมอ · ลำดับปกติ: Warning/Critical (คนแจ้ง) → In progress (คนแก้) → Waiting for review → Complete · หมุดเทา + เส้นประ = orphan (หา element เดิมไม่เจอ) ไม่ใช่ status เป็นแค่การแสดงผล</div>
+
+  <h2 id="anchor">4. Anchor + fallback</h2>
+  <p>ตอนปัก เก็บทั้ง 3 อย่างพร้อมกัน แล้วตอนแสดงผลลองตามลำดับ:</p>
+  <div class="tw"><table>
+    <tr><th>#</th><th>วิธี</th><th>ตอนปัก</th><th>ตอนแสดง</th></tr>
+    <tr><td>1</td><td><code>figma</code></td><td>ค่า <code>data-figma</code> ของ element ที่คลิก หรือ ancestor ที่ใกล้ที่สุดที่มี (+ <code>dx,dy</code> = จุดที่คลิกเป็นสัดส่วน 0–1 ในกรอบนั้น)</td><td>หาใน <code>section.screen[data-screen]</code> นั้น ถ้าเจอ <b>ตัวเดียว</b> → วางหมุดที่กรอบ + dx,dy</td></tr>
+    <tr><td>2</td><td><code>selector</code></td><td>path สั้นจาก screen root เช่น <code>#s-store .store__grid &gt; :nth-child(3)</code> (ใช้ id / data-id / data-bind ก่อน nth-child)</td><td>ใช้เมื่อ 1 ไม่เจอ หรือ data-figma ซ้ำกัน (ตอนนี้มีซ้ำ 6 ค่า เช่น <code>1:854 Shop button</code>) หรือ element สร้างจาก JS ไม่มี data-figma</td></tr>
+    <tr><td>3</td><td><code>x,y</code></td><td>จุดบน stage 1920×1080 (คิดกลับจาก scale ของ <code>#stage</code>)</td><td>ใช้เสมอถ้า 1–2 ไม่เจอ · ถ้าเดิมผูก element ไว้แต่ตอนนี้หาไม่เจอ → หมุดเทา "orphan" + ปุ่ม <b>Re-anchor</b> ใน thread (ปักใหม่ ไม่เปลี่ยนข้อความ)</td></tr>
+  </table></div>
+  <ul>
+    <li>ถ้าคลิกแบบ <code>Alt</code> (จุดเปล่า) เก็บแค่ x,y → ไม่มีวัน orphan</li>
+    <li>element ถูกซ่อน (<code>hidden</code>, ขนาด 0, อยู่ใน tab อื่น) = ไม่โชว์หมุดบนจอ แต่ยังอยู่ใน List · ถ้ามี <code>tab</code> แล้วไม่ตรงกับ tab ปัจจุบันก็ซ่อนเหมือนกัน</li>
+    <li><code>tab</code> / overlay: screen ที่มี tab หรือ dialog/modal เปิดอยู่ ให้แต่ละ screen ตอบเองผ่าน hook เล็ก ๆ <code>MTX_SCREENS[key].commentCtx?.()</code> → เช่น <code>"tab:perk"</code>, <code>"modal:buy"</code> · ไม่มี hook = ไม่เก็บ tab</li>
+    <li>หมุดวาดในชั้นนอก stage (ไม่โดน scale) แล้วคำนวณตำแหน่งจาก <code>getBoundingClientRect()</code> · อัปเดตเมื่อ resize, เปลี่ยน screen, scroll ใน list (rAF ทุก 250 ms ตอนเปิด overlay)</li>
+  </ul>
+
+  <h2 id="model">5. Data model</h2>
+<pre>Thread {
+  id:        "c_7f3k9a"                    // สุ่มฝั่ง server
+  proto:     "controller-flow"             // ชื่อ prototype (ตอนนี้มีตัวเดียว)
+  screen:    "store"                       // section.screen[data-screen]
+  tab?:      "tab:packs"                   // จาก commentCtx() ถ้ามี
+  anchor: {
+    figma?:    "128:99 Store",             // data-figma ของ element / ancestor
+    selector?: "#s-store .store__grid > :nth-child(3)",
+    dx?: 0.42, dy?: 0.18,                  // จุดในกรอบ element (0–1)
+    x: 1312, y: 486                        // จุดบน stage 1920×1080 (ใช้เสมอ)
+  },
+  title:     "ราคาไม่ตรงกับ Figma",
+  status:    "critical" | "warning" | "progress" | "review" | "done",
+  author:    "nattaset@squadxstudio.com",  // server ใส่จาก Cloudflare Access, client ส่งเองไม่ได้
+  createdAt: 1763540000000, updatedAt: 1763541200000,   // เวลา server (ms)
+  build?:    "a1b2c3d",                    // commit ของ prototype ตอนปัก (ช่วยดูว่าเห็นเวอร์ชันไหน)
+  deleted?:  false,                        // ลบแบบ soft · กู้ได้
+  messages: [
+    { id: "m_1", author: "nattaset@...", text: "...", at: 1763540000000, editedAt?: 1763540100000 }
+  ]
+}</pre>
+  <div class="sub">ข้อความแรกของ thread = message[0] (ไม่มีช่อง body แยก) · ไม่มีแนบรูป (ตัดสินแล้ว)</div>
+
+  <h2 id="storage">6. Storage</h2>
+  <h3>แนะนำ: <code>/api/comments</code> บน Durable Object เดิมของ mtxworkingstation</h3>
+  <div class="rec">
+  <ul>
+    <li>prototype ถูกเสิร์ฟที่ <code>/prototypes/controller-flow/</code> โดเมนเดียวกับ API → fetch ได้ตรง ๆ ไม่มี CORS, cookie ของ Access ติดไปเอง</li>
+    <li>ตัวตนจาก <code>accessUser()</code> ที่มีอยู่แล้ว (JWT <code>Cf-Access-Jwt-Assertion</code>, ต้องเป็น @squadxstudio.com) → server เขียน <code>author</code> เอง ปลอมไม่ได้ · ชื่อที่โชว์ใช้ส่วนหน้า @ (แบบ <code>mtx-user.js</code>)</li>
+    <li>เก็บใน DO <code>Store</code> ("mtx-team") ตารางใหม่ <code>comments</code> (1 แถว = 1 thread, JSON) + ตัวนับ <code>crev</code> แยกจาก <code>rev</code> ของ docs → poll comment ไม่ทำให้ wiki/tools ดึงข้อมูลใหม่ทั้งก้อน</li>
+  </ul>
+  </div>
+  <div class="tw"><table>
+    <tr><th>Method</th><th>Path</th><th>ทำอะไร</th></tr>
+    <tr><td>GET</td><td><code>/api/comments?proto=controller-flow&amp;since=42</code></td><td><code>{crev, me, threads:[ที่เปลี่ยนหลัง 42]}</code> · <code>since</code> ว่าง = ทั้งหมด · ไม่มีอะไรใหม่ = <code>{crev, unchanged:true}</code></td></tr>
+    <tr><td>POST</td><td><code>/api/comments</code></td><td>body = 1 op: <code>create</code> · <code>reply</code> · <code>editMsg</code> · <code>deleteMsg</code> · <code>editTitle</code> · <code>status</code> · <code>reanchor</code> · <code>delete</code> · <code>restore</code> → <code>{ok, crev, thread}</code> · server ตรวจสิทธิ์ต่อ op</td></tr>
+  </table></div>
+  <div class="sub">ส่งเป็น op ทีละเรื่อง (ไม่ส่งทั้ง thread) → สองคนตอบพร้อมกันไม่ทับกัน · แก้ title/status พร้อมกัน = คนหลังชนะ</div>
+
+  <h3>ตอน dev บนเครื่อง (127.0.0.1:8765)</h3>
+  <div class="tw"><table>
+    <tr><th></th><th>วิธี</th><th>ข้อดี / ข้อเสีย</th></tr>
+    <tr><td class="ok">แนะนำ</td><td><code>tools/bake-server.mjs</code> เพิ่ม route <code>/__comments</code> (API เหมือนกันทุก op) เก็บใน <code>.work/comments.json</code> · author = ชื่อที่ตั้งใน Dev Tools (เก็บ localStorage)</td><td>ใช้ offline ได้ ไม่ต้องมี token · ข้อมูลแยกจากทีม (ไม่เปื้อนของจริง) · client เลือก base เอง: path ขึ้นต้น <code>/prototypes/</code> → <code>/api/comments</code>, localhost → <code>/__comments</code></td></tr>
+    <tr><td>ทางเลือก</td><td>bake-server proxy <code>/__comments</code> → เว็บจริง ด้วย Access <b>service token</b> (ไฟล์ <code>.env.local</code> ไม่ commit)</td><td>เห็นคอมเมนต์จริงของทีมตอน dev · แต่ author จะเป็น service token → ต้องให้ worker รับ header ชื่อคนเมื่อเป็น service token = ช่องโหว่เพิ่ม · แนะนำแค่ <b>อ่านอย่างเดียว</b> ถ้าจะทำ</td></tr>
+    <tr><td>ไม่มี server</td><td>เปิดผ่าน <code>python -m http.server</code> / file://</td><td>chip Comments ขึ้น "offline" กดไม่ได้ · ไม่มี fallback localStorage (กันคอมเมนต์ค้างอยู่เครื่องเดียวโดยไม่รู้ตัว)</td></tr>
+  </table></div>
+
+  <h3>ทางที่ไม่เลือก</h3>
+  <div class="tw"><table>
+    <tr><th>ทางเลือก</th><th>เหตุผลที่ไม่เลือก</th></tr>
+    <tr><td><code>/api/store</code> เดิม (path <code>comments_cf/&lt;id&gt;</code>)</td><td>ไม่ต้องแก้ worker และ backup ฟรี แต่: GET ส่ง docs ทั้งทีมกลับมาทุกครั้งที่ rev เปลี่ยน, ทุกคอมเมนต์ทำให้ wiki/tools ดึงใหม่, server ไม่ใส่ author ให้ (ปลอมได้), ทุกคนลบ/แก้ของทุกคนได้</td></tr>
+    <tr><td>localStorage อย่างเดียว</td><td>เห็นคนเดียว แชร์ไม่ได้</td></tr>
+    <tr><td>ไฟล์ JSON ใน git repo</td><td>ต้อง commit/push ทุกคอมเมนต์ · ไม่ realtime · ต้องผ่าน lead รีวิว</td></tr>
+    <tr><td>Firebase / Supabase / Neon</td><td>บริการ + login แยกอีกชุด, ข้อมูลอยู่นอก Access, ต้องดูแล key · ไม่ได้อะไรเพิ่มจาก DO ที่มีอยู่</td></tr>
+    <tr><td>Figma comments API</td><td>ต้อง token Figma ต่อคน, ผูกกับ node Figma ไม่ใช่ element ใน prototype, คนที่ไม่มี seat ใช้ไม่ได้</td></tr>
+  </table></div>
+
+  <h2 id="sync">7. Sync + สิทธิ์</h2>
+  <h3>ทำไมไม่ poll ตลอด</h3>
+  <ul>
+    <li>Cloudflare แพ็กเกจฟรี: Workers ได้ประมาณ <b>100,000 request / วัน</b> รวมทั้งเว็บ (Durable Object ก็มีโควตารายวันแยก) · ต้องเช็กหน้า pricing ของ Cloudflare อีกครั้งก่อนสร้าง</li>
+    <li>poll ทุก 4 s = <b>900 request / ชม. / แท็บ</b> · 10 คนเปิดทิ้ง 8 ชม. = <b>72,000</b> · และ QA Tracker ก็ poll ทุก 4 s อยู่แล้ว ใช้โควตาก้อนเดียวกัน → เสี่ยงหมด</li>
+  </ul>
+  <h3 class="rec">แนะนำ: Fetch ตามจังหวะ + ปุ่ม ↻ Fetch</h3>
+  <div class="tw"><table>
+    <tr><th>ดึงเมื่อ</th><th>หมายเหตุ</th></tr>
+    <tr><td>เปิดหน้า prototype</td><td>1 ครั้ง เพื่อได้เลขบนปุ่ม Comment</td></tr>
+    <tr><td>สลับเข้าโหมด Comment</td><td>1 ครั้ง</td></tr>
+    <tr><td>กด <b>↻ Fetch</b></td><td>ข้างปุ่มบอก "updated 3 min ago"</td></tr>
+    <tr><td>หลังส่ง / ตอบ / แก้ของตัวเอง</td><td>server ตอบ thread ล่าสุดกลับมาในคำตอบเดียวกัน (ไม่ต้องยิงเพิ่ม)</td></tr>
+  </table></div>
+  <ul>
+    <li><code>GET ?since=crev</code> ถ้าไม่มีอะไรใหม่ ได้ <code>{unchanged:true}</code> สั้น ๆ · เปลี่ยนหน้าไม่ต้องดึงใหม่ (ดึงทุกหน้าของ prototype มาครั้งเดียว แล้วกรองบนเครื่อง)</li>
+    <li>ประมาณการ: คนละ ~20–50 request / วัน → 10 คน ≈ 500 / วัน (&lt; 1% ของโควตา)</li>
+    <li><b>Toast แจ้งคนอื่น:</b> fetch แล้วเจอของใหม่ที่คนอื่นเขียน → toast มุมจอ เช่น "pim commented on Store · #12" (คลิก = กระโดดไปที่ thread) · ขึ้นทั้งโหมด Play และ Comment · ไม่ realtime จึงเพิ่ม <b>เช็กเบา ๆ ทุก 3 นาที</b> ตอนแท็บเปิดอยู่ (ไม่มีของใหม่ = คำตอบสั้น <code>unchanged</code>) ≈ 160 request / คน / วัน → 10 คน ≈ 1,600 (~1.6% ของโควตา) · ปรับ / ปิดได้ใน Dev Tools · อยากเห็นทันทีต้อง realtime (Phase 3)</li>
+    <li>ส่ง op แล้วจออัปเดตทันที (optimistic) · server ตอบ error → ถอยกลับ + toast · ดึงไม่สำเร็จ → ปุ่มขึ้น "offline"</li>
+    <li>ถ้าคนอื่นแก้ข้อความที่เรากำลังพิมพ์อยู่ → ไม่ทับช่องที่พิมพ์ ขึ้นแถบ "มีการแก้ใหม่"</li>
+  </ul>
+  <h3>ถ้าอยาก realtime (ทีหลัง)</h3>
+  <ul>
+    <li>ใช้ WebSocket ไปที่ Durable Object แบบ <b>Hibernation</b>: เปิดเฉพาะตอนอยู่ในโหมด Comment, server ส่งเฉพาะตอนมีคนโพสต์ → ไม่มีการยิงซ้ำทุก 4 s · ตอนเงียบ DO หลับ ไม่กินเวลา</li>
+    <li>ใช้โควตาน้อยกว่า poll มาก แต่ต้องเขียนเพิ่มทั้ง worker + client และ Access ต้องผ่าน WebSocket ได้ → เก็บไว้ Phase 3 · API ฝั่ง client ออกแบบให้สลับจาก Fetch เป็น WebSocket ได้โดยไม่แก้ UI</li>
+  </ul>
+  <div class="tw"><table>
+    <tr><th>ทำอะไร</th><th>ใครทำได้ (ร่าง)</th></tr>
+    <tr><td>ดู / สร้าง thread / reply</td><td>ทุกคนที่ login @squadxstudio.com</td></tr>
+    <tr><td>แก้ / ลบ ข้อความ</td><td>เจ้าของข้อความเท่านั้น</td></tr>
+    <tr><td>แก้ Title · Re-anchor</td><td>คนเปิด thread + Admin</td></tr>
+    <tr><td>เปลี่ยน Status</td><td><b>ทุกคน</b> (บันทึกว่าใครเปลี่ยนเป็น message ระบบ "nattaset → Complete")</td></tr>
+    <tr><td>ลบ thread (soft) / กู้คืน</td><td>คนเปิด thread + Admin</td></tr>
+  </table></div>
+  <div class="sub">Admin = รายชื่ออีเมลใน variable <code>COMMENT_ADMINS</code> ของ worker (ตั้งใน dashboard, <code>keep_vars</code> เปิดอยู่แล้ว)</div>
+
+  <h2 id="backup">8. Backup</h2>
+  <ul>
+    <li>มี backup อัตโนมัติทุกวัน 03:00 (cron <code>0 20 * * *</code>) เก็บ 30 ชุด แต่ <code>backup()</code> ตอนนี้เก็บแค่ตาราง <code>docs</code> → ต้องเพิ่มตาราง <code>comments</code> เข้าไปในก้อนเดียวกัน (<code>{docs, comments}</code>) และ <code>restore</code> ให้รู้จัก · แก้ไม่กี่บรรทัด</li>
+    <li>ลบเป็น soft delete (<code>deleted:true</code>) → กู้ได้ทันทีจาก List (ตัวกรอง "Deleted" เฉพาะ Admin) โดยไม่ต้องใช้ backup</li>
+  </ul>
+
+  <h2 id="devtools">9. ที่ทางใน Dev Tools</h2>
+  <ul>
+    <li>ปุ่มหลักอยู่ที่แถว <code>#tools .row</code> (Log · Dev · <b>Comments</b> · Hide UI · Fullscreen) ไม่ได้อยู่ใน tab ของ Dev modal → ไม่ชนกับงาน "Restructure Dev Tools: per-style params + one JSON" ที่กำลังจัด tab ใหม่</li>
+    <li>ค่าตั้งของ comment (ชื่อที่ใช้ตอน dev, Show Complete, เช็กของใหม่ทุก N นาที / ปิด, ขนาดหมุด) ใส่เป็น <b>section "Comments" เล็ก ๆ</b> ในกลุ่ม System/Inspect ของ layout ใหม่ · <b>ไม่</b> เข้า JSON ของ style params (เป็นค่าต่อเครื่อง เก็บ localStorage <code>mtx.comments.*</code>)</li>
+    <li>ไฟล์ใหม่ทั้งหมด: <code>mtx/js/dev-comments.js</code> + <code>mtx/css/dev-comments.css</code> · แก้ไฟล์ร่วมแค่: 1 บรรทัด script/link ใน <code>index.html</code>, 1 chip ในแถว tools, event <code>mtx:screen</code> ใน <code>show()</code> ของ <code>app.js</code> · ทำหลังงาน restructure เสร็จ</li>
+    <li>ระหว่าง pick / พิมพ์: keydown handler ของ app ข้ามอยู่แล้วเมื่อ target อยู่ใน <code>#tools</code> → วาง UI comment ไว้ใต้ <code>#tools</code></li>
+  </ul>
+
+  <h2 id="phases">10. Phases</h2>
+  <div class="tw"><table>
+    <tr><th>Phase</th><th>ได้อะไร</th><th>แตะไฟล์</th></tr>
+    <tr><td><b>1 Local</b></td><td>โหมด Play / Comment, คลิกปัก + highlight, หมุดตาม element ที่แสดงอยู่, thread (reply / แก้ title / status / แก้-ลบข้อความ), List + filter + jump, ↻ Fetch · เก็บ <code>.work/comments.json</code> ผ่าน bake-server</td><td>prototype: ไฟล์ใหม่ 2 + hook เล็ก 3 จุด · <code>tools/bake-server.mjs</code></td></tr>
+    <tr><td><b>2 Team</b></td><td><code>/api/comments</code> + ตาราง + สิทธิ์ + backup · publish แล้วทีมใช้ได้ที่ <code>/prototypes/controller-flow/</code></td><td>mtxworkingstation <code>worker/index.js</code> (ต้อง lead รีวิว + deploy)</td></tr>
+    <tr><td><b>3 เสริม</b></td><td>Realtime (WebSocket Hibernation) ถ้าต้องการ, <code>commentCtx()</code> ใน screen ที่มี tab, Re-anchor, ตัวกรอง Deleted, ส่งต่อไป QA Tracker (ถ้าต้องการ)</td><td>ตามที่เลือก</td></tr>
+  </table></div>
+
+  <h2 id="questions">11. ตัดสินแล้ว (2026-11-19)</h2>
+  <div class="tw"><table>
+    <tr><th>#</th><th>เรื่อง</th><th>คำตอบ</th></tr>
+    <tr><td>1</td><td>ใครเปลี่ยน Status ได้</td><td>ทุกคน (มี log ใน thread ว่าใครเปลี่ยน)</td></tr>
+    <tr><td>2</td><td>Complete</td><td>เก็บถาวรจนกว่าจะลบเอง · หมุดซ่อนโดยค่าเริ่ม ยังอยู่ใน List</td></tr>
+    <tr><td>3</td><td>แจ้งเตือน</td><td>Toast บนจอคนอื่นเมื่อมี comment / reply ใหม่ (เห็นตอน fetch / เช็กทุก 3 นาที)</td></tr>
+    <tr><td>4</td><td>List รวมหรือแยก prototype</td><td>ตอนนี้มี prototype เดียว (controller-flow) จึงไม่มีผล · เก็บชื่อ prototype ไว้ในข้อมูลเผื่ออนาคต · List โชว์เฉพาะ prototype ที่เปิดอยู่</td></tr>
+    <tr><td>5</td><td>แนบรูป</td><td>ไม่ทำ</td></tr>
+    <tr><td>6</td><td>Status ค่าเริ่ม</td><td>Warning (คนแจ้งปรับเป็น Critical ได้)</td></tr>
+    <tr><td>7</td><td>คีย์บอร์ด / จอยในโหมด Comment</td><td>ล็อกทั้งหมดจนกว่าจะกลับไป Play (jump จาก List ยังพาไปหน้านั้นได้)</td></tr>
+  </table></div>
+</main>
+
+<script>
+(() => {
+  const ST = [
+    { k: "critical", n: "Critical", c: "var(--st-critical)" },
+    { k: "warning", n: "Warning", c: "var(--st-warning)" },
+    { k: "progress", n: "In progress", c: "var(--st-progress)" },
+    { k: "review", n: "Waiting for review", c: "var(--st-review)" },
+    { k: "done", n: "Complete", c: "var(--st-done)" },
+  ];
+  const stOf = k => ST.find(s => s.k === k);
+  const ME = "nattaset";
+  const SCREENS = {
+    main: [
+      { f: "2:2273 Layer_1 (logo)", cls: "logo", x: 60, y: 50, w: 260, h: 90, t: "MUAY THAI XTREME" },
+      { f: "1:6345 Main Menus", x: 70, y: 260, w: 420, h: 420, t: "Main Menus" },
+      { f: "1:6349 Character-lobby-Light1 3", cls: "fighter", x: 700, y: 140, w: 520, h: 800, t: "Fighter" },
+      { f: "1:854 Shop button", x: 1380, y: 260, w: 460, h: 160, t: "Shop" },
+      { f: "1:6496 News stack", x: 1380, y: 450, w: 460, h: 330, t: "News stack" },
+      { f: "Play button", cls: "btn", x: 1380, y: 810, w: 460, h: 90, t: "QUICK FIGHT" },
+      { f: "hint-bar", cls: "hint", x: 60, y: 990, w: 700, h: 50, t: "Ⓐ Select   Ⓑ Back   ☰ Options" },
+    ],
+    store: [
+      { f: "2:2273 Layer_1 (logo)", cls: "logo", x: 60, y: 50, w: 260, h: 90, t: "MUAY THAI XTREME" },
+      { f: "tab Featured", cls: "tab", tabBtn: "featured", x: 520, y: 70, w: 180, h: 60, t: "Featured" },
+      { f: "tab Packs", cls: "tab", tabBtn: "packs", x: 720, y: 70, w: 180, h: 60, t: "Packs" },
+      { f: "128:99 Store", tab: "featured", x: 60, y: 190, w: 900, h: 760, t: "Hero offer (1:2)" },
+      { f: null, sel: "#s-store .store__grid > :nth-child(1)", tab: "featured", x: 1000, y: 190, w: 420, h: 370, t: "Item (no data-figma)" },
+      { f: null, sel: "#s-store .store__grid > :nth-child(2)", tab: "featured", x: 1440, y: 190, w: 420, h: 370, t: "Item (no data-figma)" },
+      { f: "Pack grid", tab: "packs", x: 60, y: 190, w: 1800, h: 760, t: "Packs grid (tab Packs)" },
+      { f: "hint-bar", cls: "hint", x: 60, y: 990, w: 700, h: 50, t: "Ⓐ Buy   Ⓑ Back   LB/RB Tabs" },
+    ],
+  };
+  let threads = [
+    { id: 1, screen: "main", anchor: { figma: "1:854 Shop button", dx: .82, dy: .3, x: 1757, y: 308 }, title: "Shop button โลโก้ชิดขอบเกิน", status: "critical",
+      author: "pim", messages: [{ id: 1, author: "pim", text: "ไอคอนชิดขอบขวา ต่างจาก Figma 12px", at: "10:02" }, { id: 2, author: "nattaset", text: "รับทราบ จะแก้รอบนี้", at: "10:15" }] },
+    { id: 2, screen: "main", anchor: { figma: "1:6496 News stack", dx: .1, dy: .1, x: 1426, y: 483 }, title: "News ต้องเลื่อนอัตโนมัติมั้ย", status: "review",
+      author: "nattaset", messages: [{ id: 1, author: "nattaset", text: "ตอนนี้ไม่เลื่อน รอ lead ตัดสิน", at: "เมื่อวาน" }] },
+    { id: 3, screen: "main", anchor: { figma: "9:999 Old event banner", x: 560, y: 200 }, title: "Banner event (ถูกลบไปแล้ว)", status: "warning", orphan: true,
+      author: "pim", messages: [{ id: 1, author: "pim", text: "ข้อความบน banner ยาวเกิน", at: "2 วันก่อน" }] },
+    { id: 4, screen: "store", anchor: { selector: "#s-store .store__grid > :nth-child(2)", dx: .5, dy: .8, x: 1650, y: 486 }, title: "ราคา R ไม่ตรง", status: "progress",
+      author: "nattaset", messages: [{ id: 1, author: "nattaset", text: "ราคาในการ์ดใช้ mock อยู่", at: "09:40" }] },
+    { id: 5, screen: "store", anchor: { x: 300, y: 1010 }, title: "Hint bar ใช้ LB/RB ถูกแล้ว", status: "done",
+      author: "pim", messages: [{ id: 1, author: "pim", text: "OK", at: "3 วันก่อน" }] },
+    { id: 6, screen: "store", anchor: { figma: "Pack grid", dx: .3, dy: .3, x: 600, y: 418 }, title: "Pack grid ช่องห่างไม่เท่ากัน", status: "warning",
+      author: "pim", messages: [{ id: 1, author: "pim", text: "แถวสองห่างกว่าแถวแรก", at: "11:20" }] },
+  ];
+  let nextId = 7, cur = "main", tab = { store: "featured" }, on = false, showDone = false, openId = null, editing = null, fetchedAt = Date.now(), fetchN = 0;
+  let scope = "screen"; const stFilter = new Set(ST.map(s => s.k));
+  const $ = s => document.querySelector(s);
+  const hov = $("#hov"), mock = $("#mock"), stage = $("#stage"), ov = $("#ov"), hl = $("#hl"), thread = $("#thread"), side = $("#side"), abox = $("#abox");
+
+  $("#statusLegend").innerHTML = ST.map(s => `<span class="pill"><i style="background:${s.c}"></i>${s.n}</span>`).join("") +
+    `<span class="pill"><i style="background:var(--st-orphan)"></i>Orphan (แสดงผล)</span>`;
+
+  const pct = (v, of) => (v / of * 100) + "%";
+  const elShown = e => !e.tab || tab[cur] === e.tab;
+  function drawStage() {
+    stage.dataset.screen = cur;
+    stage.innerHTML = SCREENS[cur].map((e, i) => `<div class="el ${e.cls || ""}${e.tabBtn && tab[cur] === e.tabBtn ? " cur" : ""}${elShown(e) ? "" : " gone"}" data-i="${i}" ${e.f ? `data-figma="${e.f}"` : ""} style="left:${pct(e.x, 1920)};top:${pct(e.y, 1080)};width:${pct(e.w, 1920)};height:${pct(e.h, 1080)}">${e.t}</div>`).join("");
+    document.querySelectorAll("[data-goto]").forEach(b => b.classList.toggle("on", b.dataset.goto === cur));
+  }
+  // the element a thread is tied to: undefined = point only, null = gone (orphan), else the element data
+  const anchorEl = t => (!t.anchor.figma && !t.anchor.selector) ? undefined
+    : (SCREENS[t.screen].find(e => (t.anchor.figma && e.f === t.anchor.figma) || (t.anchor.selector && e.sel === t.anchor.selector)) || null);
+  // pin shows only on its screen, and only while its element is on screen
+  const pinShown = t => {
+    if (t.deleted || t.screen !== cur || (!showDone && t.status === "done")) return false;
+    const e = anchorEl(t);
+    return e === undefined || e === null || elShown(e);
+  };
+  function drawPins() {
+    ov.querySelectorAll(".pin").forEach(p => p.remove());
+    if (on) threads.filter(pinShown).forEach(t => {
+      const p = document.createElement("div");
+      p.className = "pin" + (anchorEl(t) === null ? " orphan" : "") + (openId === t.id ? " open" : "");
+      p.style.left = pct(t.anchor.x, 1920); p.style.top = pct(t.anchor.y, 1080);
+      p.style.background = stOf(t.status).c; p.textContent = t.id; p.dataset.id = t.id;
+      p.title = anchorEl(t) === null ? "Orphan: หา element เดิมไม่เจอ" : t.title;
+      ov.appendChild(p);
+    });
+    $("#cCount").textContent = threads.filter(t => pinShown(t) && t.status !== "done").length;
+  }
+  function toast(m) { const el = $("#toast"); el.textContent = m; el.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => el.style.display = "none", 1900); }
+  function fetchNow(silent) {
+    fetchedAt = Date.now(); fetchN++;
+    if (fetchN === 3) {   // pretend a teammate replied on the server
+      const t = threads.find(t => t.id === 2);
+      t.messages.push({ id: Date.now(), author: "pim", text: "lead บอกไม่ต้องเลื่อน ✔", at: "now" });
+      toast("💬 pim replied on main · #2");
+      if (openId === 2) renderThread(t);
+    } else if (!silent) toast("Fetch: ไม่มีอะไรใหม่");
+    drawPins(); drawList(); tickAt();
+  }
+  function tickAt() { const s = Math.round((Date.now() - fetchedAt) / 1000); $("#fetchAt").textContent = s < 60 ? "updated just now" : `updated ${Math.round(s / 60)} min ago`; }
+  setInterval(tickAt, 15000);   // label only, no network
+  function setOn(v) {
+    on = v; mock.classList.toggle("c-on", on); mock.classList.toggle("picking", on);
+    $("#cBtn").classList.toggle("on", on); $("#playBtn").classList.toggle("on", !on);
+    document.querySelectorAll("[data-goto]").forEach(b => b.disabled = on);   // Comment mode: prototype locked
+    hov.style.display = "none";
+    if (on) fetchNow(true); else { closeThread(); side.classList.remove("show"); }
+    drawPins();
+  }
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function place(box, x, y) {
+    const r = mock.getBoundingClientRect(), px = x / 1920 * r.width, py = y / 1080 * r.height;
+    box.style.display = "block";
+    const bw = box.offsetWidth, bh = Math.min(box.offsetHeight, r.height - 16);
+    let left = px + 16, top = py - 30;
+    if (left + bw > r.width - 8) left = px - bw - 16;
+    if (left < 8) left = 8;
+    top = Math.max(84, Math.min(top, r.height - bh - 8));   // keep clear of the tools row
+    box.style.left = left + "px"; box.style.top = top + "px";
+  }
+  function anchorText(a) {
+    const parts = [];
+    if (a.figma) parts.push(`figma: "${a.figma}"`);
+    if (a.selector) parts.push(`selector: ${a.selector}`);
+    parts.push(`x,y: ${Math.round(a.x)}, ${Math.round(a.y)}`);
+    return parts.join("<br>");
+  }
+  function highlight(e) {   // solid outline on the element a comment is tied to
+    if (!e) { hl.style.display = "none"; return; }
+    Object.assign(hl.style, { display: "block", left: pct(e.x, 1920), top: pct(e.y, 1080), width: pct(e.w, 1920), height: pct(e.h, 1080) });
+    hl.querySelector("span").textContent = e.f || e.sel;
+  }
+
+  function renderThread(t) {
+    const st = stOf(t.status), canTitle = t.author === ME, orphan = anchorEl(t) === null;
+    thread.innerHTML = `
+      <div class="th-head">
+        <div class="th-title" data-role="title">${esc(t.title)}</div>
+        ${canTitle ? `<button class="ib" data-act="editTitle" title="Edit title">✎</button>` : ""}
+        ${canTitle ? `<button class="ib" data-act="delThread" title="Delete thread">🗑</button>` : ""}
+        <button class="ib" data-act="close" title="Close (Esc)">×</button>
+      </div>
+      <div class="th-meta">
+        <select class="st" data-role="status" style="box-shadow:inset 3px 0 0 ${st.c}">${ST.map(s => `<option value="${s.k}" ${s.k === t.status ? "selected" : ""}>${s.n}</option>`).join("")}</select>
+        <span>${t.screen}${orphan ? ' · <b style="color:#bbb">orphan</b>' : ""}</span>
+      </div>
+      ${orphan ? `<div class="msg" style="color:#bbb;font-size:11.5px">หา element <code>${esc(t.anchor.figma || t.anchor.selector)}</code> ไม่เจอแล้ว · หมุดอยู่ที่ x,y เดิม <button class="ib" data-act="reanchor" style="color:#8fc7ff">Re-anchor</button></div>` : ""}
+      <div class="anchorinfo" style="margin:6px 10px">${anchorText(t.anchor)}</div>
+      ${t.messages.map(m => `
+        <div class="msg" data-mid="${m.id}">
+          <span class="who">${esc(m.author)}</span><span class="at">${esc(m.at)}</span>${m.edited ? ' <span class="ed">(edited)</span>' : ""}
+          ${m.author === ME ? `<span class="acts"><button class="ib" data-act="editMsg" title="Edit">✎</button><button class="ib" data-act="delMsg" title="Delete">🗑</button></span>` : ""}
+          <div class="txt">${esc(m.text)}</div>
+        </div>`).join("")}
+      <div class="reply"><textarea rows="2" placeholder="Reply… (Ctrl+Enter)" data-role="reply"></textarea><button class="send" data-act="reply">Send</button></div>`;
+  }
+  function openThread(id) {
+    const t = threads.find(t => t.id === id); if (!t) return;
+    openId = id; renderThread(t); thread.classList.add("show"); place(thread, t.anchor.x, t.anchor.y); highlight(anchorEl(t)); drawPins();
+  }
+  function closeThread() { openId = null; editing = null; thread.classList.remove("show"); thread.style.display = ""; highlight(null); abox.style.display = "none"; drawPins(); }
+
+  function openComposer(anchor, e) {
+    openId = null; highlight(e);
+    thread.innerHTML = `
+      <div class="composer">
+        <div class="anchorinfo">${anchorText(anchor)}</div>
+        <input data-role="ctitle" placeholder="Title" maxlength="80">
+        <textarea data-role="ctext" rows="3" placeholder="Comment… (Ctrl+Enter)"></textarea>
+        <div class="row2">
+          <select class="st" data-role="cstatus">${ST.map(s => `<option value="${s.k}" ${s.k === "warning" ? "selected" : ""}>${s.n}</option>`).join("")}</select>
+          <span><button class="ib" data-act="cancel">Cancel</button> <button class="send" data-act="create" style="padding:5px 12px">Post</button></span>
+        </div>
+      </div>`;
+    thread.classList.add("show"); place(thread, anchor.x, anchor.y);
+    thread._anchor = anchor;
+    thread.querySelector("[data-role=ctitle]").focus();
+  }
+
+  // ---------- events ----------
+  $("#cBtn").onclick = () => setOn(true);
+  $("#playBtn").onclick = () => setOn(false);
+  $("#fetchBtn").onclick = () => fetchNow(false);
+  $("#doneBtn").onclick = () => { showDone = !showDone; $("#doneBtn").classList.toggle("on", showDone); drawPins(); toast(showDone ? "แสดง Complete" : "ซ่อน Complete"); };
+  $("#listBtn").onclick = () => { side.classList.toggle("show"); drawList(); };
+  $("#sideClose").onclick = () => side.classList.remove("show");
+  function go(scr) { cur = scr; closeThread(); drawStage(); drawPins(); drawList(); }
+  document.querySelectorAll("[data-goto]").forEach(b => b.onclick = () => go(b.dataset.goto));
+
+  stage.addEventListener("click", e => {
+    const el = e.target.closest(".el"), d = el && SCREENS[cur][+el.dataset.i];
+    if (!on) {   // Play: the prototype gets the click
+      if (d && d.tabBtn) { tab[cur] = d.tabBtn; drawStage(); drawPins(); drawList(); toast(`Play: tab ${d.t}`); }
+      else if (d && d.f === "1:854 Shop button") { go("store"); toast("Play: ไปหน้า Store"); }
+      else if (d) toast(`Play: คลิก "${d.t}" ส่งให้ prototype`);
+      return;
+    }
+    // Comment: click = new comment on that element (or a bare point with Alt)
+    if (openId || thread.classList.contains("show")) { closeThread(); return; }   // first click outside just closes what is open
+    const r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1920, y = (e.clientY - r.top) / r.height * 1080;
+    const use = !e.altKey && d;
+    const anchor = use ? { figma: d.f || undefined, selector: d.sel || undefined, dx: +((x - d.x) / d.w).toFixed(2), dy: +((y - d.y) / d.h).toFixed(2), x, y } : { x, y };
+    hov.style.display = "none"; openComposer(anchor, use ? d : null);
+  });
+  // Comment mode hover: dashed outline + label = what a click would pick
+  function hover(e) {
+    if (!on || thread.classList.contains("show")) { hov.style.display = "none"; return; }
+    const el = e.target.closest && e.target.closest(".el");
+    const r = stage.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1920, y = (e.clientY - r.top) / r.height * 1080;
+    if (e.altKey || !el) {
+      hov.className = "hov pt"; Object.assign(hov.style, { display: "block", left: pct(x, 1920), top: pct(y, 1080), width: "", height: "" });
+      hov.querySelector("span").textContent = `point ${Math.round(x)}, ${Math.round(y)}`; return;
+    }
+    const d = SCREENS[cur][+el.dataset.i];
+    hov.className = "hov"; Object.assign(hov.style, { display: "block", left: pct(d.x, 1920), top: pct(d.y, 1080), width: pct(d.w, 1920), height: pct(d.h, 1080) });
+    hov.querySelector("span").textContent = d.f || d.sel;
+  }
+  stage.addEventListener("mousemove", hover);
+  stage.addEventListener("mouseleave", () => hov.style.display = "none");
+  ov.addEventListener("click", e => { const p = e.target.closest(".pin"); if (p) openThread(+p.dataset.id); });
+
+  thread.addEventListener("change", e => {
+    if (e.target.dataset.role === "status" && openId) {
+      const t = threads.find(t => t.id === openId); t.status = e.target.value;
+      t.messages.push({ id: Date.now(), author: "system", text: `${ME} → ${stOf(t.status).n}`, at: "now" });
+      renderThread(t); drawPins(); drawList();
+      if (t.status === "done" && !showDone) { toast("Complete: หมุดถูกซ่อน (ยังอยู่ใน List)"); closeThread(); }
+    }
+  });
+  thread.addEventListener("click", e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const act = b.dataset.act, t = threads.find(t => t.id === openId);
+    if (act === "close" || act === "cancel") return closeThread();
+    if (act === "create") {
+      const title = thread.querySelector("[data-role=ctitle]").value.trim(), text = thread.querySelector("[data-role=ctext]").value.trim();
+      if (!title && !text) return toast("ใส่ Title หรือข้อความก่อน");
+      const nt = { id: nextId++, screen: cur, anchor: thread._anchor, title: title || text.slice(0, 40), status: thread.querySelector("[data-role=cstatus]").value, author: ME,
+        messages: [{ id: 1, author: ME, text: text || title, at: "now" }] };
+      threads.push(nt); drawList(); openThread(nt.id); toast("Posted (mock: ไม่บันทึก)");
+      return;
+    }
+    if (!t) return;
+    if (act === "reply") {
+      const ta = thread.querySelector("[data-role=reply]"); const v = ta.value.trim(); if (!v) return;
+      t.messages.push({ id: Date.now(), author: ME, text: v, at: "now" }); renderThread(t); drawList();
+    }
+    if (act === "editTitle") {
+      const h = thread.querySelector("[data-role=title]");
+      if (h.isContentEditable) { t.title = h.textContent.trim() || t.title; editing = null; renderThread(t); drawList(); return; }
+      editing = "title"; h.contentEditable = "true"; h.focus(); b.textContent = "✓";
+    }
+    if (act === "editMsg") {
+      const box = b.closest(".msg"), m = t.messages.find(m => m.id == box.dataset.mid), tx = box.querySelector(".txt");
+      if (tx.isContentEditable) { m.text = tx.textContent.trim() || m.text; m.edited = true; editing = null; renderThread(t); return; }
+      editing = "msg"; tx.contentEditable = "true"; tx.focus(); b.textContent = "✓";
+    }
+    if (act === "delMsg") {
+      const box = b.closest(".msg"); if (t.messages.length === 1) return toast("ข้อความแรกลบไม่ได้ · ลบทั้ง thread แทน");
+      t.messages = t.messages.filter(m => m.id != box.dataset.mid); renderThread(t);
+    }
+    if (act === "delThread") { t.deleted = true; closeThread(); drawList(); toast("ลบแล้ว (soft delete · Admin กู้ได้)"); }
+    if (act === "reanchor") { closeThread(); toast("Re-anchor: คลิก element ใหม่ (mock: สร้างหมุดใหม่)"); }
+  });
+  thread.addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.ctrlKey) {
+      e.preventDefault();
+      const btn = thread.querySelector("[data-act=create]") || thread.querySelector("[data-act=reply]"); btn?.click();
+    }
+    e.stopPropagation();
+  });
+
+  // side list
+  $("#fltStatus").innerHTML = ST.map(s => `<button type="button" class="on" data-st="${s.k}"><i style="background:${s.c}"></i>${s.n}</button>`).join("");
+  $("#fltStatus").onclick = e => { const b = e.target.closest("button"); if (!b) return; b.classList.toggle("on"); stFilter[b.classList.contains("on") ? "add" : "delete"](b.dataset.st); drawList(); };
+  $("#fltScope").onclick = e => { const b = e.target.closest("button"); if (!b) return; scope = b.dataset.scope; $("#fltScope").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); drawList(); };
+  function drawList() {
+    const list = threads.filter(t => !t.deleted && stFilter.has(t.status) && (scope !== "screen" || t.screen === cur) && (scope !== "mine" || t.author === ME));
+    const groups = {};
+    list.forEach(t => (groups[t.screen] ||= []).push(t));
+    $("#sideList").innerHTML = Object.keys(groups).length ? Object.entries(groups).map(([scr, arr]) => `<li class="grp">${scr}</li>` + arr.map(t => {
+      const e = anchorEl(t), where = e && e.tab ? ` · tab ${e.tab}` : "";
+      return `<li data-id="${t.id}"><div class="l1"><span class="pill"><i style="background:${e === null ? "var(--st-orphan)" : stOf(t.status).c}"></i>${stOf(t.status).n}</span><span class="n">#${t.id}</span><span class="scr">${t.messages.length} msg${where}</span></div>
+      <div class="l2"><b>${esc(t.title)}</b> · ${esc(t.messages[t.messages.length - 1].text)}</div></li>`; }).join("")).join("")
+      : `<li style="color:#888;cursor:default">ไม่มี thread ตามตัวกรอง</li>`;
+  }
+  $("#sideList").onclick = e => {
+    const li = e.target.closest("li[data-id]"); if (!li) return;
+    const t = threads.find(t => t.id === +li.dataset.id), el = anchorEl(t);
+    if (t.screen !== cur) { cur = t.screen; }
+    if (el && el.tab) tab[cur] = el.tab;   // jump also opens the saved tab
+    drawStage();
+    if (t.status === "done" && !showDone) { showDone = true; $("#doneBtn").classList.add("on"); }
+    drawPins(); openThread(t.id);
+    const p = ov.querySelector(`.pin[data-id="${t.id}"]`); if (p) { p.classList.add("flash"); setTimeout(() => p.classList.remove("flash"), 1900); }
+    drawList();
+  };
+
+  addEventListener("keydown", e => {
+    if (e.target.closest && e.target.closest("input,textarea,[contenteditable=true]")) return;
+    if (e.key === "C" && e.shiftKey) { e.preventDefault(); setOn(!on); return; }
+    if (!on) return;
+    if (e.key === "Escape") closeThread();
+    else if (e.key.toLowerCase() === "l" && !e.ctrlKey) { side.classList.toggle("show"); drawList(); }
+  });
+  addEventListener("resize", () => { if (openId) { const t = threads.find(t => t.id === openId); place(thread, t.anchor.x, t.anchor.y); } });
+
+  drawStage(); drawPins(); drawList();
+})();
+</script>
+</body>
+</html>

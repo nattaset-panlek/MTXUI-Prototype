@@ -55,6 +55,41 @@
   let state = load();
   const listeners = new Set();
 
+  // E / S / R + Skill points are per Tactical Style (user 2026-11-19), like the skill tree and attributes they pay for.
+  // state.e / s / r / skillTotal always hold the ACTIVE style's values (state.active), so every reader stays the same;
+  // the other styles wait in state.styles[id].prog. The Tactical screen fires "mtx:style" -> switchStyle swaps them.
+  const STYLE_IDS = ["phranakhon", "south", "isan", "north", "west"];
+  const progOf = () => ({ e: clone(state.e), s: clone(state.s), r: clone(state.r), skillTotal: state.skillTotal });
+  function initStyles(active) {   // first run / older save / reset: every style starts from the current values
+    state.active = active;
+    STYLE_IDS.forEach(id => { state.styles[id] = Object.assign({ level: 1, quests: 0 }, state.styles[id], { prog: progOf() }); });
+  }
+  const savedStyle = () => { try { return localStorage.getItem("mtx.style") || "phranakhon"; } catch (e) { return "phranakhon"; } };
+  if (!state.active) initStyles(savedStyle());
+  function switchStyle(id) {
+    if (!STYLE_IDS.includes(id) || id === state.active) return;
+    state.styles[state.active] = Object.assign({ level: 1, quests: 0 }, state.styles[state.active], { prog: progOf() });
+    const pr = state.styles[id]?.prog || { e: DEFAULTS.e, s: DEFAULTS.s, r: DEFAULTS.r, skillTotal: DEFAULTS.skillTotal };
+    state.e = clone(pr.e); state.s = clone(pr.s); state.r = clone(pr.r); state.skillTotal = pr.skillTotal;
+    state.active = id;
+    clampAll();
+    emit({ type: "style", id });
+  }
+  document.addEventListener("mtx:style", e => switchStyle(e.detail?.id));
+  // progress of any style (the active one lives in state.e / s / r / skillTotal)
+  function styleProg(id) {
+    if (id === state.active) return progOf();
+    return clone(state.styles[id]?.prog || { e: DEFAULTS.e, s: DEFAULTS.s, r: DEFAULTS.r, skillTotal: DEFAULTS.skillTotal });
+  }
+  function setStyleProg(id, patch) {
+    if (id === state.active) { set(patch); return; }
+    if (!STYLE_IDS.includes(id)) return;
+    const st = state.styles[id] = Object.assign({ level: 1, quests: 0 }, state.styles[id]);
+    st.prog = Object.assign(styleProg(id), patch);
+    st.prog.skillTotal = Math.max(0, Math.round(+st.prog.skillTotal || 0));
+    emit({ type: "styleProg", id, patch });
+  }
+
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) || "null");
@@ -80,6 +115,7 @@
   }
 
   function save() {
+    if (state.active) state.styles[state.active] = Object.assign({ level: 1, quests: 0 }, state.styles[state.active], { prog: progOf() });
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
   }
 
@@ -169,7 +205,9 @@
   }
 
   function reset() {
+    const active = state.active || savedStyle();
     state = clone(DEFAULTS);
+    initStyles(active);
     emit({ type: "reset" });
   }
 
@@ -207,53 +245,71 @@
   }
 
   // ---------------------------------------------------------------- dev panel section (Inspect column)
+  // Dev Tools > "Player" tab (#tabContentPlayer, user 2026-11-19): progress of the selected style + wallet.
+  // One row per track: level stepper (+ = a real level up with its reward), XP of the next level, quick XP.
   function mountDev() {
-    const host = document.getElementById("tabContentSystem");
-    if (!host || document.getElementById("devPlayer")) return;
-    const sec = document.createElement("section");
-    sec.className = "dev-sec";
-    sec.id = "devPlayer";
-    const field = (key, label, path) => `<label>${label} <input type="number" min="0" data-pl-dev="${path}"></label>`;
-    sec.innerHTML = `
-      <h3 class="dev-sec__title">Player · level &amp; wallet</h3>
-      ${field("eLevel", "E level", "e.level")}${field("eXp", "E XP", "e.xp")}
-      ${field("sLevel", "S level", "s.level")}${field("sXp", "S XP", "s.xp")}
-      ${field("style", "Style level (1-5), selected style", "style.level")}${field("quests", "Quests done in level, selected style", "style.quests")}
-      ${field("rLevel", "R level (Reputation)", "r.level")}${field("rXp", "R XP", "r.xp")}
-      ${field("rp", "Rank points (RP)", "rp")}${field("l", "L", "l")}${field("cash", "Cash", "cash")}
-      <p class="dev-note">E level up ${levelReward("e")} · S level up ${levelReward("s")}</p>
-      <div class="dev-row">
-        <button class="chip" type="button" data-pl-add="e">+1000 E XP</button>
-        <button class="chip" type="button" data-pl-add="s">+1000 S XP</button>
-        <button class="chip" type="button" data-pl-add="r">+1000 R XP</button>
-      </div>
-      <div class="dev-row">
-        <button class="chip" type="button" data-pl-lv="e">+1 E level</button>
-        <button class="chip" type="button" data-pl-lv="s">+1 S level</button>
-        <button class="chip" type="button" data-pl-lv="r">+1 R level</button>
-      </div>
-      <button class="chip" type="button" data-pl-quest>+1 quest done, selected style</button>
-      <button class="chip" type="button" data-pl-reset>Reset player</button>`;
-    host.insertBefore(sec, host.firstChild);
-    const inputs = [...sec.querySelectorAll("[data-pl-dev]")];
+    const tracksEl = document.getElementById("devPlayerTracks"), walletEl = document.getElementById("devPlayerWallet");
+    if (!tracksEl || tracksEl.dataset.mounted) return;
+    tracksEl.dataset.mounted = "1";
     const selStyle = () => window.MTX_SCREENS?.tactical?.getSelStyle?.() || "phranakhon";
+    const num = (path, w) => `<input type="number" min="0" data-pl-dev="${path}"${w ? ` style="width:${w}px"` : ""}>`;
+    const step = (path, t) => `<span class="pl-step"><button type="button" data-pl-step="${path}" data-d="-1" title="-1">−</button>${num(path, 52)}<button type="button" data-pl-step="${path}" data-d="1" data-t="${t || ""}" title="+1${t ? " (level up with reward)" : ""}">+</button></span>`;
+    const track = (t, name, note) => `<div class="pl-tr">
+        <span class="pl-k"><span><b>${t.toUpperCase()}</b> ${name}</span><small>${note}</small></span>
+        ${step(t + ".level", t)}
+        <span class="pl-xp">${num(t + ".xp", 70)}<small data-pl-need="${t}"></small></span>
+        <button type="button" class="chip" data-pl-add="${t}">+1000 XP</button>
+      </div>`;
+    tracksEl.innerHTML = `
+      <div class="pl-tr pl-tr--head"><span>Track</span><span>Level</span><span>XP / next</span><span></span></div>
+      ${track("e", "Level", levelReward("e") + " per level")}
+      ${track("s", "Level", levelReward("s") + " per level")}
+      ${track("r", "Reputation", "R level, Media + Rewards")}
+      <div class="pl-tr">
+        <span class="pl-k"><span><b>ST</b> Style level</span><small>1-5, quests unlock the next</small></span>
+        ${step("style.level")}
+        <span class="pl-xp">${num("style.quests", 70)}<small data-pl-need="quests"></small></span>
+        <button type="button" class="chip" data-pl-quest>+1 quest</button>
+      </div>`;
+    if (walletEl) walletEl.innerHTML = `
+      <div class="pl-tr"><span class="pl-k">Rank points<small>RP · HUD rank icon</small></span>${num("rp", 90)}</div>
+      <div class="pl-tr"><span class="pl-k">L<small>premium</small></span>${num("l", 90)}</div>
+      <div class="pl-tr"><span class="pl-k">Cash<small>Store</small></span>${num("cash", 90)}</div>
+      <button class="chip chip--danger" type="button" data-pl-reset title="Every style + wallet back to the defaults">Reset player</button>`;
+    const root = tracksEl.closest(".figma-tab-content") || document;
+    const inputs = [...root.querySelectorAll("[data-pl-dev]")];
     const read = path => path.startsWith("style.") ? styleOf(selStyle())[path.slice(6)] : path.split(".").reduce((o, k) => o[k], state);
-    const fill = () => inputs.forEach(i => { if (document.activeElement !== i) i.value = read(i.dataset.plDev); });
-    inputs.forEach(i => i.addEventListener("change", () => {
-      const [a, b] = i.dataset.plDev.split(".");
-      if (a === "style") { setStyle(selStyle(), { [b]: +i.value }); return; }
-      set(b ? { [a]: { [b]: +i.value } } : { [a]: +i.value });
+    const write = (path, v) => {
+      const [x, y] = path.split(".");
+      if (x === "style") setStyle(selStyle(), { [y]: v });
+      else set(y ? { [x]: { [y]: v } } : { [x]: v });
+    };
+    const fill = () => {
+      inputs.forEach(i => { if (document.activeElement !== i) i.value = read(i.dataset.plDev); });
+      root.querySelectorAll("[data-pl-need]").forEach(n => {
+        const t = n.dataset.plNeed;
+        n.textContent = t === "quests" ? `/ ${styleTarget(selStyle())}` : `/ ${need(t).toLocaleString("en-US")}`;
+      });
+    };
+    inputs.forEach(i => i.addEventListener("change", () => write(i.dataset.plDev, +i.value)));
+    root.querySelectorAll("[data-pl-step]").forEach(btn => btn.addEventListener("click", () => {
+      const path = btn.dataset.plStep, d = +btn.dataset.d, t = btn.dataset.t;
+      if (d > 0 && t) {
+        const ups = addLevels(t, 1);
+        window.MTX?.api?.toast?.(ups ? `${t.toUpperCase()} level ${state[t].level} · ${levelReward(t)}` : `${t.toUpperCase()} is at max level`);
+      } else write(path, Math.max(0, read(path) + d));
     }));
-    sec.querySelectorAll("[data-pl-add]").forEach(btn => btn.addEventListener("click", () => {
+    root.querySelectorAll("[data-pl-add]").forEach(btn => btn.addEventListener("click", () => {
       const ups = addXp(btn.dataset.plAdd, 1000);
       window.MTX?.api?.toast?.(`+1000 ${btn.dataset.plAdd.toUpperCase()} XP${ups ? ` · level up ×${ups}` : ""}`);
     }));
-    mountLevelButtons(sec);
     // completes the next open quest on the Quests screen (rows + count stay in step); store only when that screen is missing
-    sec.querySelector("[data-pl-quest]").addEventListener("click", () => {
+    root.querySelector("[data-pl-quest]")?.addEventListener("click", () => {
       if (!window.MTX_SCREENS?.quests?.completeNext?.()) addQuestDone(selStyle(), 1);
     });
-    sec.querySelector("[data-pl-reset]").addEventListener("click", () => { reset(); window.MTX?.api?.toast?.("Player reset"); });
+    root.querySelector("[data-pl-reset]")?.addEventListener("click", () => {
+      if (confirm("Reset player: every style's E / S / R, Style levels and the wallet?")) { reset(); window.MTX?.api?.toast?.("Player reset"); }
+    });
     listeners.add(fill);
     fill();
   }
@@ -272,7 +328,7 @@
 
   window.MTX_PLAYER = {
     CONFIG, DEFAULTS,
-    get, set, addXp, addLevels, levelReward, styleOf, setStyle, addQuestDone, need, styleTarget, reset, mountLevelButtons,
+    get, set, addXp, addLevels, levelReward, styleOf, setStyle, styleProg, setStyleProg, addQuestDone, need, styleTarget, reset, mountLevelButtons,
     spendCash: n => spend("cash", n),
     attrTotal: () => state.e.level * CONFIG.attrPerELevel,
     on(fn) { listeners.add(fn); return () => listeners.delete(fn); },

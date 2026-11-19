@@ -210,6 +210,40 @@ async function readJson(req) {
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
+// ---------------------------------------------------------------- Dev Tools comments (local)
+// .work/comments.json, one writer (this process): ops run one after another. Author = op.author (local only;
+// the team store takes it from the Cloudflare Access login instead).
+const COMMENTS_FILE = process.env.COMMENTS_FILE || path.join(ROOT, ".work", "comments.json");   // COMMENTS_FILE=... for a test store
+let commentsState = null, commentsQueue = Promise.resolve();
+async function commentsLoad() {
+  if (commentsState) return commentsState;
+  try { commentsState = JSON.parse(await fsp.readFile(COMMENTS_FILE, "utf8")); } catch (e) { commentsState = { crev: 0, threads: [] }; }
+  if (!Array.isArray(commentsState.threads)) commentsState = { crev: 0, threads: [] };
+  return commentsState;
+}
+async function commentsGet(proto, since) {
+  const { read } = await import("./comments-ops.mjs");
+  return { ...read(await commentsLoad(), proto, since), me: null, local: true };
+}
+function commentsOp(op) {
+  const run = async () => {
+    const { apply } = await import("./comments-ops.mjs");
+    const st = await commentsLoad();
+    const who = String(op && op.author || "").trim().slice(0, 60);
+    const r = apply(st, op, who);
+    if (r.ok) {
+      await fsp.mkdir(path.dirname(COMMENTS_FILE), { recursive: true });
+      const tmp = COMMENTS_FILE + ".tmp";
+      await fsp.writeFile(tmp, JSON.stringify(st, null, 1));
+      await fsp.rename(tmp, COMMENTS_FILE);
+    }
+    return r;
+  };
+  const p = commentsQueue.then(run, run);
+  commentsQueue = p.catch(() => {});
+  return p;
+}
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${HOST}:${PORT}`);
   const send = (code, body, type = "application/json") => { res.writeHead(code, { "Content-Type": type, "Cache-Control": "no-store" }); res.end(body); };
@@ -231,6 +265,11 @@ const server = http.createServer(async (req, res) => {
       const file = await saveSvg(body.name || "screen", body.svg || "");
       console.log(`saved ${file}`);
       return send(200, JSON.stringify({ ok: true, file }));
+    }
+    if (url.pathname === "/__comments") {   // Dev Tools comments (local store, same API as /api/comments)
+      if (req.method === "GET") return send(200, JSON.stringify(await commentsGet(url.searchParams.get("proto"), url.searchParams.get("since"))));
+      if (req.method === "POST") { const r = await commentsOp(await readJson(req)); return send(r.error ? 400 : 200, JSON.stringify(r)); }
+      return send(405, JSON.stringify({ error: "method not allowed" }));
     }
     // static files
     let p = decodeURIComponent(url.pathname);

@@ -7,7 +7,8 @@
   //   (5 levels: base + the "Default Distribution" rows), so the cap bar shows all five notches.
   //   Bonuses (feeds below) sit on top of the sub-stats: yellow segment + "+N" on the sub-stat rows only;
   //   the attribute number and Overall count them, the Style Level ladder does not.
-  //   A sub-stat stops at SUB_MAX. Overall = average of the 5 attributes; at OVERALL_MAX this style takes no more points.
+  //   A sub-stat stops at its own max (user 2026-11-19, rule B): the attribute's Max shared out by the sub-stats' base share,
+  //   e.g. Phra Nakhon Defending 6/30 x 100 = 20 each, Attacking 7/8/8/7 -> 23/27/27/23 (sums to the attribute Max). Overall = average of the 5 attributes; at OVERALL_MAX this style takes no more points.
   // Input: W / S (stick, D-pad) move between sub-stats only, A / D (left / right) remove / add a point,
   // Q / E (LT / RT) switch attribute, hold Space / A confirms.
 
@@ -20,7 +21,7 @@
   // Points to spend are the player's Attribute points (MTX_PLAYER, earned per E level).
   // Saved in localStorage "mtx.attr_state" = { styles: { styleId: { attrKey: [sub values] } } }.
   const STORE_KEY = "attr_state";
-  const OVERALL_MAX = 100, SUB_MAX = 100;
+  const OVERALL_MAX = 100, SUB_MAX = 100;   // sub-stat max (user 2026-11-19)
   const SCALE_MAX = 140;   // same 0-140 scale as the Figma "Attributes · Mastery Caps" bar
 
   let tab = "attacking", pending = {};
@@ -87,6 +88,12 @@
     return subs.map((s, i) => s[1] + out[i]);
   }
 
+  // sub-stat max (user 2026-11-19): each sub-stat can go up to its attribute's Max Stat (e.g. Chaiya Attacking 80,
+  // Defending 120). Spending can never take the attribute itself past Max Stat, so the subs never reach it together.
+  function subMaxes(a) {
+    return a.subs.map(() => a.max);
+  }
+
   function values() {
     const id = styleId();
     if (!owned[id]) {
@@ -110,6 +117,14 @@
   }
 
   // back to a fresh fighter: base values, all points back, storage cleared
+  // Dev > Per style > Reset Attributes: only the selected Tactical Style
+  function resetStyle(id = styleId()) {
+    delete owned[id];
+    pending = {};
+    persist();
+    if (api.getCur() === "attributes") renderAttr();
+  }
+
   function resetAll() {
     Object.keys(owned).forEach(k => delete owned[k]);
     pending = {};
@@ -154,6 +169,10 @@
       onCancel: ({ quick, notify }) => { if (notify && quick) window.MTX_UI.holdHint("confirm"); }
     });
     load();
+    loadVfx();
+    applyVfx();
+    emblemMask();
+    bindVfxDev();
     // the player store changes points (E level ups, dev panel): keep this screen and the dev field in step
     P()?.on(() => {
       if (api.getCur() === "attributes") renderAttr();
@@ -165,9 +184,9 @@
     const ptsIn = document.getElementById("attrPointsDev");
     if (ptsIn) ptsIn.value = pts();
     document.getElementById("resetAttrBtn")?.addEventListener("click", () => {
-      resetAll();
+      resetStyle();
       if (ptsIn) ptsIn.value = pts();
-      api.toast("Attributes reset · base values, " + pts() + " points");
+      api.toast("Attributes reset (this style) · base values, " + pts() + " points");
     });
     // tabs are not focus stops (Q / E only) but still take a click; the confirm button is a mouse hold
     api.$$("#s-attributes .attr-tab").forEach(t => t.addEventListener("click", e => { e.stopPropagation(); tab = t.dataset.tab; renderAttr(); }));
@@ -189,7 +208,8 @@
     const vals = values()[tab], total = attrValue(tab), gainHere = pendingIn(tab);
     const left = pts() - pendingTotal();
     const focusIdx = api.getFocused?.()?.classList.contains("attr-row") ? +api.getFocused().dataset.id.slice(1) : -1;
-    const atCap = total >= cap, full = overallFull();
+    // 5a (user 2026-11-19): base + spent (+ pending) out of Max Stat (100); Skill Tree bonus is NOT counted here
+    const limit = Math.min(cap, a.max), atCap = total >= limit, full = overallFull();
 
     // hero: attribute total vs this level's cap + the cap bar: five equal segments = Mastery Lv 1-5.
     // Segment 1 runs 0 -> Lv1 cap and already holds the base (grey); each next one spans the cap it adds.
@@ -198,8 +218,11 @@
     // the big number is the real total (sub-stats incl. bonus) / level cap + bonus (bonus raises the cap from the start).
     const saved = total - gainHere;
     const pc = v => Math.max(0, Math.min(100, v)).toFixed(3) + "%";
-    const ladder = a.caps.map((to, k) => {
-      const n = k + 1, from = k ? a.caps[k - 1] : 0, span = to - from;
+    // bar 6 (user 2026-11-19): 5 equal segments = Style Level 1-5; segment n spans what level n unlocks
+    // (Lv1 0 -> 50 incl. the base 30, Lv2 50 -> 65, Lv3 65 -> 80, Lv4 80 -> 90, Lv5 90 -> 100), the same scale as 5a
+    const capsM = a.caps.map(c => Math.min(c, a.max));
+    const ladder = capsM.map((to, k) => {
+      const n = k + 1, from = k ? capsM[k - 1] : 0, span = to - from;
       const part = (lo, hi) => Math.max(0, Math.min(to, hi) - Math.max(from, lo)) / span * 100;
       const base = part(0, a.base), fill = part(a.base, saved), gain = part(saved, total);
       const fillLeft = (Math.max(from, a.base) - from) / span * 100, gainLeft = (Math.max(from, saved) - from) / span * 100;
@@ -211,21 +234,22 @@
     api.bind("attrHead").innerHTML =
       `<p class="attr-hero__kicker">Attribute</p>` +
       `<h2 class="attr-hero__name">${SHORT[tab]}</h2>` +
-      `<p class="attr-hero__total${atCap ? " is-cap" : ""}"><span>${total + attrBonus(tab).eff}</span><small>/ ${cap + attrBonus(tab).eff}</small></p>` +
+      `<p class="attr-hero__total${atCap ? " is-cap" : ""}"><span>${total}</span><small>/ ${a.max}</small></p>` +
       `<p class="attr-capbar__label">Style Level</p>` +
       `<div class="attr-capbar">${ladder}</div>`;
 
     // sub-stat rows: bar out of 100; focused row shows the left / right keys with their availability
+    const smax = subMaxes(a);
     rows.innerHTML = a.subs.map(([n, b], i) => {
-      // sub-stat bar on a fixed 0-100 scale
-      const v = vals[i], g = pending[`${tab}:${i}`] || 0;
-      const pv = Math.min(100, v);
-      const canAdd = left > 0 && !atCap && !full && v + g < SUB_MAX, canRemove = g > 0;
+      // sub-stat bar on its own scale: 0 -> this sub-stat's max (rule B)
+      const v = vals[i], g = pending[`${tab}:${i}`] || 0, sm = smax[i], pc = x => x / sm * 100;
+      const pv = Math.min(100, pc(v));
+      const canAdd = left > 0 && !atCap && !full && v + g < sm, canRemove = g > 0;
       const G = api.getGlyphs?.()[api.getDevice?.()] || {};
       // Skill Tree bonus (user 2026-11-18): added into the sub-stat value; shown as the yellow bar segment + the "+N" badge after the value
       const bl = bonusOf(n), bn = bonusSum(bl);
       // bar order (user 2026-11-18): points (white) -> bonus (yellow, same as the +N chip) -> unconfirmed (green)
-      const pb = Math.min(100 - pv, bn), pg = Math.min(100 - pv - pb, g);
+      const pb = Math.min(100 - pv, pc(bn)), pg = Math.min(100 - pv - pb, pc(g));
       return `<a class="attr-row focus-ring" data-nav data-id="a${i}" data-fn="upgradeAttr">` +
         `<span class="attr-row__name">${n}</span>` +
         `<span class="attr-row__bar"><i class="attr-row__fill" style="width:${pv}%"></i>` +
@@ -233,7 +257,7 @@
         `<span class="attr-row__tick${g ? " is-gain" : ""}" style="left:calc(5px + ${(pv + pb + pg) / 100} * (100% - 11px))"></span></span>` +
         `<span class="attr-row__adjust">` +
         `<span class="glyph attr-row__key${canRemove ? "" : " is-off"}" data-btn="dl" aria-hidden="true">${G.dl || "A"}</span>` +
-        `<span class="attr-row__value">${v + g + bn}</span>` +
+        `<span class="attr-row__value${g ? " is-gain" : ""}">${v + g + bn}</span>` +   // white; green only while it has unconfirmed points (user 2026-11-18)
         `<span class="glyph attr-row__key${canAdd ? "" : " is-off"}" data-btn="dr" aria-hidden="true">${G.dr || "D"}</span></span>` +
         `<span class="attr-row__bonus">${bn ? `<em class="attr-bonus">+${bn}</em>` : ""}</span>` +
         `<span class="attr-row__gaintag">${g ? "+" + g : ""}</span></a>`;
@@ -258,10 +282,15 @@
     // a fresh fighter shows the base average (e.g. 30). Rounded down, so 100 only shows once the style is locked.
     // shown overall = (sum of the five real totals, bonus included) / 5; the points limit still uses overallValue()
     const overall = sum(KEYS.map(k => attrValue(k) + attrBonus(k).eff)) / KEYS.length;
-    api.bind("overall").textContent = Math.floor(overall);
-    // ring scale (user 2026-11-18): Overall's max = sum of the five Capped values / 5 (Phra Nakhon 600 / 5 = 120)
-    const overallTop = sum(style().attrs.map(x => x.hard)) / KEYS.length;
-    api.bind("overallRing").style.setProperty("--p", (Math.min(overallTop, overall) / overallTop * 100).toFixed(2));
+    setOverall(api.bind("overall"), Math.floor(overall));
+    // ring scale (user 2026-11-19, PhraNakorn sheet): full at Max Overall = the five Max Stat values / 5 (500 / 5 = 100).
+    // Overall itself counts the Skill Tree bonus, so it can pass 100, up to Capped (120 per attribute, sheet row "Cappped");
+    // the ring stays full above 100. Arc length is written as an SVG attribute (Firefox ignores a unitless CSS calc).
+    const overallTop = sum(style().attrs.map(x => x.max)) / KEYS.length;
+    const pct = Math.max(0, Math.min(100, overall / overallTop * 100));
+    const ring = api.bind("overallRing");
+    ring.style.setProperty("--p", pct.toFixed(2));
+    ring.querySelector(".attr-overall__arc")?.setAttribute("stroke-dashoffset", (100 - pct).toFixed(2));
     api.bind("attrPoints").textContent = left;
     api.bind("attrPointsBox").classList.toggle("is-empty", left <= 0);
     api.bind("attrPointsLabel").textContent = left > 0 ? "Attribute points" : "No points left";
@@ -282,8 +311,10 @@
     }
     if (pendingTotal() >= pts()) { api.rumble(120, 0.2); api.toast("No points left"); return; }
     if (overallFull()) { api.rumble(120, 0.2); api.toast(`Overall is at ${OVERALL_MAX} · this style can't go higher`); return; }
-    if (values()[tab][i] + (pending[key] || 0) >= SUB_MAX) { api.rumble(120, 0.2); api.toast(`${a.subs[i][0]} is at its max (${SUB_MAX})`); return; }
+    const sm = subMaxes(a)[i];
+    if (values()[tab][i] + (pending[key] || 0) >= sm) { api.rumble(120, 0.2); api.toast(`${a.subs[i][0]} is at its max (${sm})`); return; }
     const lv = level(), cap = a.caps[lv - 1];
+    if (attrValue(tab) >= a.max) { api.rumble(120, 0.2); api.toast(`${SHORT[tab]} is at its Max Stat (${a.max})`); return; }
     if (attrValue(tab) >= cap) {
       api.rumble(120, 0.2);
       api.toast(lv < 5 ? `${SHORT[tab]} is at its Lv ${pad2(lv)} cap (${cap}) · Style Lv ${pad2(lv + 1)} raises it to ${a.caps[lv]}` : `${SHORT[tab]} is maxed (${a.hard})`);
@@ -314,6 +345,214 @@
     renderAttr();
     api.rumble(140, 0.5);
     api.toast(`Attributes saved (+${n}) · ${pts()} points left`);
+    diamondRipple();
+  }
+
+  // Style Emblem outline (user 2026-11-18): a "hidden yantra" - the outline stays invisible (alpha 0) except where soft noise
+  // patches show it, and the patches drift (user: "make it move"). Baked once: the warm outline (alpha boosted x10, the PNG is
+  // only ~10 %) + 3 seamless noise tiles; CSS pans each tile as a mask in its own direction / speed.
+  // ---- Overall card VFX settings, per Tactical Style (user 2026-11-19): style-presets.js "attr" via MTX_STYLE_DEV,
+  // edited in Dev > VFX card (style-dev.js binds the inputs). Emblem look + Overall change mode + Confirm VFX on / off.
+  // (was the global store key "attr_vfx"; style-dev.js migrates it)
+  const VFX_DEF = {
+    noise: true, speed: 1, size: 6, amount: 50, soft: 4, bright: 100, color: "#ffe4aa",
+    overallAnim: "fade", flash: true, ring: true, ripple: true, pop: true
+  };
+  let vfx = { ...VFX_DEF };
+  function loadVfx() {
+    vfx = { ...VFX_DEF, ...(window.MTX_STYLE_DEV?.get(styleId()).attr || {}) };
+  }
+  // CSS-only settings: speed, brightness, noise on / off
+  function applyVfx() {
+    const scr = api.screens.attributes;
+    if (!scr) return;
+    scr.style.setProperty("--emblem-speed", vfx.speed);
+    scr.style.setProperty("--emblem-op", vfx.bright / 100);
+    scr.classList.toggle("no-emblem-noise", !vfx.noise);
+  }
+  function bindVfxDev() {
+    // per-style VFX values (Dev > VFX) or a new Tactical Style: reload, re-bake the mask when its look changed
+    let regen = null;
+    document.addEventListener("mtx:styledev", e => {
+      const p = e.detail?.path;
+      if (p && !p.startsWith("attr.")) return;
+      const old = { ...vfx };
+      loadVfx(); applyVfx();
+      if (["size", "amount", "soft", "color"].some(k => vfx[k] !== old[k])) { clearTimeout(regen); regen = setTimeout(emblemMask, 120); }
+      if (!p && api.getCur() === "attributes") renderAttr();
+    });
+    document.getElementById("attrVfxTest")?.addEventListener("click", () => diamondRipple());
+    document.getElementById("attrVfxReset")?.addEventListener("click", () => {
+      window.MTX_STYLE_DEV?.resetGroup(styleId(), "attr"); api.toast("VFX of this style back to preset");
+    });
+  }
+
+  let emblemImg = null;
+  function emblemMask() {
+    if (!emblemImg) {
+      emblemImg = new Image();
+      emblemImg.onload = emblemMask;
+      emblemImg.src = "mtx/assets/img/attr-emblem-outline.png?v=2";   // 1 px stroke (Figma 880:126314, 2026-11-18)
+      return;
+    }
+    if (!emblemImg.complete || !emblemImg.width) return;
+    const img = emblemImg, w = img.width, h = img.height;
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const g = c.getContext("2d");
+    g.drawImage(img, 0, 0);
+    const px = g.getImageData(0, 0, w, h);
+    const col = parseInt(vfx.color.slice(1), 16), cr = col >> 16 & 255, cg = col >> 8 & 255, cb = col & 255;
+    for (let i = 0; i < px.data.length; i += 4) {
+      px.data[i] = cr; px.data[i + 1] = cg; px.data[i + 2] = cb;
+      px.data[i + 3] = Math.min(255, px.data[i + 3] * 10);
+    }
+    g.putImageData(px, 0, 0);
+    const line = c.toDataURL();
+    // seamless noise tile: random grid tiled 3 x 3, drawn up-scaled (bilinear), middle cut out; two octaves
+    const cut = 1 - vfx.amount / 100;   // amount 50 % -> the bright half of the noise shows
+    const tile = seed => {
+      let x = seed * 9301 + 49297;
+      const rnd = () => (x = (x * 9301 + 49297) % 233280) / 233280;
+      const big = document.createElement("canvas");
+      big.width = w * 3; big.height = h * 3;
+      const bg = big.getContext("2d");
+      bg.imageSmoothingEnabled = true;
+      [[vfx.size, 1], [Math.round(vfx.size * 2.3), 0.45]].forEach(([cells, a]) => {
+        const rows = Math.max(1, Math.round(cells * h / w)), sm = document.createElement("canvas");
+        sm.width = cells * 3; sm.height = rows * 3;
+        const sg = sm.getContext("2d"), d = sg.createImageData(cells, rows);
+        for (let i = 0; i < d.data.length; i += 4) { const v = rnd() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; }
+        for (let ty = 0; ty < 3; ty++) for (let tx = 0; tx < 3; tx++) sg.putImageData(d, tx * cells, ty * rows);
+        bg.globalAlpha = a;
+        bg.drawImage(sm, 0, 0, w * 3, h * 3);
+      });
+      const nz = bg.getImageData(w, h, w, h);
+      for (let i = 0; i < nz.data.length; i += 4) {
+        nz.data[i + 3] = 255 * Math.max(0, Math.min(1, (nz.data[i] / 255 - cut) * vfx.soft));
+        nz.data[i] = nz.data[i + 1] = nz.data[i + 2] = 0;
+      }
+      g.clearRect(0, 0, w, h);
+      g.putImageData(nz, 0, 0);
+      return c.toDataURL();
+    };
+    const masks = [1, 2, 3].map(tile);
+    api.screens.attributes?.querySelectorAll(".attr-emblem__n").forEach((el, i) => {
+      el.style.backgroundImage = `url(${line})`;
+      el.style.webkitMaskImage = el.style.maskImage = `url(${masks[i]})`;
+    });
+  }
+
+  // Overall number change on A / D (user 2026-11-18), picked in Dev > Attributes "Overall change":
+  //   fade    = new value at once, a copy of the old number fades out on top (default)
+  //   lerp    = the shown number counts to the new value
+  //   roll    = changed digits roll like a slot-machine reel (soft fade at the window edges)
+  //   instant = plain swap
+  const OLD_FADE_MS = 380, LERP_MS = 450;
+  function overallReset(el, to) {
+    cancelAnimationFrame(el._lerpRaf); clearTimeout(el._lerpEnd);
+    el.parentNode.querySelectorAll(".attr-overall__old").forEach(o => o.remove());
+    el.classList.remove("is-roll");
+    el._shown = to;
+    el.textContent = to;
+  }
+  function setOverall(el, to) {
+    if (!el) return;
+    const prev = el.dataset.v === undefined ? NaN : +el.dataset.v;
+    el.dataset.v = to;
+    const live = api.getCur() === "attributes" && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const mode = vfx.overallAnim || "fade";
+    if (isNaN(prev) || prev === to || !live || mode === "instant") { overallReset(el, to); return; }
+    if (mode === "lerp") return overallLerp(el, to);
+    if (mode === "roll") return overallRoll(el, prev, to);
+    overallReset(el, to);
+    const old = el.cloneNode(false);
+    old.className = "attr-overall__value attr-overall__old";
+    old.removeAttribute("data-bind");
+    old.textContent = prev;
+    el.after(old);
+    old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: OLD_FADE_MS, easing: "ease-out", fill: "forwards" });
+    setTimeout(() => old.remove(), OLD_FADE_MS + 40);
+  }
+  function overallLerp(el, to) {
+    const from = el._shown === undefined || el.classList.contains("is-roll") ? +el.textContent || to : el._shown;
+    overallReset(el, from);
+    const t0 = performance.now();
+    const step = now => {
+      const p = Math.min(1, (now - t0) / LERP_MS), e = 1 - Math.pow(1 - p, 3);   // ease-out cubic
+      el._shown = from + (to - from) * e;
+      el.textContent = Math.round(el._shown);
+      if (p < 1) el._lerpRaf = requestAnimationFrame(step);
+    };
+    el._lerpRaf = requestAnimationFrame(step);
+    el._lerpEnd = setTimeout(() => { cancelAnimationFrame(el._lerpRaf); el._shown = to; el.textContent = to; }, LERP_MS + 60);   // lands even if frames pause
+  }
+  function overallRoll(el, from, to) {
+    overallReset(el, to);
+    const a = String(from), b = String(to), n = Math.max(a.length, b.length);
+    const pa = a.padStart(n, " "), pb = b.padStart(n, " "), up = to > from;
+    el.classList.add("is-roll");
+    el.innerHTML = [...pb].map((d, i) => {
+      const o = pa[i];
+      if (o === d) return `<span class="ov-d"><i>${d}</i></span>`;
+      const col = up ? `<i>${o}</i><i>${d}</i>` : `<i>${d}</i><i>${o}</i>`;
+      return `<span class="ov-d"><span class="ov-d__col${up ? "" : " is-down"}">${col}</span></span>`;
+    }).join("");
+    const cols = [...el.querySelectorAll(".ov-d__col")];
+    let left = cols.length;
+    cols.forEach((c, i) => {
+      const down = c.classList.contains("is-down");
+      c.animate([{ transform: `translateY(${down ? -50 : 0}%)` }, { transform: `translateY(${down ? 0 : -50}%)` }],
+        { duration: 420, delay: i * 60, easing: "cubic-bezier(.25, 1.35, .45, 1)", fill: "both" }).onfinish = () => {
+        if (--left) return;
+        if (+el.dataset.v === to) overallReset(el, to);
+      };
+    });
+    el._lerpEnd = setTimeout(() => { if (+el.dataset.v === to) overallReset(el, to); }, 420 + cols.length * 60 + 80);   // lands even if frames pause
+  }
+
+  // confirm VFX (user 2026-11-18): copies of the side card diamond line art run up the card as a ripple, then fade
+  function diamondRipple() {
+    const side = api.screens.attributes?.querySelector(".attr-side");
+    if (!side || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // option A (user 2026-11-18): the whole card flips black <-> gold for a moment, like a button press
+    if (vfx.flash) {
+      side.classList.remove("is-flash"); void side.offsetWidth; side.classList.add("is-flash");
+      clearTimeout(side._flashT); side._flashT = setTimeout(() => side.classList.remove("is-flash"), 140);
+    }
+    side.querySelectorAll(".attr-side__ripple").forEach(r => r.remove());
+    if (vfx.ripple) [0, 160, 320].forEach(delay => {
+      const r = document.createElement("i");
+      r.className = "attr-side__ripple";
+      r.style.animationDelay = delay + "ms";
+      r.addEventListener("animationend", () => r.remove());
+      side.appendChild(r);
+    });
+    // option 3 Shockwave (user 2026-11-18): a gold frame fades in on the card edge, spreads out and fades away (no hard pop)
+    side.parentNode.querySelectorAll(".attr-side__ring").forEach(r => r.remove());
+    if (vfx.ring) {
+    const ring = document.createElement("i");
+    ring.className = "attr-side__ring";
+    side.after(ring);
+    // opacity and size run separately: soft fade in, linger, slow fade out; the frame keeps easing outward the whole time
+    ring.animate([{ opacity: 0 }, { opacity: 1, offset: 0.18 }, { opacity: 0.85, offset: 0.45 }, { opacity: 0 }],
+      { duration: 1000, easing: "ease-in-out" }).onfinish = () => ring.remove();
+    ring.animate([{ transform: "scale(1)" }, { transform: "scale(1.1, 1.05)" }],
+      { duration: 1000, easing: "cubic-bezier(.2, .7, .3, 1)" });
+    }
+    // the new Overall number pops in and leaves a fading afterimage
+    const val = side.querySelector(".attr-overall__value");
+    if (val && vfx.pop) {
+      side.querySelectorAll(".attr-overall__ghost").forEach(g => g.remove());
+      const ghost = val.cloneNode(true);
+      ghost.classList.add("attr-overall__ghost");
+      ghost.removeAttribute("data-bind");
+      val.after(ghost);
+      ghost.animate([{ opacity: 0.7, transform: "translateX(-50%) scale(1)" }, { opacity: 0, transform: "translateX(-50%) scale(1.6)" }],
+        { duration: 650, delay: 140, easing: "ease-out", fill: "backwards" }).onfinish = () => ghost.remove();
+      val.animate([{ transform: "translateX(-50%) scale(1.3)" }, { transform: "translateX(-50%) scale(1)" }],
+        { duration: 420, delay: 140, easing: "cubic-bezier(.2, .8, .3, 1.3)" });
+    }
   }
 
   function isHoldReady() {

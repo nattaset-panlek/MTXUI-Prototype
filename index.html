@@ -18,7 +18,7 @@
 -->
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="mtx/css/tokens.css?v=401">
-  <link rel="stylesheet" href="mtx/css/base.css?v=pg6">
+  <link rel="stylesheet" href="mtx/css/base.css?v=pg6-sd4">
   <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw8">
   <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
   <link rel="stylesheet" href="mtx/css/login.css?v=cta1">
@@ -28,12 +28,13 @@
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
   <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
   <link rel="stylesheet" href="mtx/css/no-brand.css?v=8c">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=st77">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st106">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
   <link rel="stylesheet" href="mtx/css/loadout.css?v=10">
   <link rel="stylesheet" href="mtx/css/node-detail.css?v=8-eq1">
+  <link rel="stylesheet" href="mtx/css/dev-comments.css?v=3">
 </head>
 
 <body>
@@ -495,8 +496,7 @@ board</h3>
           <header class="skill__header" data-figma="14:1287 mastery + 14:1288 30 days left">
             <h1 class="skill__title tex-text">Mastery</h1>
             <p class="skill__subtitle" data-bind="treeStyle">Phra Nakorn tree</p>
-            <span class="tag tag--timer" data-timer-seconds="2592000"><img src="mtx/assets/svg/icon-clock.svg" alt=""><b
-                class="timer-text">30 days left</b></span>
+            <!-- "30 days left" timer tag removed from the Skill Tree (user 2026-11-19) -->
           </header>
 
         </div>
@@ -692,10 +692,12 @@ Collection</h1>
           <div class="bg-scrim" style="position:absolute;background:rgb(0 0 0 / .35)"></div>
           <div class="attr__tint"></div>
           <div class="attr__scrim"></div>
+          <div class="attr__style-light" aria-hidden="true" data-figma="895:68622 style_light (style colour)"></div>
         </div>
         <div class="screen__safe">
           <h1 class="attr__vtitle" data-bind="attrStyleName">Phranakhon</h1>
-          <img class="attr__fighter" src="mtx/assets/img/attr-fighter.webp" alt="" data-figma="51:185 Main character (PNG cut-out)">
+          <img class="attr__fighter" src="mtx/assets/img/attr-fighter-full.png" alt="" data-figma="874:123388 Fighter Model (full body)">
+          <div class="attr__fighter-light" aria-hidden="true" data-figma="895:68626 style_light masked to the fighter"></div>
           <div class="attr__tabs" data-figma="51:358-51:372 Tab strip (LT, 4 tabs, RT)">
             <span class="glyph" data-btn="lt">LT</span>
             <a class="attr-tab" data-fn="pickTab" data-tab="attacking">Attack</a>
@@ -709,9 +711,12 @@ Collection</h1>
             <section class="attr-hero" data-bind="attrHead"></section>
             <div class="attr__rows" data-bind="attrRows"></div>
             <aside class="attr-side">
+              <div class="attr-emblem" aria-hidden="true" data-figma="880:126316 Style Emblem (outline 880:126314)"><i class="attr-emblem__outline"></i><i class="attr-emblem__n"></i><i class="attr-emblem__n"></i><i class="attr-emblem__n"></i></div>
               <div class="attr-overall-box">
                 <div class="attr-overall" data-bind="overallRing" style="--p:0">
                   <i class="attr-overall__tick" aria-hidden="true"></i><i class="attr-overall__tick is-end" aria-hidden="true"></i>
+                  <i class="attr-overall__backdrop" aria-hidden="true"></i>
+                  <svg class="attr-overall__meter" viewBox="0 0 334 423" aria-hidden="true" data-figma="883:126672 Overall meter 3 Double ring"><defs><linearGradient id="attrMeterGold" x1="99.23" y1="186" x2="267.88" y2="214.41" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f2df57"/><stop offset=".82" stop-color="#f3ad3b"/><stop offset=".98" stop-color="#f2df57"/></linearGradient></defs><circle class="attr-overall__track" cx="167" cy="285" r="99.5"/><path class="attr-overall__arc" pathLength="100" stroke-dashoffset="100" d="M167 185.5 A99.5 99.5 0 1 1 166.99 185.5"/></svg>
                   <span class="attr-overall__value" data-bind="overall">0</span>
                 </div>
                 <span class="attr-overall__label">Overall</span>
@@ -1376,12 +1381,16 @@ Mention</h1>
       <header class="dev-modal__head">
         <h2>Dev tools</h2>
         <span class="dev-modal__hint">` to toggle</span>
+        <label class="dev-style" title="Tactical Style: synced with the Tactical screen; Per style values follow it">Style
+          <select id="devStyle"></select></label>
         <button type="button" id="devClose" class="dev-modal__close" title="Close (`)" aria-label="Close dev tools">×</button>
       </header>
       <div class="figma-tabs">
         <button type="button" class="figma-tab is-active" data-tab="layout">Design</button>
         <button type="button" class="figma-tab" data-tab="prototype">Prototype</button>
         <button type="button" class="figma-tab" data-tab="system">Inspect</button>
+        <button type="button" class="figma-tab" data-tab="player">Player</button>
+        <button type="button" class="figma-tab" data-tab="styles">Style Presets</button>
         <button type="button" class="figma-tab" data-tab="keys">Key Map</button>
         <button type="button" class="figma-tab" data-tab="pages">Pages</button>
         <button type="button" class="figma-tab" data-tab="char3d">3D</button>
@@ -1459,6 +1468,35 @@ Mention</h1>
       <!-- 3D character controls (dev-character3d.js) -->
       <div class="figma-tab-content" id="tabContentChar3d" style="display:none"></div>
 
+      <!-- Player (save data): progress of the style picked in the header Style dropdown + wallet. player.js fills
+           #devPlayerTracks / #devPlayerWallet; attrPointsDev (screen-attributes.js) and skillTotal (app.js) are read-only -->
+      <div class="figma-tab-content" id="tabContentPlayer" style="display:none">
+        <p class="dev-note">Save data of <b class="dev-style-name"></b> (switch with the Style dropdown at the top). Tuning values per style: Style Presets tab</p>
+        <div class="pl-cards">
+          <section class="pl-card pl-card--style">
+            <h3 class="dev-sec__title">Progress · <span class="dev-style-name"></span></h3>
+            <div id="devPlayerTracks" class="pl-grid"></div>
+          </section>
+          <section class="pl-card pl-card--style">
+            <h3 class="dev-sec__title">Points · <span class="dev-style-name"></span></h3>
+            <div class="pl-grid">
+              <div class="pl-tr"><span class="pl-k">Attribute points<small>free = E level x 5 − invested</small></span>
+                <input type="number" id="attrPointsDev" readonly tabindex="-1" style="width:70px">
+                <button id="resetAttrBtn" class="chip" type="button" title="This style's attributes back to the sheet base values with all its points back">Reset attributes</button></div>
+              <div class="pl-tr"><span class="pl-k">Skill points<small>free / earned · earned per style: Style Presets</small></span>
+                <input type="text" id="skillTotal" readonly tabindex="-1" style="width:70px"></div>
+            </div>
+          </section>
+          <section class="pl-card">
+            <h3 class="dev-sec__title">Wallet · all styles</h3>
+            <div id="devPlayerWallet" class="pl-grid"></div>
+          </section>
+        </div>
+      </div>
+
+      <!-- Style Presets (style-dev.js builds a table from MTX_STYLE_PRESETS.ui: one column per Tactical Style) -->
+      <div class="figma-tab-content" id="tabContentStyles" style="display:none"></div>
+
       <!-- TAB 3: System / Inspect -->
       <div class="figma-tab-content" id="tabContentSystem" style="display:none">
         <section class="dev-sec">
@@ -1480,8 +1518,7 @@ Mention</h1>
         </section>
 
         <section class="dev-sec">
-          <h3 class="dev-sec__title">Skill tree</h3>
-          <label>Skill points (free / earned) <input type="text" id="skillTotal" readonly tabindex="-1"></label>
+          <h3 class="dev-sec__title">Skill tree · rules (all styles)</h3>
           <label>Mastery unlock <select id="unlockInput">
               <option value="hold">Hold</option>
               <option value="confirm">Modal confirm</option>
@@ -1496,31 +1533,11 @@ Mention</h1>
           <label>VFX: ornament noise fade <input type="checkbox" data-tree-vfx="noise"></label>
           <label>VFX: unlock ripple (ornament) <input type="checkbox" data-tree-vfx="ripple"></label>
           <label>VFX: node forge (flash / rings) <input type="checkbox" data-tree-vfx="forge"></label>
-          <label>Ornament parallax <input type="range" id="treePlx" min="0" max="80" step="5"> <output id="treePlxVal"></output></label>
-          <label>Ornament offset X <input type="number" id="treeYanX" step="10" style="width:70px"></label>
-          <label>Ornament offset Y <input type="number" id="treeYanY" step="10" style="width:70px"></label>
           <label>Controller rumble <input type="checkbox" id="rumbleOn"></label>
-          <p class="dev-note">Earned with S levels: each S level up gives Skill points + MP</p>
-          <div class="dev-row">
-            <button class="chip" type="button" data-pl-lv="s">+1 S level</button>
-            <button class="chip" type="button" data-pl-lv="s" data-pl-n="5">+5 S levels</button>
-          </div>
           <label>Unlock rule <select id="unlockRule">
               <option value="any" selected>Any parent (standard)</option>
               <option value="all">All parents (strict)</option>
             </select></label>
-        </section>
-
-        <section class="dev-sec">
-          <h3 class="dev-sec__title">Attributes</h3>
-          <label>Attribute points <input type="number" id="attrPointsDev" readonly tabindex="-1"></label>
-          <p class="dev-note">Attribute points = E level x 5, minus what is invested</p>
-          <div class="dev-row">
-            <button class="chip" type="button" data-pl-lv="e">+1 E level</button>
-            <button class="chip" type="button" data-pl-lv="e" data-pl-n="5">+5 E levels</button>
-          </div>
-          <button id="resetAttrBtn" class="chip" type="button"
-            title="Attributes back to the sheet base values with all points back">Reset Attributes</button>
         </section>
 
         <section class="dev-sec">
@@ -1630,23 +1647,25 @@ Mention</h1>
   <script src="mtx/js/components/scrollbar.js?v=400"></script>
   <script src="mtx/js/components/nav-graph.js?v=402"></script>
   <script src="mtx/js/player-data.js?v=400"></script>
-  <script src="mtx/js/player.js?v=401"></script>
+  <script src="mtx/js/player.js?v=403-sd3"></script>
   <script src="mtx/js/components/personality.js?v=400"></script>
   <script src="mtx/js/data/skills-data.js?v=2"></script>
   <script src="mtx/js/skill-state.js?v=1"></script>
+  <script src="mtx/js/style-presets.js?v=4"></script>
+  <script src="mtx/js/style-dev.js?v=4"></script>
   <script src="mtx/js/screens/screen-main.js?v=404"></script>
   <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
   <script src="mtx/js/screens/screen-career.js?v=402"></script>
-  <script src="mtx/js/screens/screen-tactical.js?v=400"></script>
-  <script src="mtx/js/screens/screen-skilltree.js?v=555-eq4"></script>
+  <script src="mtx/js/screens/screen-tactical.js?v=401"></script>
+  <script src="mtx/js/screens/screen-skilltree.js?v=556-eq4"></script>
   <script src="mtx/js/sim-data.js?v=400"></script>
   <script src="mtx/js/sim-scenarios.js?v=400"></script>
   <script src="mtx/js/sim-events.js?v=400"></script>
   <script src="mtx/js/screens/screen-manager.js?v=400"></script>
   <script src="mtx/js/screens/screen-quests.js?v=qi4"></script>
   <script src="mtx/js/screens/screen-rewards.js?v=db1-buy2"></script>
-  <script src="mtx/js/attr-data.js?v=400"></script>
-  <script src="mtx/js/screens/screen-attributes.js?v=401"></script>
+  <script src="mtx/js/attr-data.js?v=401"></script>
+  <script src="mtx/js/screens/screen-attributes.js?v=427"></script>
   <script src="mtx/js/screens/screen-loadout.js?v=19"></script>
   <script src="mtx/js/screens/screen-customize.js?v=hb3"></script>
   <script src="mtx/js/screens/screen-store.js?v=db9-r2"></script>
@@ -1664,7 +1683,7 @@ Mention</h1>
   <script src="mtx/js/screens/screen-lobby.js?v=sb19v60"></script>
   <script src="mtx/js/screens/screen-login.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-campaign.js?v=hb1"></script>
-  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsq-r6-uw3-nd4pv-vs1-lo1"></script>
+  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsq-r6-uw3-nd4pv-vs1-lo1-sd3"></script>
   <script src="mtx/js/components/character3d.js?v=sb7"></script>
   <script src="mtx/js/dev-text.js?v=400"></script>
   <script src="mtx/js/dev-bake.js?v=400"></script>
@@ -1674,6 +1693,7 @@ Mention</h1>
   <script src="mtx/js/dev-pages.js?v=3"></script>
   <script src="mtx/js/hud-style.js?v=5"></script>
   <script src="mtx/js/dev-character3d.js?v=db1"></script>
+  <script src="mtx/js/dev-comments.js?v=3"></script>
 </body>
 
 </html>

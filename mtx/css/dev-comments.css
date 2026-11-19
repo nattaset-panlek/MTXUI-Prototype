@@ -1,0 +1,124 @@
+/* Dev Tools comments (mtx/js/dev-comments.js) — Figma-like dev UI, not game UI */
+#cmt { --c-critical:#ff4060; --c-warning:#ff9f1a; --c-progress:#4da3ff; --c-review:#b48cff; --c-done:#3fd28b; --c-orphan:#6b6f7c; --c-blue:#0d99ff;
+  position:fixed; inset:0; z-index:99; pointer-events:none; font:500 12px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif; color:#e6e6e6 }
+body.ui-hidden #cmt { display:none }
+body.cmt-on #viewport, body.cmt-on #viewport * { cursor:crosshair !important }
+#cmt .st-critical { --st:var(--c-critical) } #cmt .st-warning { --st:var(--c-warning) } #cmt .st-progress { --st:var(--c-progress) }
+#cmt .st-review { --st:var(--c-review) } #cmt .st-done { --st:var(--c-done) }
+
+/* hover (what a click picks) + selected highlight */
+.cmt-hov, .cmt-hl { position:fixed; display:none; pointer-events:none; box-sizing:border-box }
+.cmt-hov { border:1px dashed #8fc7ff; background:rgba(143,199,255,.07) }
+.cmt-hov.is-pt { width:14px; height:14px; margin:-7px 0 0 -7px; border:2px solid #8fc7ff; border-radius:50% }
+.cmt-hl { border:2px solid var(--c-blue); background:rgba(13,153,255,.08) }
+.cmt-hov span, .cmt-hl span { position:absolute; left:-1px; bottom:100%; margin-bottom:3px; white-space:nowrap; font:600 11px/1 system-ui,sans-serif; padding:4px 6px; border-radius:3px; max-width:420px; overflow:hidden; text-overflow:ellipsis }
+.cmt-hov span { background:rgba(20,32,43,.95); color:#8fc7ff; border:1px solid #8fc7ff }
+.cmt-hov.is-pt span { left:10px; bottom:10px }
+.cmt-hl span { background:var(--c-blue); color:#fff }
+.cmt-hl span:empty { display:none }
+
+/* pins: fixed size, tip at the point */
+.cmt-pin { position:fixed; width:28px; height:28px; margin:-28px 0 0 0; padding:0; border-radius:50% 50% 50% 0; border:2px solid #fff; background:var(--st);
+  color:#fff; font:700 11px/1 system-ui,sans-serif; display:flex; align-items:center; justify-content:center; pointer-events:auto; cursor:pointer !important;
+  box-shadow:0 2px 8px rgba(0,0,0,.6); transform-origin:0 100%; transition:transform .12s }
+.cmt-pin:hover, .cmt-pin.is-open { transform:scale(1.18) }
+.cmt-pin.is-open { box-shadow:0 0 0 3px rgba(13,153,255,.7), 0 2px 8px rgba(0,0,0,.6) }
+.cmt-pin.is-orphan { background:var(--c-orphan); border-style:dashed }
+.cmt-pin.is-flash { animation:cmtFlash .8s 3 }
+@keyframes cmtFlash { 50% { box-shadow:0 0 0 10px rgba(255,255,255,.35) } }
+
+/* card: thread or new comment */
+.cmt-card { position:fixed; width:320px; max-height:min(560px, calc(100vh - 16px)); display:flex; flex-direction:column; background:#1e1e1e; border:1px solid #3a3a3a;
+  border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,.65); pointer-events:auto; z-index:2 }
+.cmt-card[hidden] { display:none }
+.cmt-card.has-update::before { content:"Updated by someone — send or clear to refresh"; display:block; background:#3a2f10; color:#ffd98a; font-size:11px; padding:4px 10px; border-radius:8px 8px 0 0 }
+.cmt-card__h { display:flex; gap:6px; align-items:flex-start; padding:9px 10px 7px; border-bottom:1px solid #2e2e2e }
+.cmt-n { color:#888; font-weight:700; padding-top:1px }
+.cmt-title { flex:1; font-weight:700; font-size:13px; word-break:break-word }
+.cmt-card__m { display:flex; gap:8px; align-items:center; padding:6px 10px; border-bottom:1px solid #2e2e2e; color:#999; font-size:11.5px }
+.cmt-st { font:600 11.5px system-ui,sans-serif; background:#2a2a2a; color:#fff; border:1px solid #444; border-left:4px solid var(--st); border-radius:4px; padding:2px 4px; cursor:pointer }
+.cmt-orphan { margin:6px 10px 0; padding:6px 8px; background:#26262b; border-radius:4px; color:#bbb; font-size:11.5px }
+.cmt-orphan code { color:#ffd98a }
+.cmt-msgs { overflow:auto; flex:1; min-height:0 }
+.cmt-msg { padding:8px 10px; border-bottom:1px solid #262626 }
+.cmt-msg__h { display:flex; gap:6px; align-items:baseline }
+.cmt-msg__t { margin-top:2px; white-space:pre-wrap; word-break:break-word }
+.cmt-msg.is-sys { color:#8a8a8a; font-size:11.5px; padding:5px 10px }
+.cmt-at2 { color:#888; font-size:11px } .cmt-ed { color:#888; font-size:11px; font-style:italic }
+.cmt-acts { margin-left:auto; display:none; gap:2px } .cmt-msg:hover .cmt-acts, .cmt-acts:focus-within { display:flex }
+.cmt-reply { display:flex; gap:6px; padding:8px 10px; border-top:1px solid #2e2e2e }
+#cmt textarea, #cmt input { box-sizing:border-box; width:100%; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:5px; font:12.5px/1.4 system-ui,"Noto Sans Thai",sans-serif; padding:6px 8px; resize:vertical; outline:none }
+#cmt textarea:focus, #cmt input:focus { border-color:var(--c-blue) }
+.cmt-ib { background:none; border:1px solid transparent; color:#aaa; border-radius:4px; font:12px/1 system-ui,sans-serif; padding:3px 6px; cursor:pointer !important }
+.cmt-ib:hover { border-color:#444; color:#fff }
+.cmt-send { background:var(--c-blue); color:#fff; border:none; border-radius:5px; font:700 12px system-ui,sans-serif; padding:6px 12px; cursor:pointer !important }
+.cmt-link { background:none; border:none; color:#8fc7ff; text-decoration:underline; cursor:pointer !important; font:inherit; padding:0 }
+.cmt-comp { padding:10px; display:flex; flex-direction:column; gap:6px }
+.cmt-comp__r { display:flex; justify-content:space-between; align-items:center; gap:6px }
+.cmt-anc { font:11px/1.4 Consolas,monospace; color:#8fc7ff; background:#14202b; border-radius:4px; padding:5px 7px; word-break:break-all }
+
+/* list (left side, clear of #tools) */
+.cmt-list { position:fixed; left:10px; top:10px; bottom:10px; width:310px; display:flex; flex-direction:column; background:#1a1a1a; border:1px solid #333; border-radius:8px; pointer-events:auto; box-shadow:0 10px 30px rgba(0,0,0,.6) }
+.cmt-list[hidden] { display:none }
+.cmt-list header { padding:10px; border-bottom:1px solid #2e2e2e; display:flex; flex-direction:column; gap:7px }
+.cmt-list__t { display:flex; gap:8px; align-items:center } .cmt-list__t .cmt-ib { margin-left:auto } .cmt-list__n { color:#888 }
+.cmt-flt { display:flex; flex-wrap:wrap; gap:4px }
+.cmt-flt button { font:600 11px system-ui,sans-serif; background:#262626; color:#999; border:1px solid #3a3a3a; border-radius:999px; padding:3px 8px; cursor:pointer !important; display:inline-flex; gap:5px; align-items:center }
+.cmt-flt button.on { border-color:#ddd; color:#fff }
+.cmt-dot { width:8px; height:8px; border-radius:50%; display:inline-block; background:var(--st); flex:none }
+.cmt-list ol { list-style:none; margin:0; padding:0; overflow:auto; flex:1 }
+.cmt-grp { padding:6px 10px; background:#151515; color:#888; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em }
+.cmt-row { padding:8px 10px; border-bottom:1px solid #262626; cursor:pointer !important } .cmt-row:hover, .cmt-row.is-open { background:#242424 }
+.cmt-row__1 { display:flex; gap:6px; align-items:center; font-size:11.5px; color:#bbb } .cmt-row__1 b { color:#fff } .cmt-row__c { margin-left:auto; color:#777 }
+.cmt-row__2 { color:#aaa; font-size:11.5px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .cmt-row__2 b { color:#ddd }
+.cmt-empty { padding:14px 10px; color:#777 }
+
+/* toasts (bottom centre) */
+.cmt-toasts { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); display:flex; flex-direction:column; gap:6px; align-items:center }
+.cmt-toast { pointer-events:auto; cursor:pointer !important; background:#222; border:1px solid #444; border-left:3px solid var(--c-blue); color:#fff; font:600 12px system-ui,"Noto Sans Thai",sans-serif; padding:7px 12px; border-radius:6px; box-shadow:0 6px 18px rgba(0,0,0,.5) }
+.cmt-toast.is-err { border-left-color:var(--c-critical) }
+
+/* chips in #tools */
+#tools .cmt-seg { display:inline-flex }
+#tools .row .cmt-seg button { border-radius:0 }
+#tools .row .cmt-seg button:first-child { border-radius:5px 0 0 5px }
+#tools .row .cmt-seg button:last-child { border-radius:0 5px 5px 0; border-left:none }
+#tools .row .cmt-seg button.is-on { background:#0d99ff; border-color:#0d99ff; color:#fff }
+#tools .cmt-seg b { margin-left:4px; color:#f4dd2f } #tools .cmt-seg .is-on b { color:#fff }
+#tools .cmt-cmode.is-offline b { color:#888 }
+#tools .cmt-bar { display:flex; gap:4px; align-items:center; flex-wrap:wrap; justify-content:flex-end; position:relative; background:rgba(30,30,30,.95); border:1px solid #383838; border-radius:6px; padding:4px; box-shadow:0 4px 12px rgba(0,0,0,.4) }
+#tools .cmt-bar[hidden] { display:none }
+#tools .cmt-bar .chip { font:500 11px/1 system-ui,sans-serif; letter-spacing:normal; border-radius:5px; padding:5px 8px; background:#2a2a2a; border:1px solid #3a3a3a; color:#fff; cursor:pointer }
+#tools .cmt-bar .chip:hover { background:#383838 }
+#tools .cmt-bar .chip.is-on { border-color:#0d99ff; color:#0d99ff }
+#tools .cmt-at { font:11px system-ui,sans-serif; color:#999; padding:0 4px }
+#tools .cmt-sep { width:1px; height:16px; background:#383838 }
+#tools .cmt-set { position:absolute; right:0; top:calc(100% + 6px); width:250px; background:#1e1e1e; border:1px solid #3a3a3a; border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:8px; font:12px system-ui,sans-serif; color:#ddd; box-shadow:0 8px 24px rgba(0,0,0,.6) }
+#tools .cmt-set[hidden] { display:none }
+#tools .cmt-set label { display:flex; flex-direction:column; gap:3px }
+#tools .cmt-set input, #tools .cmt-set select { background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:4px; padding:4px 6px; font:12px system-ui,sans-serif }
+#tools .cmt-set__src { color:#888; font-size:11px }
+body.cmt-on #tools.idle { opacity:1 }   /* Comment mode: keep the bar visible */
+.cmt-hov.is-right span, .cmt-hl.is-right span { left:auto; right:-1px }   /* label stays inside the window */
+.cmt-hov.is-low span, .cmt-hl.is-low span { bottom:auto; top:100%; margin:3px 0 0 }
+
+/* v3: clear Save / Cancel while editing, name Edit -> Save, first-visit name modal */
+.cmt-btns { display:flex; justify-content:flex-end; gap:6px; margin-top:6px }
+.cmt-ib--txt { border-color:#444; color:#ddd; padding:6px 12px; font-weight:600 }
+.cmt-msg.is-editing { background:#1b2733; box-shadow:inset 3px 0 0 var(--c-blue) }
+.cmt-msg.is-editing .cmt-acts { display:none !important }
+.cmt-card.is-editing .cmt-reply { display:none }   /* no Send while an edit is open: Save is the only way */
+.cmt-card.is-editing .cmt-card__h > .cmt-ib { display:none }
+.cmt-card.is-editing .cmt-card__h > .cmt-ib[data-act="close"] { display:inline-block }
+.cmt-title input { font-weight:700; font-size:13px }
+#tools .cmt-set__name { display:flex; align-items:center; gap:8px }
+#tools .cmt-set__name span { color:#999 } #tools .cmt-set__name b { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+#tools .cmt-set__edit input { width:100%; box-sizing:border-box }
+#tools .cmt-set .cmt-btns .cmt-send, #tools .cmt-set .cmt-ib { cursor:pointer }
+.cmt-modal { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; pointer-events:auto; z-index:5 }
+.cmt-modal[hidden] { display:none }
+.cmt-modal__box { width:340px; background:#1e1e1e; border:1px solid #3a3a3a; border-radius:10px; padding:18px; box-shadow:0 16px 40px rgba(0,0,0,.7); display:flex; flex-direction:column; gap:10px }
+.cmt-modal__t { font-size:15px; color:#fff }
+.cmt-modal__box p { margin:0; color:#aaa; font-size:12px }
+.cmt-modal__box input { font-size:14px !important; padding:9px 10px !important }
+.cmt-modal .cmt-btns { margin-top:2px }

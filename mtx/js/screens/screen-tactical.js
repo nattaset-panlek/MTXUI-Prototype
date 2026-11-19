@@ -116,6 +116,7 @@
     if (skillTree?.onStyleChanged) skillTree.onStyleChanged(s);
 
     if (chosen) api.store.set("style", selStyle);
+    document.dispatchEvent(new CustomEvent("mtx:style", { detail: { id: selStyle } }));   // Dev Tools style dropdown + per-style dev values (style-dev.js)
     document.documentElement.style.setProperty("--style-color", s.color);
     document.documentElement.style.setProperty("--style-fg", s.fg || "#ffffff");
     renderPanel();

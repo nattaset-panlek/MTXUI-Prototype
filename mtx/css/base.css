@@ -625,3 +625,60 @@ body.dev-text-picking #stage *{cursor:text!important}
 .km-tab__bar .km-open{width:auto!important;margin-left:auto}
 .km-tab__body{display:grid;grid-template-columns:minmax(0,440px) 1fr;gap:16px;align-items:start}
 .km-tab__pad{display:flex;flex-direction:column;gap:8px}
+
+/* ---- Dev tools: Tactical Style dropdown (header) + Per style card (style-dev.js) ---- */
+#dev .dev-style { display: flex; align-items: center; gap: 8px; margin: 0 4px 0 0; font-size: 11px; color: #b3b3b3 }
+#dev .dev-style select { border-left: 3px solid var(--sd-color, #0d99ff) }
+#tabContentSystem > .dev-sec--style { border-color: var(--sd-color, #383838); box-shadow: inset 3px 0 0 var(--sd-color, transparent) }
+.dev-sec--style .dev-sec__title .dev-style-name { color: var(--sd-color, #fff) }
+.dev-sub { margin: 6px 0 0; font-size: 11px; font-weight: 600; color: #d0d0d0 }
+
+/* ---- Dev tools: Style Presets tab (style-dev.js): parameter rows x one column per Tactical Style ---- */
+#dev > #tabContentStyles { flex-direction: column; gap: 12px }
+.sp-bar { display: flex; align-items: center; gap: 8px }
+.sp-bar .dev-note { flex: 1; margin: 0 }
+.sp-bar .chip { width: auto !important }
+.sp-wrap { overflow: auto; border: 1px solid #383838; border-radius: 6px; background: #262626 }
+.sp-table { width: 100%; border-collapse: collapse; font-size: 11px; color: #d0d0d0 }
+.sp-table th, .sp-table td { padding: 5px 8px; border-bottom: 1px solid #303030; text-align: center; white-space: nowrap }
+.sp-table thead th { position: sticky; top: 0; z-index: 1; background: #242424 }
+.sp-table .sp-label { text-align: left; font-weight: 500; color: #d0d0d0; min-width: 150px }
+.sp-table .sp-label small { color: #8e8e8e }
+.sp-group th { text-align: left; padding-top: 12px; background: #2b2b2b; font: 700 10px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Inter",sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #8e8e8e }
+.sp-group .chip { width: auto !important; margin-left: 10px; font-size: 10px !important; padding: 2px 8px !important; text-transform: none; letter-spacing: 0 }
+#dev .sp-col { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px !important; font-size: 11px !important; background: transparent !important; border: 1px solid transparent !important; color: #b3b3b3 !important }
+#dev .sp-col i { width: 9px; height: 9px; border-radius: 50% }
+#dev th.is-cur .sp-col { border-color: var(--sd-color, #0d99ff) !important; color: #fff !important }
+.sp-table td.is-cur { background: rgba(255,255,255,.035) }
+.sp-table td { position: relative }
+.sp-table td.is-mod::after { content: ""; position: absolute; top: 4px; right: 4px; width: 5px; height: 5px; border-radius: 50%; background: #0d99ff }
+#dev .sp-table input[type=number] { width: 64px }
+#dev .sp-table input[type=color] { width: 34px; height: 20px; padding: 0; border: 0; background: none }
+#dev .sp-table select { max-width: 96px }
+#dev .sp-act button { padding: 1px 6px !important; margin: 0 1px; font-size: 12px !important; background: transparent !important; border: 1px solid #383838 !important; color: #b3b3b3 !important }
+#dev .sp-act button:hover { color: #fff !important; border-color: #0d99ff !important }
+
+/* ---- Dev tools: Player tab (player.js mountDev): cards of label / input rows ---- */
+#dev > #tabContentPlayer { flex-direction: column; gap: 12px }
+#tabContentPlayer > .dev-note { margin: 0 }
+.pl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; align-items: start }
+.pl-card { padding: 12px 14px 14px; border: 1px solid #383838; border-radius: 6px; background: #262626; display: flex; flex-direction: column; gap: 8px }
+.pl-card--style { border-color: var(--sd-color, #383838); box-shadow: inset 3px 0 0 var(--sd-color, transparent) }
+.pl-card--style .dev-style-name, #tabContentPlayer > .dev-note .dev-style-name { color: var(--sd-color, #fff) }
+.pl-grid { display: flex; flex-direction: column }
+.pl-tr { display: grid; grid-template-columns: minmax(130px, 1fr) auto auto auto; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #303030; font-size: 11px; color: #d0d0d0 }
+.pl-tr:last-child { border-bottom: 0 }
+.pl-tr--head { padding-top: 0; color: #8e8e8e; font-size: 10px; text-transform: uppercase; letter-spacing: .06em }
+.pl-k { display: flex; flex-direction: column; gap: 1px }
+.pl-k b { color: #fff; margin-right: 4px }
+.pl-k small, .pl-xp small { color: #8e8e8e; font-size: 10px }
+.pl-xp { display: inline-flex; align-items: center; gap: 4px }
+.pl-step { display: inline-flex; align-items: center }
+#dev .pl-step button { width: 22px; height: 24px; padding: 0 !important; font-size: 13px !important; background: #2f2f2f !important; border: 1px solid #444 !important; color: #d0d0d0 !important }
+#dev .pl-step button:hover { color: #fff !important; border-color: #0d99ff !important }
+#dev .pl-step input { border-radius: 0; text-align: center }
+#dev .pl-tr .chip { width: auto !important; font-size: 10px !important; padding: 3px 8px !important }
+.pl-card > .chip--danger { align-self: flex-start; width: auto !important; margin-top: 4px }
+#devPlayerWallet > .chip { align-self: flex-start; width: auto !important; margin-top: 8px }
+.sp-table tr.sp-save td { background: rgba(13,153,255,.05) }
+.pl-xp, .pl-k > span { white-space: nowrap } .pl-xp small { display: inline !important }
