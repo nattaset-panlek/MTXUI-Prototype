@@ -122,3 +122,13 @@ body.cmt-on #tools.idle { opacity:1 }   /* Comment mode: keep the bar visible */
 .cmt-modal__box p { margin:0; color:#aaa; font-size:12px }
 .cmt-modal__box input { font-size:14px !important; padding:9px 10px !important }
 .cmt-modal .cmt-btns { margin-top:2px }
+
+/* v4: export for an AI agent */
+#tools .cmt-exp { position:absolute; right:0; top:calc(100% + 6px); width:270px; background:#1e1e1e; border:1px solid #3a3a3a; border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:7px; font:12px system-ui,sans-serif; color:#ddd; box-shadow:0 8px 24px rgba(0,0,0,.6) }
+#tools .cmt-exp[hidden] { display:none }
+#tools .cmt-exp label { display:flex; gap:6px; align-items:center; cursor:pointer }
+#tools .cmt-exp__hint { color:#999; font-size:11px; line-height:1.4 }
+#tools .cmt-exp__n { color:#f4dd2f; font-weight:700 }
+#tools .cmt-exp .cmt-ib, #tools .cmt-exp .cmt-send { cursor:pointer }
+.cmt-ib--ai { color:#8fc7ff; border-color:#2b4a63; font-weight:700 }
+#tools .cmt-exp, #tools .cmt-set { z-index:10 }   /* above the input status (#hud) */

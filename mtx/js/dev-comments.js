@@ -75,7 +75,17 @@
     <span class="cmt-sep"></span>
     <button type="button" class="chip" data-act="done" title="Show / hide Complete pins">Show Complete</button>
     <button type="button" class="chip" data-act="list" title="Thread list (L)">List</button>
+    <button type="button" class="chip" data-act="export" title="Export comments for an AI agent">Export</button>
     <button type="button" class="chip" data-act="settings" title="Comment settings">⚙</button>
+    <div class="cmt-exp" hidden>
+      <b>Export for an AI agent</b>
+      <span class="cmt-exp__hint">Markdown with screen, element, selector, Figma node, files and the whole conversation. Paste it to an agent.</span>
+      <label><input type="radio" name="cmtExpScope" value="screen" checked> This screen</label>
+      <label><input type="radio" name="cmtExpScope" value="all"> All screens</label>
+      <label><input type="checkbox" data-role="expDone"> Include Complete</label>
+      <div class="cmt-exp__n" data-role="expN"></div>
+      <div class="cmt-btns"><button type="button" class="cmt-ib cmt-ib--txt" data-act="expDownload">Download .md</button><button type="button" class="cmt-send" data-act="expCopy">Copy</button></div>
+    </div>
     <div class="cmt-set" hidden>
       <div class="cmt-set__name" data-role="nameRow"><span>Name</span><b data-role="nameShow">–</b><button type="button" class="cmt-ib cmt-ib--txt" data-act="nameEdit">Edit</button></div>
       <div class="cmt-set__edit" data-role="nameEditRow" hidden><input data-role="name" maxlength="40" placeholder="e.g. nattaset"><div class="cmt-btns"><button type="button" class="cmt-ib cmt-ib--txt" data-act="nameCancel">Cancel</button><button type="button" class="cmt-send" data-act="nameSave">Save</button></div></div><div class="cmt-set__me" data-role="meRow" hidden>Signed in as <b data-role="me">–</b></div>
@@ -209,6 +219,7 @@
       <div class="cmt-card__h">
         <span class="cmt-n">#${t.n}</span><div class="cmt-title">${esc(t.title)}</div>
         ${mine ? `<button type="button" class="cmt-ib" data-act="editTitle" title="Edit title">✎</button><button type="button" class="cmt-ib" data-act="delThread" title="Delete thread">🗑</button>` : ""}
+        <button type="button" class="cmt-ib cmt-ib--ai" data-act="copyAi" title="Copy this thread for an AI agent (Markdown)">⧉ AI</button>
         <button type="button" class="cmt-ib" data-act="close" title="Close (Esc)">×</button>
       </div>
       <div class="cmt-card__m">
@@ -400,6 +411,85 @@
     if (f && stage.contains(f)) { const fr = f.getBoundingClientRect(); a.figma = f.dataset.figma; a.fdx = +((e.clientX - fr.left) / fr.width).toFixed(3); a.fdy = +((e.clientY - fr.top) / fr.height).toFixed(3); }
     return a;
   }
+  // ------------------------------------------------------------ export for an AI agent (Markdown)
+  const ST_ORDER = ST.map(x => x.k);
+  const when = ms => { const d = new Date(ms), p = n => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+  const figmaId = v => (String(v || "").match(/\b\d+:\d+\b/) || [])[0];
+  const code = v => "`" + String(v).replace(/`/g, "'") + "`";
+  function openTag(el) { const c = el.cloneNode(false); return c.outerHTML.replace(/<\/[^>]+>$/, "").replace(/\s+/g, " ").slice(0, 300); }
+  function scriptFor(key) {
+    const re = new RegExp("screens/screen-" + key + "\\.js");
+    const src = [...document.scripts].map(x => x.getAttribute("src") || "").find(x => re.test(x));
+    return src ? src.split("?")[0] : null;
+  }
+  function figmaChain(el) { const out = []; for (let n = el; n && n !== stage; n = n.parentElement) if (n.dataset && n.dataset.figma) out.push(n.dataset.figma); return out.slice(0, 4); }
+  function threadMd(t) {
+    const r = resolve(t), a = t.anchor || {}, scr = screenEl(t.screen), L = [];
+    L.push(`## #${t.n} · ${stName(t.status)} · ${t.title}`);
+    L.push(`- Thread id: ${code(t.id)} · by ${short(t.author)} · ${when(t.createdAt)}${t.updatedAt !== t.createdAt ? " · updated " + when(t.updatedAt) : ""}`);
+    L.push(`- Screen: ${code(t.screen)} (open with URL ${code("#screen=" + t.screen)} or ${code('MTX.show("' + t.screen + '")')})${t.tab ? " · tab/context: " + code(t.tab) : ""}`);
+    if (!a.figma && !a.selector) L.push(`- Where: a point on the 1920×1080 stage, x ${a.x}, y ${a.y} (not tied to an element)`);
+    else {
+      L.push("- Where:" + (r.state === "orphan" ? " ⚠ element NOT FOUND any more (moved or removed); use the point and the names below" : ""));
+      if (r.el) {
+        const txt = (r.el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 120);
+        L.push(`  - element: ${code(openTag(r.el))}${txt ? ` text "${txt}"` : ""}`);
+      }
+      if (a.selector) L.push(`  - selector: ${code(a.selector)}`);
+      if (a.figma) {
+        const fid = figmaId(a.figma), chain = r.el ? figmaChain(r.el) : [];
+        L.push(`  - data-figma: ${code(a.figma)}${fid ? ` (Figma node ${fid})` : ""}${chain.length > 1 ? " · inside: " + chain.slice(1).map(code).join(" › ") : ""}`);
+      }
+      if (r.el && r.el.getClientRects().length) {   // box even when covered or mid-animation
+        const sr = stage.getBoundingClientRect(), er = r.el.getBoundingClientRect(), k = stageW() / sr.width;
+        L.push(`  - box on the 1920×1080 stage: x ${Math.round((er.left - sr.left) * k)}, y ${Math.round((er.top - sr.top) * k)}, w ${Math.round(er.width * k)}, h ${Math.round(er.height * k)}`);
+      }
+      L.push(`  - clicked point on the stage: x ${a.x}, y ${a.y}`);
+    }
+    const files = [code("mtx-controller-flow/index.html") + (scr && scr.id ? " (section " + code("#" + scr.id) + ")" : "")];
+    const js = scriptFor(t.screen); if (js) files.push(code("mtx-controller-flow/" + js));
+    if (r.el) { const cls = [...r.el.classList].filter(c => !/^is-/.test(c)); if (cls.length) files.push("CSS: grep " + code("." + cls[0]) + " in " + code("mtx-controller-flow/mtx/css/")); }
+    L.push("- Files to look at: " + files.join(", "));
+    L.push("- Conversation:");
+    for (const m of t.messages) L.push(m.sys ? `  - _${short(m.author)} ${m.text} (${when(m.at)})_` : `  - **${short(m.author)}** (${when(m.at)}${m.editedAt ? ", edited" : ""}): ${m.text.replace(/\n/g, "\n    ")}`);
+    return L.join("\n");
+  }
+  function exportMd(list, scopeLabel) {
+    const H = [], api = location.origin + API;
+    H.push(`# MTX prototype comments — ${PROTO}`);
+    H.push(`Exported ${when(Date.now())} by ${short(myName()) || "?"} · ${list.length} thread${list.length === 1 ? "" : "s"} · ${scopeLabel}`);
+    H.push("");
+    H.push("## How to work on these (for an AI agent)");
+    H.push("- Project: " + code("mtx-controller-flow/") + " — vanilla JS prototype on a 1920×1080 stage (" + code("index.html") + " + " + code("mtx/js") + ", " + code("mtx/css") + "). It is the source of truth; " + code("publish-to-workingstation.bat") + " copies it to mtxworkingstation.");
+    H.push("- Preview: " + code("node mtx-controller-flow/tools/bake-server.mjs") + " then open http://127.0.0.1:8765/#screen=<screen>.");
+    H.push("- Find each element by its selector / data-figma in " + code("index.html") + "; rows built by JS live in " + code("mtx/js/screens/screen-<screen>.js") + " (grep the class names).");
+    H.push("- Do only what each comment asks. Keep other layout and styles as they are.");
+    if (LOCAL) {
+      H.push("- When a thread is done, reply with what you changed and set it to Waiting for review (local comment server):");
+      H.push("  " + code(`curl -X POST ${api} -H "Content-Type: application/json" -d '{"op":"reply","id":"<thread id>","text":"<what changed>","author":"agent"}'`));
+      H.push("  " + code(`curl -X POST ${api} -H "Content-Type: application/json" -d '{"op":"status","id":"<thread id>","status":"review","author":"agent"}'`));
+    } else H.push("- When a thread is done, list what you changed per thread id; a person sets the status on the team site.");
+    H.push("");
+    return H.join("\n") + "\n" + list.map(threadMd).join("\n\n") + "\n";
+  }
+  function exportList() {
+    const sc = $('input[name="cmtExpScope"]:checked', bar)?.value || "screen", withDone = $('[data-role="expDone"]', bar).checked;
+    const list = live().filter(t => (sc === "all" || t.screen === cur) && (withDone || t.status !== "done"))
+      .sort((x, y) => (x.screen === cur ? 0 : 1) - (y.screen === cur ? 0 : 1) || x.screen.localeCompare(y.screen) || ST_ORDER.indexOf(x.status) - ST_ORDER.indexOf(y.status) || x.n - y.n);
+    return { list, label: (sc === "all" ? "all screens" : "screen " + cur) + (withDone ? ", with Complete" : ", open only") };
+  }
+  function syncExpN() { const n = exportList().list.length; $('[data-role="expN"]', bar).textContent = n + " thread" + (n === 1 ? "" : "s"); }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch (e) { const ta = document.createElement("textarea"); ta.value = text; ta.style.cssText = "position:fixed;opacity:0"; root.appendChild(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); return ok; }
+  }
+  function download(name, text) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "text/markdown;charset=utf-8" })); a.download = name;
+    root.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  const expBox = $(".cmt-exp", bar);
+  expBox.addEventListener("change", syncExpN);
+
   const tabOf = key => { try { return window.MTX_SCREENS?.[key]?.commentCtx?.() || undefined; } catch (e) { return undefined; } };
   async function onPick(e) {
     const r = stage.getBoundingClientRect();
@@ -461,13 +551,22 @@
   // ------------------------------------------------------------ UI events
   chipPlay.onclick = () => setMode(false);
   chipCmt.onclick = () => setMode(true);
-  bar.addEventListener("click", e => {
+  bar.addEventListener("click", async e => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const a = b.dataset.act;
     if (a === "fetch") fetchNow("button");
     if (a === "done") { showDone = !showDone; pref.set("showDone", String(showDone)); syncDoneBtn(); renderPins(); }
     if (a === "list") setList(!listOpen);
-    if (a === "settings") { setBox.hidden = !setBox.hidden; nameEditing(false); }
+    if (a === "settings") { setBox.hidden = !setBox.hidden; nameEditing(false); expBox.hidden = true; }
+    if (a === "export") { expBox.hidden = !expBox.hidden; setBox.hidden = true; if (!expBox.hidden) syncExpN(); }
+    if (a === "expCopy" || a === "expDownload") {
+      const { list, label } = exportList();
+      if (!list.length) return toast("Nothing to export for this filter", null, "err");
+      const md = exportMd(list, label);
+      if (a === "expCopy") toast((await copyText(md)) ? "Copied " + list.length + " thread" + (list.length === 1 ? "" : "s") + " for an AI agent" : "Copy failed");
+      else { download("mtx-comments-" + PROTO + "-" + (label.startsWith("all") ? "all" : cur) + "-" + when(Date.now()).replace(/[: ]/g, "-") + ".md", md); toast("Downloaded " + list.length + " threads"); }
+      expBox.hidden = true;
+    }
     if (a === "nameEdit") nameEditing(true);
     if (a === "nameCancel") nameEditing(false);
     if (a === "nameSave") { const v = nameIn.value.trim(); if (!v) { nameIn.focus(); return toast("Type a name", null, "err"); } setName(v); nameEditing(false); toast("Name saved"); }
@@ -525,6 +624,7 @@
       refreshCard(true);
     }
     if (a === "cancelEdit") { refreshCard(true); return; }
+    if (a === "copyAi") { const md = exportMd([t], "thread #" + t.n); toast((await copyText(md)) ? "Copied #" + t.n + " for an AI agent" : "Copy failed"); return; }
     if (a === "delMsg") {
       const box = b.closest(".cmt-msg");
       if (confirm("Delete this message?")) { await send({ op: "deleteMsg", id: t.id, mid: box.dataset.mid }); refreshCard(true); }

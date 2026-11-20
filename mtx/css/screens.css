@@ -6967,7 +6967,7 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .mh-col--score { left: 810px }
 .mh-col--damage { left: 930px }
 .mh-row { --res: var(--text-muted) }
-.mh-row.is-win { --res: #f4dd2f }
+.mh-row.is-win { --res: #00fd86 }
 .mh-row.is-loss { --res: #ff0027 }
 .mh-row.is-draw { --res: #acacbb }
 .mh-row { --acc: var(--res) }
@@ -6988,7 +6988,7 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .mh-detail[hidden] { display: none }
 .mh-detail .lb-you__tier { white-space: normal }
 .mh-detail__tier { width: 303px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
-.mh-detail__result[data-result="win"] { color: #f4dd2f }
+.mh-detail__result[data-result="win"] { color: #00fd86 }
 .mh-detail__result[data-result="loss"] { color: #ff0027 }
 .mh-detail__result[data-result="draw"] { color: #acacbb }
 
@@ -7071,12 +7071,12 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
    header + page tabs (Q / E) + round tabs (Z / C, Statistics only) + red / blue corner cards; body = stats rows or loadout cards */
 #s-matchdetail { --md-red: #ff0027; --md-blue: #0066ff; --md-red-t: #ff4060; --md-blue-t: #3d8bff }
 .md-head > *, .md-pages, .md-rounds, .md-fighter, .md-body { position: absolute; margin: 0 }
-.md-result { left: 98px; top: 150px; font: 400 84px/90px var(--font-display); text-transform: uppercase; color: #f4dd2f }
+.md-result { left: 98px; top: 150px; font: 400 84px/90px var(--font-display); text-transform: uppercase; color: #00fd86 }
 .md-result[data-result="loss"] { color: #ff0027 }
 .md-result[data-result="draw"] { color: var(--text-muted) }
 .md-method { left: 330px; top: 166px; font: 600 22px/30px var(--font-ui); color: var(--text-1) }
 .md-meta { left: 330px; top: 200px; font: 600 18px/26px var(--font-ui); text-transform: uppercase; color: var(--text-muted); white-space: pre }
-.md-rp { left: 1600px; top: 164px; font: 400 40px/44px var(--font-display); text-transform: uppercase; color: #f4dd2f }
+.md-rp { left: 1600px; top: 164px; font: 400 40px/44px var(--font-display); text-transform: uppercase; color: #00fd86 }
 .md-rp[data-result="loss"] { color: #ff0027 }
 .md-rp[data-result="draw"] { color: var(--text-muted) }
 .md-rewards { left: 1600px; top: 214px; font: 600 18px/26px var(--font-ui); text-transform: uppercase; color: var(--text-muted); white-space: pre }
