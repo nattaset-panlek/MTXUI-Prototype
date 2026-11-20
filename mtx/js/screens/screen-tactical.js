@@ -110,7 +110,7 @@
     const core = api.bind("coreEmblem");
     if (core) core.src = `mtx/assets/svg/style-${selStyle}-sel.svg`;
     const treeSub = api.bind("treeStyle");
-    if (treeSub) treeSub.textContent = s.title + " tree";
+    if (treeSub) treeSub.textContent = s.title + " Mastery";
 
     const skillTree = api.getScreen("skilltree");
     if (skillTree?.onStyleChanged) skillTree.onStyleChanged(s);

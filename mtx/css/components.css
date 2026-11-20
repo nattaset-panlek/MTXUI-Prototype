@@ -171,7 +171,7 @@ body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed
 .mode-card.is-disabled .mode-card__title,.mode-card.is-disabled .mode-card__sub,.mode-card.is-disabled .mode-card__label{color:var(--text-dim)}
 .mode-card.is-disabled .mode-card__fist,.mode-card.is-disabled .mode-card__pager{opacity:0}
 /* Figma 613:59644 Match Find */
-.mode-card.is-finding{pointer-events:none}
+.mode-card.is-finding{cursor:pointer}   /* click the searching card = cancel (thread #22) */
 .mode-card.is-finding > :not(.mode-card__find){display:none}
 .mode-card__find{position:absolute;inset:0;color:#f6f1eb;font:600 15px/18px var(--font-ui)}
 .mode-card.is-focused .mode-card__find{color:var(--text-ink-2)}
@@ -189,7 +189,8 @@ body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed
 .mode-card.is-locked.is-focused .mode-card__title,.mode-card.is-locked.is-focused .mode-card__sub{color:var(--text-off)}
 .mode-card__pager{position:absolute;right:16px;bottom:13px;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .25s ease;z-index:2}
 .mode-card.is-focused .mode-card__pager,.mode-card:hover .mode-card__pager{opacity:1}
-.mode-card__pager i{width:9px;height:9px;border-radius:50%;background:rgb(0 0 0 / .5);cursor:pointer;transition:background .25s ease,opacity .25s ease}
+.mode-card__pager i{width:9px;height:9px;border-radius:50%;background:rgb(0 0 0 / .5);cursor:pointer;position:relative;transition:background .25s ease,opacity .25s ease}
+.mode-card__pager i::after{content:"";position:absolute;inset:-8px -4px}   /* bigger click area round the 9 px dot (thread #15) */
 .mode-card__pager i.is-active,
 .mode-card.is-focused .mode-card__pager i.is-active{background:#ffffff;transform:none}
 .mode-card__pager i:not(.is-active):hover{background:rgb(0 0 0 / .75);transform:none}

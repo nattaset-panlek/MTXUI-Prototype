@@ -247,6 +247,11 @@
   top: 246px;
   width: 440px
 }
+/* Main profile card: focus ring on mouse hover (thread #17), same gradient ring as the mode cards */
+#s-main .main__profile::after { content: ""; position: absolute; inset: calc(var(--focus-w) * -1); padding: var(--focus-w); border-radius: inherit; background: var(--grad-focus);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0; transition: opacity .1s; pointer-events: none; z-index: 3 }
+#s-main .main__profile:hover::after { opacity: 1 }
 
 .main__news {
   left: 1497px;   /* right edge = last mode card */
@@ -6358,12 +6363,12 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .lb-table { position: absolute; left: 657px; top: 267px; width: 1143px }
 .lb-table__head { display: flex; align-items: center; font: 700 18px/27px var(--font-ui); text-transform: uppercase }
 .lb-col { position: absolute; top: 15px }
-.lb-col--rank { left: 22px }
-.lb-col--fighter { left: 100px }
-.lb-col--tier { left: 466px }
-.lb-col--record { left: 760px }
-.lb-col--ko { left: 905px }
-.lb-col--elo { right: 24px }
+.lb-col--rank { left: 18px; width: 96px; text-align: center }   /* "Position" (thread #42); columns rebalanced */
+.lb-col--fighter { left: 134px }
+.lb-col--tier { left: 470px }
+.lb-col--record { left: 744px; width: 126px; text-align: center }
+.lb-col--ko { left: 870px; width: 126px; text-align: center }
+.lb-col--elo { left: 996px; width: 126px; text-align: center }
 .lb-table__rows { display: flex; flex-direction: column; gap: 6px; margin-top: 8px }
 .lb-table__pinned { position: absolute; left: 0; top: 572px; width: 100% }
 .lb-gap { height: 27px; margin: 0 0 28px; text-align: center; font: 600 18px/27px var(--font-ui); color: #6c6c6c }
@@ -6386,19 +6391,19 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .lb-row.is-silver { --acc: #c9ced6 }
 .lb-row.is-bronze { --acc: #c98a4b }
 .lb-row.is-you { --acc: #f6df2f }
-.lb-row__rank { left: 18px; font: 400 20px/1 var(--font-display); white-space: nowrap; color: var(--text-1) }
+.lb-row__rank { left: 18px; width: 96px; text-align: center; font: 400 20px/1 var(--font-display); white-space: nowrap; color: var(--text-1) }
 .lb-row.is-you .lb-row__rank { color: #f6df2f }
 .lb-row.is-silver .lb-row__rank { color: #c9ced6 }
 .lb-row.is-bronze .lb-row__rank { color: #c98a4b }
 .lb-row.is-gold .lb-row__rank { color: #f6df2f }
-.lb-row__avatar { left: 100px; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #16181f }
-.lb-row__name { left: 152px; max-width: 250px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
-.lb-row__country { left: 418px; font: 700 12px/1 var(--font-ui); color: var(--text-muted) }
-.lb-row__badge { left: 466px; width: 42px; height: 42px; object-fit: contain }
-.lb-row__tier { left: 516px; font: 600 15px/23px var(--font-ui); text-transform: uppercase; white-space: nowrap }
-.lb-row__record { left: 760px }
-.lb-row__ko { left: 905px }
-.lb-row__elo { right: 24px; font: 700 20px/30px var(--font-ui); color: #f6df2f }
+.lb-row__avatar { left: 134px; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #16181f }
+.lb-row__name { left: 186px; max-width: 240px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
+.lb-row__country { left: 432px; font: 700 12px/1 var(--font-ui); color: var(--text-muted) }
+.lb-row__badge { left: 470px; width: 42px; height: 42px; object-fit: contain }
+.lb-row__tier { left: 520px; font: 600 15px/23px var(--font-ui); text-transform: uppercase; white-space: nowrap }
+.lb-row__record { left: 744px; width: 126px; text-align: center }
+.lb-row__ko { left: 870px; width: 126px; text-align: center }
+.lb-row__elo { left: 996px; width: 126px; text-align: center; font: 700 20px/30px var(--font-ui); color: #f6df2f }
 /* rankings table: flat colour only (no photo / scratch overlay) */
 .lb-table__head { background: var(--yellow) }   /* flat, no gradient */
 .lb-table__head::after { content: none }
@@ -8361,3 +8366,6 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-attributes .attr__fighter-light { position: absolute; left: 74px; top: 106px; width: 548px; height: 974px; pointer-events: none; opacity: .3;
   background: linear-gradient(81deg, #fff -12%, transparent 100%);
   -webkit-mask: url(../assets/img/attr-fighter-full.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/img/attr-fighter-full.png) 0 0 / 100% 100% no-repeat }
+
+/* Mastery: no E / S / R level chips in the HUD (thread #25) */
+#s-mastery .player-hud .level-chip { display: none }

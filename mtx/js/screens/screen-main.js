@@ -28,6 +28,16 @@
     api = coreApi;
     quickModeIdx = Math.max(0, Math.min(QUICK_MODES.length - 1, +api.store.get("quick_mode", 0) || 0));
     renderQuickMode(false);
+    // mouse wheel on the Quick Fight card switches its mode page, like Q / E (thread #15)
+    let wheelAt = 0;
+    document.addEventListener("wheel", e => {
+      if (!e.target.closest?.('#s-main [data-id="quick"]')) return;
+      if (window.MTX_MODE_CARD?.isFinding?.() || Math.abs(e.deltaY) < 4) return;
+      e.preventDefault();
+      if (performance.now() - wheelAt < 250) return;
+      wheelAt = performance.now();
+      if (e.deltaY > 0) nextQuickMode(); else prevQuickMode();
+    }, { passive: false });
   }
 
   function enter() {
