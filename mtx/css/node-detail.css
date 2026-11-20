@@ -64,6 +64,13 @@
 .nd-fx--flaw p { color: #ff8a9b }
 .nd-fx .nd-num { font-weight: inherit; color: #3fd28b }
 .nd-fx .nd-num--cond { color: #f4dd2f }
+/* cooldown in the BUFF block's bottom-right corner (thread #10), replaces the Cooldown row */
+.nd-fx__cd { align-self: flex-end; display: flex; align-items: center; gap: 5px; margin-top: -4px; font: 600 15px/20px var(--font-ui); color: #e5e5e5; white-space: nowrap }
+.nd-fx__cd img { position: relative; top: -1.5px; width: 12px; height: 12px; filter: invert(.9) }   /* icon-clock.svg is black; 12 px + lifted = same height and centre as the digits (cap 11 px) */
+/* why the skill can't be unlocked yet (thread #7): red text under the Cost row */
+/* long cards (6+ rows, or a warn line) close up so the Cost row + warn still fit the panel (Signature = longest card) */
+.nd__stack:has(.nd-warn), .nd__stack:has(> :nth-child(12)) { gap: 8px }
+.nd-warn { margin: 0; font: 600 15px/20px var(--font-ui); color: #ff6078 }
 
 /* actions at card (22,645): CTA + hints, gap 20 */
 .nd__actions { position: absolute; left: 22px; top: 645px; display: flex; align-items: center; gap: 20px }

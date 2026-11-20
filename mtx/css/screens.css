@@ -8367,5 +8367,6 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
   background: linear-gradient(81deg, #fff -12%, transparent 100%);
   -webkit-mask: url(../assets/img/attr-fighter-full.png) 0 0 / 100% 100% no-repeat; mask: url(../assets/img/attr-fighter-full.png) 0 0 / 100% 100% no-repeat }
 
-/* Mastery: no E / S / R level chips in the HUD (thread #25) */
-#s-mastery .player-hud .level-chip { display: none }
+/* Style pages: no E / S / R level chips in the HUD (thread #25): Style Hub (also no wallet), Attributes, Mastery tree, Rewards, Quests */
+:is(#s-mastery, #s-attributes, #s-skilltree, #s-rewards, #s-quests) .player-hud .level-chip,
+#s-mastery .player-hud .wallet { display: none }

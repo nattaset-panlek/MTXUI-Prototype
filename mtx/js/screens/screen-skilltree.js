@@ -503,21 +503,13 @@
     }
     if (want <= lv) {
       if (n.kind === "attribute") { api.toast(`${n.name} · passive, always active`); return; }
-      // Equip = put it in the first free slot of this style's Tactical Loadout preset (saved); full -> say so
-      // perks equip the level of the tab shown (want), any owned level; moves equip as they are
-      const eqLv = n.levels ? want : 0;
-      if (isEquipped(id) && (!n.levels || eqLevel(id) === eqLv)) { api.toast(`${nodeLabel(n)}${eqLv ? " Lv " + eqLv : ""} · already in your loadout`); return; }
-      const was = n.levels && isEquipped(id) ? eqLevel(id) : 0;
-      const wasTier = n.kind === "decisive" && !n.granted ? LOADOUT()?.equippedTier?.(styleId, id) || 0 : 0;   // other tier of this family equipped
-      const slot = LOADOUT()?.equipNode?.(styleId, id, eqLv || undefined);   // free slot, or replaces the last one when full (auto)
-      if (slot == null) { api.rumble(120, 0.2); api.toast("Can not equip this skill"); return; }
-      const out = LOADOUT()?.lastReplaced;
-      updateTree();
-      renderDetail();
+      // Equip / Equipped (thread #4): open the Tactical Loadout on this style with the skill's group (Perk / Special /
+      // Decisive / Signature) selected; the player picks the slot and the skill there. Nothing is equipped from here.
+      // (Was: auto-equip into the first free slot, LOADOUT().equipNode, still in the Loadout API.)
+      if (!LOADOUT()?.open) return;
+      if (isVideoOpen()) V().close(true);
       api.rumble(60, 0.3);
-      api.toast(was ? `${n.name} · equipped Lv ${was} → Lv ${eqLv}`
-        : wasTier ? `${n.name} · Tier ${wasTier} → Tier ${n.tier}`
-        : `${nodeLabel(n)}${eqLv ? " Lv " + eqLv : ""} equipped · slot ${slot + 1}${out ? ` (replaced ${out})` : ""}`);
+      LOADOUT().open({ style: styleId, node: id, onClose: () => { updateTree(); renderDetail(); } });
       return;
     }
     if (want > lv + 1) {
@@ -783,6 +775,20 @@
   const fxHtml = t => esc(t).replace(/\([^)]*\)|[+-]?\d+(?:\.\d+)?%?/g, m => m[0] === "(" ? m.replace(/\d+(?:\.\d+)?%?/g, d => `<b class="nd-num nd-num--cond">${d}</b>`) : `<b class="nd-num">${m}</b>`);
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : "";
 
+  // first thing blocking the next level shown on the card ("" = can be unlocked now)
+  function lockReason(id, want) {
+    const n = TN.get(id), lv = lvOf(id);
+    if (want > lv + 1) return `Requires ${nodeLabel(n)} Lv ${want - 1}`;
+    if (!canLevelUp(id)) {
+      const ps = (PARENTS.get(id) || []).filter(p => !linkMet(p, id))
+        .map(p => { const need = NEED_LV.get(p + ">" + id) || 1; return nodeLabel(TN.get(p)) + (need > 1 ? ` Lv ${need}` : ""); });
+      return ps.length ? `Requires ${ps.join(unlockRule === "all" ? " and " : " or ")}` : "Locked";
+    }
+    const cost = costOf(n, lv + 1);
+    if (skillPts < cost) return `Not enough Skill points (${skillPts} / ${cost})`;
+    return "";
+  }
+
   // card content per node type (Figma Node Detail · Pack I 833:93841)
   // card content = the global skill card model (components/node-detail.js MTX_UI.nodeDetail.model, shared with Loadout etc.);
   // the tree adds its CTA (unlock / equip by tab), Video hint and the style core name
@@ -790,6 +796,14 @@
     const m = window.MTX_UI.nodeDetail.model(styleId, n.id, { lv: viewLv, cta: ctaOf(), videoOn: isMove(n) && isVideoOpen(),
       hints: [["b", "Close"], ...(isMove(n) ? [["y", isVideoOpen() ? "Hide video" : "Video"]] : [])] });
     if (n.kind === "core") { m.name = coreName; m.rows.push({ t: "row", label: "Decisive Move", value: n.name }); }
+    // not owned yet (thread #7): what it costs + why it can't be unlocked now (red), under the info rows
+    const { id, lv: want } = viewTarget(), tn = TN.get(id), lv = lvOf(id);
+    if (tn && !tn.base && want > lv) {
+      const cost = costOf(tn, lv + 1);
+      m.rows.push({ t: "row", label: "Cost", value: `${cost} Skill point${cost === 1 ? "" : "s"}`, color: skillPts < cost ? "#ff8a9b" : "" });
+      const warn = lockReason(id, want);
+      if (warn) m.rows.push({ t: "warn", text: warn });
+    }
     return m;
   }
 

@@ -830,12 +830,21 @@
     root.addEventListener("click", onClick);
   }
 
+  // opts: page, type, slot; style (style id) + node (skill node id) = open on that style with the node's group focused
+  // (Skill Tree Equip, thread #4); onClose = called once when the overlay closes
+  let onCloseCb = null;
   function openOverlay(opts = {}) {
     if (!root) build();
     lastFocus = document.activeElement;
     open = true;
-    page = opts.page ?? 2; view = "hub"; type = opts.type ?? 1; mode = "group";
-    slot = opts.slot ?? entrySlot(T().id); info = null;
+    const si = opts.style ? STYLES.findIndex(s => s.id === opts.style) : -1;
+    if (si >= 0 && si !== styleIdx) { styleIdx = si; const sw = root.querySelector("[data-tl-sw]"); if (sw) sw.innerHTML = ""; }
+    const it = opts.node ? itemOf(STYLES[styleIdx].id, opts.node) : null;
+    const nodeType = it ? TYPES.findIndex(t => t.id === it.tid) : -1;
+    page = opts.page ?? 2; view = "hub"; type = opts.type ?? (nodeType >= 0 ? nodeType : 1); mode = "group";
+    const inSlot = it ? (preset()[it.tid] || []).indexOf(it.i) : -1;   // already equipped: that slot, else the next free one
+    slot = opts.slot ?? (inSlot >= 0 ? inSlot : entrySlot(T().id)); info = null;
+    onCloseCb = opts.onClose || null;
     root.hidden = false;
     render();
   }
@@ -844,6 +853,8 @@
     closeVideo();
     if (root) root.hidden = true;
     lastFocus?.focus?.();
+    const cb = onCloseCb; onCloseCb = null;
+    cb?.();
   }
 
   addEventListener("keydown", onKey, true);

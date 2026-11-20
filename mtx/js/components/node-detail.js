@@ -51,7 +51,9 @@
     if (r.t === "desc") return `<p class="nd-desc">${esc(r.text)}</p>`;
     if (r.t === "row") return `<div class="nd-row"><span>${esc(r.label)}</span><b${r.color ? ` style="color:${r.color}"` : ""}>${r.html ?? esc(r.value)}</b></div>`;
     if (r.t === "keys") return `<div class="nd-row nd-row--keys"><span>${esc(r.label)}</span><b>${r.keys.map(k => glyph(k, "", true)).join("<i>+</i>")}</b></div>`;
-    if (r.t === "effect") return `<div class="nd-fx nd-fx--${r.tag}"><span class="nd-fx__tag">${r.tag === "flaw" ? "Flaw" : "Buff"}</span><p>${r.html}</p></div>`;
+    if (r.t === "warn") return `<p class="nd-warn">${esc(r.text)}</p>`;
+    // r.cd = cooldown shown in the block's bottom-right corner with a clock (thread #10: no separate Cooldown row)
+    if (r.t === "effect") return `<div class="nd-fx nd-fx--${r.tag}"><span class="nd-fx__tag">${r.tag === "flaw" ? "Flaw" : "Buff"}</span><p>${r.html}</p>${r.cd ? `<span class="nd-fx__cd" title="Cooldown"><img src="mtx/assets/svg/icon-clock.svg" alt="">${esc(r.cd)}</span>` : ""}</div>`;
     return "";
   }
 
@@ -81,7 +83,9 @@
         `<span data-lv-tab="${k + 1}" class="${k + 1 === m.tabs.view ? "is-on" : ""} ${(Array.isArray(m.tabs.owned) ? m.tabs.owned[k] : k + 1 <= m.tabs.owned) ? "is-owned" : ""}${k + 1 === m.tabs.eq ? " is-eq" : ""}">${esc(t)}</span>`).join("");
       q("pager").classList.toggle("is-wide", m.tabs.labels.some(t => t.length > 4));
     }
-    q("stack").innerHTML = m.rows.map(row).join('<i class="nd-div"></i>') + (m.rows.length ? '<i class="nd-div"></i>' : "");
+    // dividers between rows (and after the last); a warn line sits right under the row before it, no divider
+    const DIV = '<i class="nd-div"></i>';
+    q("stack").innerHTML = m.rows.map((r, k) => (k && r.t !== "warn" ? DIV : "") + row(r)).join("") + (m.rows.length && m.rows.at(-1).t !== "warn" ? DIV : "");
     const cta = el.querySelector(".nd__cta"), st = m.cta?.state || "locked";
     cta.hidden = !m.cta;
     cta.classList.toggle("is-ready-unlock", st === "ready");
@@ -172,6 +176,19 @@
   const fxHtml = t => esc(t).replace(/\([^)]*\)|[+-]?\d+(?:\.\d+)?%?/g, m => m[0] === "(" ? m.replace(/\d+(?:\.\d+)?%?/g, d => `<b class="nd-num nd-num--cond">${d}</b>`) : `<b class="nd-num">${m}</b>`);
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : "";
   const lvOf = (sid, id) => window.MTX_SKILLSTATE?.level(sid, id) || 0;
+  // value colours by meaning (thread #30): good for you = green, a cost / downside = red, plain facts stay white
+  const POS = "#3fd28b", NEG = "#ff8a9b";
+  // basic attack a move replaces when used (thread #6). PLACEHOLDER: no game data yet (n.replaces wins when the data gets it);
+  // guessed from the move name / text: knee, elbow, kick (teep / push kick = lead leg), else punch; rear side by default
+  function replacesOf(n) {
+    if (n.replaces) return n.replaces;
+    const t = (n.name + " " + (n.desc || "")).toLowerCase();
+    if (/teep|push kick/.test(t)) return "Left Kick";
+    if (/knee/.test(t)) return "Right Knee";
+    if (/elbow/.test(t)) return "Right Elbow";
+    if (/kick/.test(t)) return "Right Kick";
+    return "Right Punch";
+  }
   function findSkill(sid, id, o = {}) {
     const S = window.MTX_SKILLS?.styles?.[sid];
     if (!S) return null;
@@ -193,7 +210,7 @@
     if (n.kind === "core") {
       m.rows = [{ t: "desc", text: n.desc }];
     } else if (n.kind === "attribute") {
-      m.rows = [{ t: "desc", text: n.desc }, ...(n.bonus || []).map(b => ({ t: "row", label: b.stat, value: "+" + b.value, color: tc }))];
+      m.rows = [{ t: "desc", text: n.desc }, ...(n.bonus || []).map(b => ({ t: "row", label: b.stat, value: "+" + b.value, color: POS }))];
     } else if (n.kind === "perk") {
       const eq = window.MTX_LOADOUT?.equippedLevel?.(sid, n.id) || 0;
       const v = Math.min(3, Math.max(1, o.lv || eq || own || 1)), L = n.levels[v - 1];
@@ -201,8 +218,7 @@
       m.tabs = { labels: n.levels.map(l => "Lv " + l.lv), view: v, owned: own, eq };   // eq = equipped level: its tab is outlined yellow
       const fk = LV_FRAME[v], [fw, fh] = PERK_FRAME_SVG[fk], k = 194 / 124;   // frame follows the tab: Lv 1 copper, Lv 2 silver, Lv 3 gold
       m.frame = { src: `${LO}perk-frame-${fk}.svg`, w: Math.round(fw * k), h: Math.round(fh * k) };
-      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff) }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: esc(L.flaw) }] : []),
-        { t: "row", label: "Cooldown", value: n.cooldown ? n.cooldown + "s" : "-" }];
+      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff), cd: n.cooldown ? n.cooldown + "s" : "" }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: esc(L.flaw) }] : [])];
     } else if (n.kind === "decisive") {
       // Loadout: one item per family -> Tier tabs (Tier 1-3, owned / equipped like the perk Lv tabs); the Skill Tree shows no tabs
       if (hit.fam && o.tierTabs) {
@@ -210,12 +226,12 @@
         m.lv = tier;
         m.tabs = { labels: f.tiers.map((_, k) => "Tier " + (k + 1)), view: tier, owned, eq };
       }
-      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Tier", value: "Tier " + (n.tier || 1) }, { t: "row", label: "Base Damage", value: st.baseDamage, color: tc },
-        { t: "row", label: "Damage Part", html: esc(st.damagePart).replace(/ \/ /g, ' <i class="nd-sep">/</i> ') }, { t: "row", label: "Type", value: cap(n.tag) }];
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Tier", value: "Tier " + (n.tier || 1) }, { t: "row", label: "Base Damage", value: st.baseDamage, color: POS },
+        { t: "row", label: "Damage Part", html: esc(st.damagePart).replace(/ \/ /g, ' <i class="nd-sep">/</i> ') }, { t: "row", label: "Type", value: cap(n.tag) }, { t: "row", label: "Replaces", value: replacesOf(n) }];
     } else {
-      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Damage", value: st.damage, color: tc },
-        { t: "row", label: "Target Attack", value: st.target }, { t: "row", label: "Stamina Cost", value: st.stamina },
-        ...(n.kind === "signature" && st.input ? [{ t: "keys", label: "Input", keys: st.input }] : [])];
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Damage", value: st.damage, color: POS },
+        { t: "row", label: "Target Attack", value: st.target }, { t: "row", label: "Stamina Cost", value: st.stamina, color: NEG },
+        ...(n.kind === "signature" && st.input ? [{ t: "keys", label: "Input", keys: st.input }] : []), { t: "row", label: "Replaces", value: replacesOf(n) }];
     }
     return m;
   }
