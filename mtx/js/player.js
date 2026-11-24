@@ -335,6 +335,16 @@
     render
   };
 
+  // thread #18: a wallet amount = top-up (not built yet: notice); thread #19: the rank badge = Leaderboard, Personal (your rank) board
+  document.addEventListener("click", e => {
+    if (!e.target.closest?.(".player-hud")) return;
+    if (e.target.closest(".wallet__badge")) { e.stopPropagation(); window.MTX_SCREENS?.leaderboard?.showMyRank?.(); return; }
+    if (e.target.closest(".wallet__cell")) {
+      e.stopPropagation();
+      window.MTX_UI?.dialog?.open({ title: "Top Up", body: "Top up is in development. Coming soon.", primary: "OK" });
+    }
+  });
+
   // the HUD clones exist once app.js has run (end of body); fill them + the dev section then
   const boot = () => { render(); mountDev(); mountLevelButtons(); };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

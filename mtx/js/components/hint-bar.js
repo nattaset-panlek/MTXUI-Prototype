@@ -28,6 +28,8 @@
 
   UI.hintItem = (key, value, { itemAttrs, after = "" } = {}) => {
     const v = value && typeof value === "object" ? value : { label: value };
+    // threads #13 / #14 (2026-11-24): Options + Friends are the social bar buttons (bottom right), not hints; no "Move" hint anywhere
+    if ((key === "menu" && v.label === "Options") || (key === "view" && v.label === "Friends") || v.label === "Move") return "";
     const btns = key.split("+"), pair = btns.length > 1;
     const glyphs = btns.map(b => UI.glyph(b)).join("");
     const attrs = [`data-hint-key="${key}"`, itemAttrs?.(key), v.attrs].filter(Boolean).join(" ");

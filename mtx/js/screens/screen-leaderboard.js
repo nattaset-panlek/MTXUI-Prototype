@@ -296,6 +296,8 @@
     focus,
     setSeasonLeft,
     rankOf,
+    // HUD rank badge (thread #19): open on the Personal board (everyone in your rank) with your row focused
+    showMyRank() { board = "personal"; (window.MTX?.api?.show || window.MTX.show)("leaderboard"); setBoard("personal"); },
     actions: {
       lbPrevTab() { step(-1); },
       lbNextTab() { step(1); },

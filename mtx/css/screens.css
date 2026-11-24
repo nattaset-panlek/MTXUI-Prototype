@@ -7277,8 +7277,9 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 /* social bar: Friends / Options open the overlays; their keys sit on the buttons */
 .social-bar__btn--friends, .social-bar__btn--options { cursor: pointer }
 .social-bar__btn .glyph { --g: 20px; margin-left: 6px }
-/* the F / Tab keys show only in the hint bar; the glyphs stay in the DOM because mouse clicks read them (hintBtn in app.js) */
-.social-bar__btn .glyph { display: none }
+/* threads #13 / #14 (2026-11-24): the Options / Friends keys live on these buttons now (no longer in the hint bar) */
+.social-bar__btn .glyph { display: inline-flex; margin-left: 0 }
+.social-bar__btn--options { width: auto; min-width: 136px }
 
 /* Profile: "Edit appearance" is a focusable button (was the Menu key); Style preset Save is selected with A */
 .pf-appearance { left: 596px; top: 650px; width: 260px; height: 44px; box-sizing: border-box; display: flex; align-items: center; gap: 12px; padding: 0 14px;

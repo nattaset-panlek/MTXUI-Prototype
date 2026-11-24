@@ -85,6 +85,10 @@ html:not([data-hud-style]) .level-chip--mini .level-chip__badge{width:43px;heigh
 html:not([data-hud-style]) .level-chip--mini .level-chip__body{margin:2px 0 0;height:41px}
 html:not([data-hud-style]) .level-chip--mini .level-chip__value{font-size:14.65px}
 html:not([data-hud-style]) .level-chip--mini:is(.level-chip--s,.level-chip--r) .level-chip__value{font-size:15.52px}
+/* thread #16: XP progress as an underline under the body (Current style): 12% track + type colour fill to --p */
+html:not([data-hud-style]) .level-chip--mini .level-chip__body::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(var(--c),var(--c)) 0 0/var(--p,0%) 100% no-repeat,rgb(255 255 255 / .12)}
+/* thread #18 / #19: wallet cells open the top-up notice, the rank badge opens the Leaderboard */
+.wallet__cell,.wallet__badge{cursor:pointer}
 
 /* ---------- Wallet (Figma "Currency" 236:4940, 250x62): rank badge, MTX Credit | Money ---------- */
 .wallet{position:relative;width:250px;height:62px;display:flex;align-items:center;padding-left:80px;box-sizing:border-box;border-radius:3px;background:rgb(0 0 0 / .5)}

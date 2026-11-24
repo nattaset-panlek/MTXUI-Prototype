@@ -1271,6 +1271,7 @@
   function addLauncherHints() {
     document.querySelectorAll(".hint-bar").forEach(bar => {
       if (bar.querySelector("[data-cc-launch]")) return;
+      return;   // threads #13 / #14: Options + Friends stay on the social bar (bottom right) only, no launcher hints
       if (bar.closest("#start, #login")) return;   // intro / login: before the game, no Friends
       if (!bar.querySelector(".glyph[data-btn=\"menu\"]")) bar.insertAdjacentHTML("beforeend", window.MTX_UI.hintItem("menu", "Options"));
       bar.insertAdjacentHTML("beforeend",
