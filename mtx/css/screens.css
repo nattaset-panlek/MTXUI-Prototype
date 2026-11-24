@@ -8371,3 +8371,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* Style pages: no E / S / R level chips in the HUD (thread #25): Style Hub (also no wallet), Attributes, Mastery tree, Rewards, Quests */
 :is(#s-mastery, #s-attributes, #s-skilltree, #s-rewards, #s-quests) .player-hud .level-chip,
 #s-mastery .player-hud .wallet { display: none }
+
+/* Attributes (threads #3 / #26, 2026-11-24): sub-attribute values always green (not only with unconfirmed points);
+   Attribute points number green, grey at 0 (was white); Overall stays gold (user 2026-11-24). The confirm flash still blacks it out. */
+#s-attributes .attr-row__value { color: var(--green) }
+#s-attributes .attr-points__gem b { color: var(--green) }
+#s-attributes .attr-points.is-empty .attr-points__gem b { color: #6b6f7a }
+#s-attributes .attr-points.is-empty .attr-points__gem { opacity: 1 }
+#s-attributes .attr-side.is-flash .attr-points__gem b { color: #131416 }
