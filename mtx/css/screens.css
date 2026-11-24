@@ -8414,3 +8414,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-attributes .attr-row:hover .attr-row__key { visibility: visible }
 #s-attributes .attr-row__key:not(.is-off):hover { background: #f4dd2f; color: #141415 }
 #s-attributes .attr-row__key.is-off { cursor: default }
+
+/* Style Hub card selected / hovered: title on the style-colour bar turns dark ink (--text-ink-2, not pure black), like the
+   focused mode cards (user 2026-11-24). The white scratch text fill is dropped for a flat ink. */
+#s-mastery .tab-card:is(.is-focused, :hover) .tab-card__title { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--text-ink-2) }
+/* mouse hover = the selected look (style-colour bar + picture zoom), like the mode cards; the focus ring stays on the selected card only */
+#s-mastery .tab-card:hover .tab-card__body { background: linear-gradient(transparent 265px, var(--style-color) 265px), var(--surface-card) }
+#s-mastery .tab-card:hover .tab-card__art>img { transform: scale(1.1) }
+#s-mastery .tab-card:hover .tab-card__art::after { opacity: .2 }
