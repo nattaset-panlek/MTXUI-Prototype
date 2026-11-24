@@ -8422,3 +8422,23 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-mastery .tab-card:hover .tab-card__body { background: linear-gradient(transparent 265px, var(--style-color) 265px), var(--surface-card) }
 #s-mastery .tab-card:hover .tab-card__art>img { transform: scale(1.1) }
 #s-mastery .tab-card:hover .tab-card__art::after { opacity: .2 }
+
+/* Career Hold to simulate day = Figma option F "One Label (Mode Card)" (948:72440, user pick 2026-11-24).
+   Not selected: black card + light scratches (mode card idle); selected / hovered: gold + scratches (mode card focused);
+   one label, key hint 36 px (white on black, black on gold); 20 px padding both sides, 14 px key gap.
+   No focus ring: the prism ring appears only while held and runs clockwise with --hold-p (4 px, --focus-gap outside). No shade overlay. */
+#s-career .simulate-btn { height: 72px; padding: 0 20px; gap: 14px; justify-content: flex-start; border-radius: 0;
+  background: #020202; box-shadow: inset 0 0 0 2px #000; --tex-o: .12; --tex-blend: screen;
+  font: 400 29px/1 var(--font-display); letter-spacing: 0; color: #4e4e4e; white-space: nowrap; transition: background .12s, color .12s }
+#s-career .simulate-btn:is(.is-focused, :hover, .is-holding) { background: linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%); --tex-o: .5; color: #27282d; --key-tone: #000 }
+#s-career .simulate-btn .glyph { --g: 36px !important; flex: none }
+#s-career .simulate-btn .simulate-btn__hold-bar { display: none }
+#s-career .simulate-btn::after { inset: calc((4px + var(--focus-gap)) * -1); padding: 4px; scale: 1; animation: none; opacity: 0; transition: opacity .12s;
+  background: conic-gradient(#f3eed0 0, #e4b996 calc(var(--hold-p, 0%) * .25), #766ab2 calc(var(--hold-p, 0%) * .5), #5a8dc2 calc(var(--hold-p, 0%) * .75), #8bcab2 var(--hold-p, 0%), transparent var(--hold-p, 0%)) }
+#s-career .simulate-btn.is-holding::after, #s-career .simulate-btn.is-unlocked-flash::after { opacity: 1 }
+
+/* Attributes side card: Thai motif pattern (Figma 949:127901 Pattern in Style Emblem / Mask group, user 2026-11-24): 1024 px tile at
+   5 % scale (51.2 px), 5 % opacity, over the overall box (card 0,0 -> 334 x 540), behind the emblem outline. Tile origin = Figma frame
+   (-195, -48 from the box, box at card x -12) -> -2.2 px 3.2 px. */
+#s-attributes .attr-side > .attr-pattern { position: absolute; left: 0; top: 0; width: 334px; height: 540px; z-index: 0; pointer-events: none; opacity: .05;
+  background: url(../assets/img/attr-pattern.png) -2.2px 3.2px / 51.2px 51.2px repeat }
