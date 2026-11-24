@@ -267,6 +267,8 @@
     render();
     tick();
     api.$$("#s-leaderboard [data-lb-tab]").forEach(t => t.addEventListener("click", () => setBoard(t.dataset.lbTab, true)));
+    // mouse wheel / trackpad scrolls the list; the scrollbar follows (like Match History)
+    api.bind("lbRows")?.addEventListener("scroll", syncScrollbar, { passive: true });
     window.MTX_PLAYER?.on(() => { if (api.getCur?.() === "leaderboard") render(); });
     window.MTX_PLAYER?.render();   // the HUD rank icon needs rankOf, which exists from here on
   }

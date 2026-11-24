@@ -6914,9 +6914,11 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 /* the list scrolls inside the same viewport as Match History (527 px, ~9.5 rows); screen-leaderboard.js keeps the focused row in view */
 .lb-table__rows {
   height: 527px;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
   scroll-behavior: auto
 }
+.lb-table__rows::-webkit-scrollbar { display: none }
 
 .lb-table__rows > .lb-row {
   flex: none
