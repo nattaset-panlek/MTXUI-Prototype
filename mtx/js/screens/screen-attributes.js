@@ -194,6 +194,16 @@
     btn?.addEventListener("mousedown", e => { if (e.button === 0) startHold(); });
     ["mouseup", "mouseleave"].forEach(ev => btn?.addEventListener(ev, () => cancelHold(ev === "mouseup")));
     btn?.addEventListener("click", e => e.stopPropagation());
+    // A / D key glyphs on a row take a mouse click: A = -1 (unconfirmed points only), D = +1 (user 2026-11-24)
+    const rows = api.bind("attrRows");
+    rows?.addEventListener("pointerdown", e => { if (e.target.closest(".attr-row__key")) e.stopPropagation(); });   // not the row press / A hold
+    rows?.addEventListener("click", e => {
+      const k = e.target.closest(".attr-row__key"), row = k?.closest(".attr-row");
+      if (!row) return;
+      e.stopPropagation();
+      if (api.getFocused?.() !== row) api.setFocus(row);
+      adjust(+row.dataset.id.slice(1), k.dataset.btn === "dr" ? 1 : -1);
+    });
   }
 
   function enter() {

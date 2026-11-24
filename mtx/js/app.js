@@ -633,7 +633,7 @@
     const nav = e.target.closest?.("[data-nav]");
     if (!nav || !screens[cur]?.contains(nav) || nav.closest(".mode-card__pager") || e.target.closest?.(".mode-card__pager")) return;
     if (focused !== nav) setFocus(nav);
-    if (!aIsHold()) return;
+    if (!aIsHold() || nav.matches("#s-attributes .attr-row")) return;   // Attributes: a row click is +1 (stage click), not the A hold (= confirm)
     navHeld = true; hintDown = " "; keyEv("keydown", " ");
   });
   const hintUp = () => { if (hintDown) { const k = hintDown; hintDown = null; keyEv("keyup", k); } };
