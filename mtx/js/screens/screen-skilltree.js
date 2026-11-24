@@ -415,7 +415,7 @@
   // the hold was let go: the label goes back to what the node allows; notify = "Hold A for 1.75s" hint
   function onUnlockCancel({ notify }) {
     const label = api.bind("sdPrimary")?.querySelector(".tl-info__label");
-    if (label && detailOpen) label.textContent = ctaOf().label;
+    if (label && detailOpen) label.textContent = ctaOf()?.label || "";
     if (notify) window.MTX_UI.holdHint("unlock (1.75s)");
   }
 
@@ -424,7 +424,7 @@
   function ctaOf() {
     const { id, lv } = viewTarget(), n = TN.get(id);
     if (!n) return { label: "", state: "locked" };
-    if (n.base && !n.granted) return { label: "Core", state: "done" };
+    if (n.base && !n.granted) return null;   // core: no button, the Close hint moves left (thread #28)
     if (lv <= lvOf(id)) {
       if (n.kind === "attribute") return { label: "Unlocked", state: "done" };
       if (n.levels) {   // perk: equip the level of the tab shown; another equipped level = switch
@@ -794,7 +794,7 @@
   // the tree adds its CTA (unlock / equip by tab), Video hint and the style core name
   function detailModel(n) {
     const m = window.MTX_UI.nodeDetail.model(styleId, n.id, { lv: viewLv, cta: ctaOf(), videoOn: isMove(n) && isVideoOpen(),
-      hints: [["b", "Close"], ...(isMove(n) ? [["y", isVideoOpen() ? "Hide video" : "Video"]] : [])] });
+      hints: [["b", "Close"]] });   // Y Video = the badge on the art only (thread #29)
     if (n.kind === "core") { m.name = coreName; m.rows.push({ t: "row", label: "Decisive Move", value: n.name }); }
     // not owned yet (thread #7): what it costs + why it can't be unlocked now (red), under the info rows
     const { id, lv: want } = viewTarget(), tn = TN.get(id), lv = lvOf(id);

@@ -45,6 +45,11 @@
 .nd__pager span.is-on { background: #f4dd2f; box-shadow: none; color: #16181f }
 .nd__pager span:not(.is-on):hover { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }
 .nd__pager span.is-eq:not(.is-on) { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }   /* equipped level = the hover look (user 2026-11-18) */
+/* + check mark before the label on the equipped tab (thread #9); currentColor = dark on the yellow tab shown */
+.nd__pager span.is-eq { display: flex; align-items: center; justify-content: center; gap: 6px }
+.nd__eq { display: block; width: 16px; height: 16px; flex: none; margin-top: -2px }
+.nd__eq svg { display: block; width: 100%; height: 100% }
+.nd__cta[hidden] { display: none }
 
 /* info panel 454 wide at card (18,276) h340; with tabs (18,329) h287 */
 .nd__panel { position: absolute; left: 18px; top: 276px; width: 454px; height: 340px; box-sizing: border-box; padding: 20px 20px 0;
@@ -64,6 +69,12 @@
 .nd-fx--flaw p { color: #ff8a9b }
 .nd-fx .nd-num { font-weight: inherit; color: #3fd28b }
 .nd-fx .nd-num--cond { color: #f4dd2f }
+/* thread #32: trigger condition = yellow; thread #31: abnormal statuses, own colour each (PLACEHOLDER palette) */
+.nd-fx .nd-kw { font-weight: 700; color: #f4dd2f }
+.nd-fx .nd-st { font-weight: 700 }
+.nd-st--guard-break { color: #ff5fd2 } .nd-st--stagger { color: #ff9f43 } .nd-st--stun { color: #ffc53d }
+.nd-st--vulnerable { color: #b98cff } .nd-st--slow { color: #5ec8ff } .nd-st--bleed { color: #ff3b3b } .nd-st--crit { color: #ff6a3d }
+.nd-fx .nd-st .nd-num, .nd-fx .nd-kw .nd-num { color: inherit }
 /* cooldown in the BUFF block's bottom-right corner (thread #10), replaces the Cooldown row */
 .nd-fx__cd { align-self: flex-end; display: flex; align-items: center; gap: 5px; margin-top: -4px; font: 600 15px/20px var(--font-ui); color: #e5e5e5; white-space: nowrap }
 .nd-fx__cd img { position: relative; top: -1.5px; width: 12px; height: 12px; filter: invert(.9) }   /* icon-clock.svg is black; 12 px + lifted = same height and centre as the digits (cap 11 px) */

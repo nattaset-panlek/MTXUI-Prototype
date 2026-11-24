@@ -80,7 +80,7 @@
     el.classList.toggle("has-tabs", !!m.tabs);
     if (m.tabs) {
       q("pager").innerHTML = m.tabs.labels.map((t, k) =>
-        `<span data-lv-tab="${k + 1}" class="${k + 1 === m.tabs.view ? "is-on" : ""} ${(Array.isArray(m.tabs.owned) ? m.tabs.owned[k] : k + 1 <= m.tabs.owned) ? "is-owned" : ""}${k + 1 === m.tabs.eq ? " is-eq" : ""}">${esc(t)}</span>`).join("");
+        `<span data-lv-tab="${k + 1}" class="${k + 1 === m.tabs.view ? "is-on" : ""} ${(Array.isArray(m.tabs.owned) ? m.tabs.owned[k] : k + 1 <= m.tabs.owned) ? "is-owned" : ""}${k + 1 === m.tabs.eq ? " is-eq" : ""}">${k + 1 === m.tabs.eq ? `<i class="nd__eq" title="Equipped">${CHECK}</i>` : ""}${esc(t)}</span>`).join("");
       q("pager").classList.toggle("is-wide", m.tabs.labels.some(t => t.length > 4));
     }
     // dividers between rows (and after the last); a warn line sits right under the row before it, no divider
@@ -173,7 +173,14 @@
   // Content per kind = the Skill Tree card (Figma Node Detail · Pack I 833:93841). Screens add their own CTA / hints.
   const KIND_LABEL = { core: "Style core", attribute: "Attribute", perk: "Perk", decisive: "Decisive Move", signature: "Signature Move", special: "Special Move" };
   const LO = "mtx/assets/svg/loadout/", LV_FRAME = { 1: 2, 2: 1, 3: 3 }, PERK_FRAME_SVG = { 1: [124, 122], 2: [120, 117], 3: [129, 124] };
-  const fxHtml = t => esc(t).replace(/\([^)]*\)|[+-]?\d+(?:\.\d+)?%?/g, m => m[0] === "(" ? m.replace(/\d+(?:\.\d+)?%?/g, d => `<b class="nd-num nd-num--cond">${d}</b>`) : `<b class="nd-num">${m}</b>`);
+  // thread #31: abnormal statuses in their own colour (PLACEHOLDER palette until the game sets one); thread #32: trigger
+  // conditions ("successful block", "Perfect Hop" ...) highlighted yellow. Applied to BUFF and FLAW text.
+  const STATUS = [["guard-break", /Guard Break/g], ["stagger", /Stagger(?:s|ed)?(?![a-z])/g], ["stun", /Stun(?:s|ned)?(?![a-z])/g], ["vulnerable", /Vulnerable/g],
+    ["slow", /(?<![a-z])slow(?:s|ed)?(?![a-z])/gi], ["bleed", /Bleed(?:s|ing)?(?![a-z])/g], ["crit", /guaranteed critical/g]];
+  const KEYWORDS = /successful(?:ly)? (?:block|Perfect Hop|Leg Catch|landing a DSM)|after a successful block|Perfect Hop|Guard Cancel|Leg Catch|3rd hit in the same combo|heavy move|in the Clinch|while guarding|mistime the Hop|finishing move misses/gi;
+  const marks = h => STATUS.reduce((s, [k, re]) => s.replace(re, w => `<b class="nd-st nd-st--${k}">${w}</b>`), h)
+    .replace(KEYWORDS, w => `<b class="nd-kw">${w}</b>`);
+  const fxHtml = t => marks(esc(t)).replace(/\([^)]*\)|[+-]?\d+(?:\.\d+)?%?/g, m => m[0] === "(" ? m.replace(/\d+(?:\.\d+)?%?/g, d => `<b class="nd-num nd-num--cond">${d}</b>`) : `<b class="nd-num">${m}</b>`);
   const cap = s => s ? s[0].toUpperCase() + s.slice(1) : "";
   const lvOf = (sid, id) => window.MTX_SKILLSTATE?.level(sid, id) || 0;
   // value colours by meaning (thread #30): good for you = green, a cost / downside = red, plain facts stay white
@@ -218,7 +225,7 @@
       m.tabs = { labels: n.levels.map(l => "Lv " + l.lv), view: v, owned: own, eq };   // eq = equipped level: its tab is outlined yellow
       const fk = LV_FRAME[v], [fw, fh] = PERK_FRAME_SVG[fk], k = 194 / 124;   // frame follows the tab: Lv 1 copper, Lv 2 silver, Lv 3 gold
       m.frame = { src: `${LO}perk-frame-${fk}.svg`, w: Math.round(fw * k), h: Math.round(fh * k) };
-      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff), cd: n.cooldown ? n.cooldown + "s" : "" }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: esc(L.flaw) }] : [])];
+      m.rows = [{ t: "effect", tag: "buff", html: fxHtml(L.buff), cd: n.cooldown ? n.cooldown + "s" : "" }, ...(L.flaw ? [{ t: "effect", tag: "flaw", html: marks(esc(L.flaw)) }] : [])];
     } else if (n.kind === "decisive") {
       // Loadout: one item per family -> Tier tabs (Tier 1-3, owned / equipped like the perk Lv tabs); the Skill Tree shows no tabs
       if (hit.fam && o.tierTabs) {
@@ -226,7 +233,7 @@
         m.lv = tier;
         m.tabs = { labels: f.tiers.map((_, k) => "Tier " + (k + 1)), view: tier, owned, eq };
       }
-      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Tier", value: "Tier " + (n.tier || 1) }, { t: "row", label: "Base Damage", value: st.baseDamage, color: POS },
+      m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Base Damage", value: st.baseDamage, color: POS },
         { t: "row", label: "Damage Part", html: esc(st.damagePart).replace(/ \/ /g, ' <i class="nd-sep">/</i> ') }, { t: "row", label: "Type", value: cap(n.tag) }, { t: "row", label: "Replaces", value: replacesOf(n) }];
     } else {
       m.rows = [{ t: "desc", text: n.desc }, { t: "row", label: "Damage", value: st.damage, color: POS },
