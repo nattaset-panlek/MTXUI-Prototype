@@ -606,6 +606,8 @@ body[data-device="kb"] .btn-cta .glyph{font:800 13px/1 var(--font-ui)}
 /* Match Find strip (Figma MTX / Find Strip 670:66464): top edge of every screen while a find runs.
    Layout = Figma auto layout: content row (padding 0 64) -> left (fill, mode) · time (hug, centred) · right (fill, estimate) */
 .find-strip{position:absolute;left:0;top:0;width:1920px;height:55px;z-index:60;overflow:hidden;pointer-events:none;background:rgb(10 11 14/.7);animation:findStripIn .45s cubic-bezier(.2,.9,.3,1)}
+.find-strip.is-home{transform:translateY(-55px);opacity:0;animation:none;transition:transform .3s cubic-bezier(.5,0,.8,.4),opacity .3s}
+.find-strip:not(.is-home):not(.is-out){transition:transform .4s cubic-bezier(.2,.9,.3,1),opacity .3s}
 .find-strip.is-out{transform:translateY(-55px);opacity:0;transition:transform .3s cubic-bezier(.5,0,.8,.4),opacity .3s}
 .find-strip__tex{position:absolute;left:0;top:0;width:100%;height:100%;background:var(--tex-scratch) center/cover;opacity:.2}
 .find-strip__track{position:absolute;left:0;bottom:0;width:100%;height:2px;background:rgb(255 255 255/.14)}

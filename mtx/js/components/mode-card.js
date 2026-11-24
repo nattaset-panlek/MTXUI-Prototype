@@ -55,7 +55,11 @@
     if (hintBar) hintBar.innerHTML = window.MTX_UI.hintItems({ "b+a": "Cancel match find" });
     const started = Date.now();
     const badge = showStrip(mode, est);
-    const tick = setInterval(() => { const ms = Date.now() - started, t = clock(Math.floor(ms / 1000)); box.children[1].textContent = t; updStrip(badge, t, ms, est); }, 250);
+    // #23: the card already counts the time, so the strip shows only while another screen is open (scope = the card's screen)
+    const home = scope.classList.contains("screen") ? scope : null;
+    const updHome = () => badge.classList.toggle("is-home", !!home && home.classList.contains("is-active"));
+    updHome();
+    const tick = setInterval(() => { const ms = Date.now() - started, t = clock(Math.floor(ms / 1000)); box.children[1].textContent = t; updStrip(badge, t, ms, est); updHome(); }, 250);
     find = { card, box, scope, others, tick, onDone, onCancel, started, hintBar, savedHints, bg, mode, badge };
     find.timer = setTimeout(() => stopFind(true), duration);
   }
