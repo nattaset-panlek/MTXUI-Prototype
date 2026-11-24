@@ -18,22 +18,38 @@
   const QUEST_LEVELS = [
     {
       name: "Foundation",
+      // one objective per quest (thread #39)
       quests: [
         { name: "Wai Kru Ram Muay", rewards: [["coins", 100]],
           desc: "Every fight begins with respect. Perform the Wai Kru to honour your Kru, your camp and your family before the first bell.",
-          objectives: [["Perform the Wai Kru before a fight", 3, 3], ["Wear the Mongkol into the ring", 1, 1]] },
-        { name: "Jab and Teep", rewards: [["coins", 150]],
-          desc: "The straight punch and the push kick are the first weapons a Nak Muay learns. Use them to control the distance.",
-          objectives: [["Land jabs (Mat Trong)", 50, 50], ["Land teeps to the body", 30, 30]] },
+          objectives: [["Perform the Wai Kru before a fight", 3, 3]] },
+        { name: "The Mongkol", rewards: [["coins", 50]],
+          desc: "The sacred headband is blessed by your Kru. Wear it into the ring and take it off only after the Wai Kru.",
+          objectives: [["Wear the Mongkol into the ring", 1, 1]] },
+        { name: "Mat Trong", rewards: [["coins", 100]],
+          desc: "The straight punch is the first weapon a Nak Muay learns. Use it to measure the distance.",
+          objectives: [["Land jabs (Mat Trong)", 50, 50]] },
+        { name: "Teep to the Body", rewards: [["coins", 100]],
+          desc: "The push kick keeps the opponent where you want him. Plant it in the stomach and take his rhythm.",
+          objectives: [["Land teeps to the body", 30, 30]] },
         { name: "Morning Roadwork", rewards: [["coins", 100]],
-          desc: "Camp life starts before sunrise. Run, skip rope and come back ready for the first pad round.",
-          objectives: [["Run before sunrise (km)", 10, 10], ["Skip rope rounds", 6, 6]] },
+          desc: "Camp life starts before sunrise. Run the village road and come back ready for the first pad round.",
+          objectives: [["Run before sunrise (km)", 10, 10]] },
+        { name: "Skip Rope", rewards: [["coins", 50]],
+          desc: "Light feet win long fights. Skip until the rope sings and your calves stop complaining.",
+          objectives: [["Skip rope rounds", 6, 6]] },
         { name: "Pads with the Kru", rewards: [["black", 100]],
           desc: "Your Kru holds the pads and calls the combinations. Keep your guard up and finish every round.",
-          objectives: [["Finish pad rounds", 5, 5], ["Land punch-kick combinations", 20, 20]] },
+          objectives: [["Finish pad rounds", 5, 5]] },
+        { name: "Punch-Kick Combinations", rewards: [["coins", 100]],
+          desc: "Hands set up the kick. Chain them together until the combination comes without thinking.",
+          objectives: [["Land punch-kick combinations", 20, 20]] },
         { name: "Shin Conditioning", rewards: [["glove", 150]],
-          desc: "A hard shin is built one kick at a time. Work the heavy bag until checking a kick no longer hurts.",
-          objectives: [["Kick the heavy bag", 200, 200], ["Check incoming kicks", 15, 15]] },
+          desc: "A hard shin is built one kick at a time. Work the heavy bag until it no longer hurts.",
+          objectives: [["Kick the heavy bag", 200, 200]] },
+        { name: "Check the Kick", rewards: [["coins", 100]],
+          desc: "Lift the knee, turn the shin out and let the kick break on bone. Then answer it.",
+          objectives: [["Check incoming kicks", 15, 15]] },
         { name: "Temple Fair Fight", rewards: [["coins", 300], ["skinA", 1]],
           desc: "Your first real bout is on the temple fair card. The village is watching. Win it in front of them.",
           objectives: [["Win your first temple fair bout", 1, 1]] }
@@ -42,24 +58,42 @@
     {
       name: "Weapons of the Eight Limbs",
       quests: [
-        { name: "Breaking the Guard", rewards: [["glove", 350], ["black", 350], ["black", 350]],
-          desc: "A tight guard cannot stop what it does not see. Feint high, open the body and break your opponent's guard round by round.",
-          objectives: [["Break the guard with a cross-hook combination", 14, 14], ["Land roundhouse kicks to the open ribs", 8, 14]] },
+        { name: "Breaking the Guard", rewards: [["glove", 350], ["black", 350]],
+          desc: "A tight guard cannot stop what it does not see. Feint high and break your opponent's guard round by round.",
+          objectives: [["Break the guard with a cross-hook combination", 14, 14]] },
+        { name: "Open the Ribs", rewards: [["black", 350]],
+          desc: "Once the guard comes up, the ribs are open. Turn the hip over and kick through them.",
+          objectives: [["Land roundhouse kicks to the open ribs", 8, 14]] },
         { name: "The Sharp Elbow", rewards: [["black", 200], ["coins", 300]],
-          desc: "Elbows cut. Learn the slashing Sok Tad, the downward Sok Ti and the spinning Sok Klap, and finish fights in the pocket.",
-          objectives: [["Land elbow strikes", 12, 20], ["Cut an opponent with an elbow", 0, 1]] },
+          desc: "Elbows cut. Learn the slashing Sok Tad, the downward Sok Ti and the spinning Sok Klap.",
+          objectives: [["Land elbow strikes", 12, 20]] },
+        { name: "First Cut", rewards: [["coins", 200]],
+          desc: "One clean elbow in the pocket can end the fight. Find the opening and open the brow.",
+          objectives: [["Cut an opponent with an elbow", 0, 1]] },
         { name: "Master of the Clinch", rewards: [["skinB", 1], ["coins", 400]],
-          desc: "Inside the Plum the fight is won with posture and knees. Control the neck, off-balance and drive the knee.",
-          objectives: [["Land knees from the clinch", 9, 15], ["Off-balance your opponent from the clinch", 2, 5]] },
+          desc: "Inside the Plum the fight is won with posture and knees. Control the neck and drive the knee.",
+          objectives: [["Land knees from the clinch", 9, 15]] },
+        { name: "Off-Balance", rewards: [["coins", 200]],
+          desc: "Turn him, tip him, step away. In the clinch the judges score the fighter who stays on his feet.",
+          objectives: [["Off-balance your opponent from the clinch", 2, 5]] },
         { name: "Kick Like a Whip", rewards: [["glove", 500], ["skinA", 1]],
           desc: "The roundhouse kick (Te Tad) turns the hip all the way through. Land it hard enough that the judges hear it.",
-          objectives: [["Land roundhouse kicks to the body", 25, 25], ["Check incoming kicks", 10, 10]] },
+          objectives: [["Land roundhouse kicks to the body", 25, 25]] },
+        { name: "Check and Return", rewards: [["coins", 200]],
+          desc: "Every kick he throws is a chance for yours. Check it and fire straight back.",
+          objectives: [["Check incoming kicks", 10, 10]] },
         { name: "The Teep Wall", rewards: [["black", 300]],
           desc: "A good teep stops a charging fighter dead. Use it to interrupt every combination before it starts.",
-          objectives: [["Interrupt combinations with a teep", 4, 10], ["Win a fight without taking a body kick", 0, 1]] },
+          objectives: [["Interrupt combinations with a teep", 4, 10]] },
+        { name: "Untouched Body", rewards: [["coins", 300]],
+          desc: "Keep the distance and the guard tight. Go a whole fight without letting a kick land on your body.",
+          objectives: [["Win a fight without taking a body kick", 0, 1]] },
+        { name: "Fight Weight", rewards: [["coins", 200]],
+          desc: "Five rounds at Lumpinee need lungs. Get your Fitness up before the camp books the fight.",
+          objectives: [["Reach Fitness 50 before fight night", 30, 50]] },
         { name: "Lumpinee Debut", rewards: [["legend", 1], ["coins", 500]],
           desc: "Your camp has booked you on a Lumpinee Stadium card. Five rounds, the gamblers at ringside and no second chances.",
-          objectives: [["Reach Fitness 50 before fight night", 30, 50], ["Win a five-round bout at Lumpinee Stadium", 0, 1]] }
+          objectives: [["Win a five-round bout at Lumpinee Stadium", 0, 1]] }
       ]
     },
     {
@@ -124,7 +158,8 @@
   let viewLevel = curLevel(); // 1-based level shown in the list
   let shownStyle = null;      // style the list was last opened for
   let questFocus = 0;            // index in that level's quests
-  const tracked = new Set();     // "level:index" of every tracked quest (any number)
+  const tracked = new Set();     // "level:index" of every tracked quest
+  const MAX_TRACK = 4;           // thread #38: at most 4 tracked, the Track button shows n/4
   //#endregion
 
   //#region [Helpers]
@@ -157,6 +192,7 @@
       renderProgress();
     });
     renderAll();
+    api.bind("mqList")?.addEventListener("scroll", syncScroll, { passive: true });   // mouse wheel scrolls the list
     // Not a focus stop: A / Space on a quest row or X anywhere tracks; a click on the button does too.
     api.bind("trackBtn")?.addEventListener("click", () => trackQuest());
     api.bind("mqTabs")?.addEventListener("click", e => {
@@ -175,8 +211,35 @@
     if (!el) return;
     if (el.classList.contains("mq-row")) {
       questFocus = +el.dataset.index;
+      reveal(el);
       renderQuest();
     }
+  }
+
+  // the list scrolls (levels 1-2 have 11-12 one-objective quests): keep the focused row in view, thumb follows
+  function reveal(row) {
+    const list = api.bind("mqList");
+    if (!list || !row || !list.contains(row)) return;
+    const pad = parseFloat(getComputedStyle(list).paddingTop) || 0;
+    const top = row.offsetTop - pad, bottom = row.offsetTop + row.offsetHeight - pad;
+    const view = list.clientHeight - 2 * pad;
+    if (top < list.scrollTop) list.scrollTop = top;
+    else if (bottom > list.scrollTop + view) list.scrollTop = bottom - view;
+    syncScroll();
+  }
+  function syncScroll() {
+    window.MTX_UI.syncScrollbar(api.bind("mqList"), api.$("#s-quests .quests__scroll"), { thumb: api.bind("questThumb") });
+  }
+
+  // thread #41: say which level's quests count and why the others are blocked
+  function renderSub() {
+    const sub = api.bind("mqSub");
+    if (!sub) return;
+    const cur = curLevel(), last = QUEST_LEVELS.length;
+    sub.textContent = viewLevel > cur ? `Level ${pad(viewLevel)} is locked · finish the Level ${pad(cur)} quests first`
+      : viewLevel < cur ? `Level ${pad(viewLevel)} cleared · Level ${pad(cur)} quests level up this style`
+      : cur >= last ? `Complete the Level ${pad(cur)} quests to master this style`
+      : `Complete the Level ${pad(cur)} quests to reach Level ${pad(cur + 1)}`;
   }
 
   function renderAll() {
@@ -224,12 +287,15 @@
       const state = locked ? "is-locked" : questDone(q) ? "is-done" : "";
       const tr = tracked.has(`${viewLevel}:${i}`) ? " is-tracked" : "";
       return `<a class="mq-row focus-ring focus-ring--3 ${state}${tr}" data-nav data-id="q${i}" data-index="${i}" data-fn="trackQuest" data-nav-right="q${i}">` +
-        `<span class="mq-row__state"></span><span class="mq-row__name">${q.name}</span>` +
+        `<span class="mq-row__state"></span><span class="mq-row__name">${q.name}</span>` + (tr ? `<i class="mq-row__mark" aria-hidden="true"></i>` : "") +
         (state === "is-done" ? `<span class="mq-row__mp">Completed</span>` : "") + `</a>`;
     }).join("");
     // the screen opens on the first row shown (the top unfinished quest)
     const sec = api.screens?.quests;
     if (sec) sec.dataset.first = `q${order[0]}`;
+    api.bind("mqList").scrollTop = 0;
+    syncScroll();
+    renderSub();
   }
 
   function renderQuest() {
@@ -247,10 +313,6 @@
     }).join("");
     // Rewards panel removed (2026-11-17); quest rewards data kept in QUEST_LEVELS
 
-    const n = level.quests.length;
-    const thumb = api.bind("questThumb");
-    const pos = Math.max(0, api.$$("#s-quests .mq-row").findIndex(r => +r.dataset.index === questFocus));   // row on screen (done quests sit last)
-    if (thumb) thumb.style.top = (n > 1 ? pos * (346 - 87) / (n - 1) : 0) + "px";
 
     const btn = api.bind("trackBtn"), label = btn.querySelector(".btn-cta__label");
     const done = questDone(q), isTracked = tracked.has(`${viewLevel}:${questFocus}`);
@@ -260,6 +322,8 @@
     btn.classList.toggle("is-locked", locked);
     btn.classList.toggle("btn-cta--secondary", !locked && !done && isTracked);
     label.textContent = locked ? "Locked" : done ? "Completed" : isTracked ? "Untrack" : "Track";
+    if (!locked && !done) label.insertAdjacentHTML("beforeend", ` <span class="mq-track__count">${tracked.size}/${MAX_TRACK}</span>`);
+    btn.classList.toggle("is-full", !locked && !done && !isTracked && tracked.size >= MAX_TRACK);
   }
 
   // LT / RT: previous / next mastery level, focus lands on its first quest.
@@ -309,6 +373,7 @@
     if (questDone(q)) { api.toast("Quest already completed"); return; }
     const key = `${viewLevel}:${questFocus}`;
     const on = !tracked.has(key);
+    if (on && tracked.size >= MAX_TRACK) { api.toast(`Tracking ${MAX_TRACK}/${MAX_TRACK} quests · untrack one first`); return; }
     if (on) tracked.add(key); else tracked.delete(key);
     const onRow = api.getFocused()?.classList.contains("mq-row");
     renderTabs();
@@ -316,6 +381,6 @@
     renderQuest();
     if (onRow) api.setFocus(api.$(`#s-quests .mq-row[data-index="${questFocus}"]`));
     api.rumble(80, 0.3);
-    api.toast(on ? `Tracking ${q.name} · ${tracked.size} tracked` : `Stopped tracking ${q.name}`);
+    api.toast(on ? `Tracking ${q.name} · ${tracked.size}/${MAX_TRACK}` : `Stopped tracking ${q.name}`);
   }
 })();

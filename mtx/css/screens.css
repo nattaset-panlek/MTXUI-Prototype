@@ -8466,3 +8466,23 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
    the core diamond loses its own prismatic edge, so only the focus ring shows that colour */
 .tnode:not(.is-ready):not(.is-owned):not(.tnode--root)>span.tnode__focus { width: 63px; height: 63px }
 #s-skilltree .tnode--root .node-core__diamond::after { display: none }
+
+/* ---- Quests (threads #37-#41, user 2026-11-24) ---- */
+/* the list scrolls (one objective per quest = 11-12 rows on levels 1-2); room around the rows keeps the focus ring unclipped */
+#s-quests > .screen__safe > .mq-list { --ring-room: calc(3px + var(--focus-gap)); box-sizing: content-box; padding: var(--ring-room);
+  margin-left: calc(var(--ring-room) * -1); margin-top: calc(-91px - var(--ring-room)); overflow-y: auto; scrollbar-width: none }
+#s-quests .mq-list::-webkit-scrollbar { display: none }
+#s-quests .mq-list::before { display: none }
+#s-quests .mq-row { flex: none }
+/* #37: no check box; a tracked quest gets a tinted bookmark on the row's top-right corner (locked rows keep the lock) */
+#s-quests .mq-row:not(.is-locked) .mq-row__state { display: none }
+#s-quests .mq-row.is-tracked::before { display: none }
+#s-quests .mq-row__mark, .mq-tab.has-tracked::after {
+  content: ""; position: absolute; top: 0; right: 18px; width: 14px; height: 20px; border: 0;
+  background: var(--sub); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%) }
+/* #40: the level tab uses the same bookmark */
+.mq-tab.has-tracked::after { right: 10px; width: 12px; height: 17px }
+.mq-tab.is-current.has-tracked::after { background: #000 }
+/* #38: n/4 tracked on the Track button; dimmed when full */
+.mq-track__count { margin-left: 8px; opacity: .65; font-size: .8em }
+.mq-track.is-full { opacity: .55 }
