@@ -8461,3 +8461,8 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-career .simulate-btn .simulate-btn__hold-bar { display: block; position: absolute; inset: 0; width: auto; border: 0; z-index: 1; pointer-events: none;
   background: url(../assets/img/sim-calendar.png) 308px -70px / 160px 176px no-repeat; mix-blend-mode: multiply; opacity: 0; transition: opacity .12s }
 #s-career .simulate-btn:is(.is-focused, :hover, .is-holding) .simulate-btn__hold-bar { opacity: .55 }
+
+/* Skill tree (user 2026-11-24): locked node ring sits a focus-gap off the lock diamond (44 + 3 px edge, x1.18 on focus);
+   the core diamond loses its own prismatic edge, so only the focus ring shows that colour */
+.tnode:not(.is-ready):not(.is-owned):not(.tnode--root)>span.tnode__focus { width: 63px; height: 63px }
+#s-skilltree .tnode--root .node-core__diamond::after { display: none }
