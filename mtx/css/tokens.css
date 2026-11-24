@@ -68,4 +68,5 @@
   /* ---- radii / misc ---- */
   --r-xs:1px;  --r-sm:2px;  --r-md:3px;  --r-tag:4px;  --r-pill:999px;
   --focus-w:4px;
+  --focus-gap:4px;   /* every focus ring sits this far outside its element (user 2026-11-24: same spacing everywhere) */
 }

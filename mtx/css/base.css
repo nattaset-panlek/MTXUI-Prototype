@@ -51,6 +51,15 @@ button{font:inherit;color:inherit}
   opacity:0;transition:opacity .1s;pointer-events:none;z-index:3}
 .focus-ring.is-focused::after{opacity:1}
 .focus-ring--out::after{inset:calc(var(--focus-w) * -1)}
+/* Global rule (user 2026-11-24): every focus ring sits OUTSIDE its element with the same clear gap (--focus-gap), whatever
+   the ring width (replaces "inside" (inset 0) and "touching" (--out) rings). Shaped rings (diamonds, icon rows) keep their own inset. */
+.focus-ring::after,.focus-ring--out::after{inset:calc((var(--focus-w) + var(--focus-gap)) * -1)}
+/* in / out (user 2026-11-24): the ring scales up from 92 % and fades in on focus, and shrinks + fades out when focus leaves.
+   Uses the "scale" property (not transform) so rings that rotate / move with transform keep working. */
+.focus-ring::after{scale:.92;transition:opacity .14s ease-out,scale .14s ease-out}
+.focus-ring.is-focused::after{scale:1}
+@keyframes ring-in{from{opacity:0;scale:.92}to{opacity:1;scale:1}}   /* for rings that only exist while focused (no out step) */
+@media (prefers-reduced-motion:reduce){.focus-ring::after{scale:1;transition:opacity .1s}}
 .focus-ring--thin{--focus-w:2px}
 .focus-ring--3{--focus-w:3px}
 .is-pressed{transform:scale(.985)}

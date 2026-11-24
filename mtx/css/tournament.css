@@ -18,7 +18,7 @@
 .tr .is-focused { outline: 3px solid transparent }
 .tr .tr-btn.is-focused, .tr .tr-pay.is-focused, .tr .tr-row.is-focused, .tr .tr-slot.is-focused { position: relative }
 .tr .tr-slot.is-focused { position: absolute }
-.tr .is-focused::after { content: ""; position: absolute; inset: -6px; border: 3px solid; border-image: linear-gradient(90deg, #f3eed0, #e4b996, #766ab2, #5a8dc2, #8bcab2) 1; pointer-events: none; border-radius: inherit }
+.tr .is-focused::after { animation: ring-in .14s ease-out; content: ""; position: absolute; inset: calc((3px + var(--focus-gap)) * -1); border: 3px solid; border-image: linear-gradient(90deg, #f3eed0, #e4b996, #766ab2, #5a8dc2, #8bcab2) 1; pointer-events: none; border-radius: inherit }
 .tr-hints { position: absolute; left: 60px; bottom: 30px; top: auto }
 .tr-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; height: 72px; min-width: 280px; padding: 0 40px; border-radius: 999px; box-sizing: border-box; font: 400 30px/1 var(--font-display); text-transform: uppercase; cursor: pointer }
 .tr-btn.pri { background: #f6df2f; color: #141415; box-shadow: inset 0 0 0 1px #000 } .tr-btn.sec { background: #16181f; color: #f6f1eb; box-shadow: inset 0 0 0 2px #8a8d99 }
@@ -204,7 +204,7 @@
 .tr-hub > .is-focused .trh__e,.tr-hub > [data-tr-card]:hover .trh__e{opacity:1}
 .tr-hub > .is-focused .trh__bar,.tr-hub > [data-tr-card]:hover .trh__bar{clip-path:inset(0)}
 .tr-hub__m:has(.trh){overflow:visible}   /* the splash bursts out of the card, as in Figma */
-.tr-hub > .is-focused::after{inset:-16px;z-index:5}   /* focus ring with a clear 16 px gap outside the card, above the hover art */
+.tr-hub > .is-focused::after{inset:calc((3px + var(--focus-gap)) * -1);z-index:5}   /* focus ring: global gap (--focus-gap) outside the card, above the hover art */
 
 /* Browse grid = Figma 432:113302 "grid (scroll area)": 660 × 820 at 1192,188, 12 px inset, 308 × 260 cards (174 px thumbnail), 24 / 32 px gaps */
 .tr-grid{left:1157px;top:188px;width:660px;height:820px;display:block;overflow:hidden}
@@ -218,7 +218,7 @@
 .tr-card small{margin-top:4px;font:500 15px/21px var(--font-ui)}
 /* focus ring: the shared gradient ring, 10 px outside the thumbnail (Figma focus ring 328 × 194) */
 .tr-card.is-focused .tr-card__art{box-shadow:none}
-.tr-card.is-focused .tr-card__art::after{content:"";position:absolute;inset:-10px;border:3px solid;border-image:linear-gradient(90deg,#f3eed0,#e4b996,#766ab2,#5a8dc2,#8bcab2) 1;pointer-events:none}
+.tr-card.is-focused .tr-card__art::after{content:"";position:absolute;inset:calc((3px + var(--focus-gap)) * -1);border:3px solid;border-image:linear-gradient(90deg,#f3eed0,#e4b996,#766ab2,#5a8dc2,#8bcab2) 1;pointer-events:none}
 /* scrollbar: MTX / Scrollbar standard (Figma 719:78179), centred where the old 6 px bar was */
 .tr-sb{position:absolute;left:1859.5px;top:200px;width:7px;height:800px}
 .tr-sb::before{content:"";position:absolute;left:2px;top:0;bottom:0;width:3px;border-radius:0;background:var(--line-2)}
@@ -241,7 +241,7 @@
 
 /* Lobby Start button (owner): a square yellow block at the bottom of the Entrants panel; hold A fills it from the left */
 .tr-start.btn-cta{position:absolute;left:1362px;top:859px;width:474px;height:60px}
-.tr .tr-start.is-focused:not(.is-holding)::after{opacity:1;inset:-8px;padding:0;background:none;-webkit-mask:none;mask:none;border-radius:0;z-index:3}
+.tr .tr-start.is-focused:not(.is-holding)::after{opacity:1;inset:calc((3px + var(--focus-gap)) * -1);padding:0;background:none;-webkit-mask:none;mask:none;border-radius:0;z-index:3}
 .tr .tr-start.is-holding::after{border:0;inset:-6px}
 .tr-ent:has(~ .tr-start) > p{position:absolute;left:24px;right:24px;bottom:108px;margin:0}   /* note sits above the Start button */
 
@@ -252,7 +252,7 @@
 .tr-ent__r{position:relative}.tr-ent__r em{margin-left:auto;font:600 13px/1 var(--font-ui);font-style:normal;letter-spacing:.08em;color:#8a8d99}
 .tr-ent:has(~ .tr-start) > p{bottom:24px}
 .tr-start.btn-cta{left:1338px;top:888px;width:522px}
-.tr .tr-ent__r.is-focused::after{inset:-6px}
+.tr .tr-ent__r.is-focused::after{inset:calc((3px + var(--focus-gap)) * -1)}
 .tr-slot.is-target{box-shadow:inset 0 0 0 2px #f6df2f;color:#f6df2f}
 
 /* player context menu = Friends .fz-menu, opened left of the Entrants row */

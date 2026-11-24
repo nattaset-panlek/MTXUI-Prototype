@@ -17,22 +17,22 @@
   in the Dev panel (` key) to see which Figma node each part comes from.
 -->
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="mtx/css/tokens.css?v=401">
-  <link rel="stylesheet" href="mtx/css/base.css?v=pg6-sd4">
+  <link rel="stylesheet" href="mtx/css/tokens.css?v=402">
+  <link rel="stylesheet" href="mtx/css/base.css?v=pg6-sd4-fg3">
   <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw10">
   <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
-  <link rel="stylesheet" href="mtx/css/login.css?v=cta1">
+  <link rel="stylesheet" href="mtx/css/login.css?v=cta1-fg1">
   <link rel="stylesheet" href="mtx/css/shader-preload.css?v=3">
-  <link rel="stylesheet" href="mtx/css/dialog.css?v=cta1">
+  <link rel="stylesheet" href="mtx/css/dialog.css?v=cta1-fg2">
   <link rel="stylesheet" href="mtx/css/spotlight.css?v=bl1">
   <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
-  <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1">
+  <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1-fg2">
   <link rel="stylesheet" href="mtx/css/no-brand.css?v=8c">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=st111">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st118">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=db1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
-  <link rel="stylesheet" href="mtx/css/loadout.css?v=11">
+  <link rel="stylesheet" href="mtx/css/loadout.css?v=11-fg1">
   <link rel="stylesheet" href="mtx/css/node-detail.css?v=10-fb8">
   <link rel="stylesheet" href="mtx/css/dev-comments.css?v=5">
 </head>
@@ -103,7 +103,9 @@
           <img class="main__character" src="mtx/assets/img/char-lobby.webp" alt=""
             data-figma="1:6349 Character-lobby-Light1 3">
 
-          <article class="profile-card main__profile" data-figma="1:6351 Profile card (loose layers)">
+          <div class="profile-stack main__profile" data-figma="1:6351 Profile card (loose layers)">
+            <!-- player mini profile: its own box + focus stop (A = Profile); the screen's extra content sits in the box under it (user 2026-11-24) -->
+            <a class="profile-card profile-card--me focus-ring focus-ring--out" data-nav data-id="me" data-fn="openProfile" aria-label="Open profile">
             <header class="profile-card__head tile tex">
               <h2 class="profile-card__name">SX.MTX</h2>
               <p class="profile-card__tag"><img class="profile-card__flag" src="mtx/assets/svg/flag-th.svg" alt="Thailand"><span class="profile-card__aka">The Mighty</span></p>
@@ -117,7 +119,9 @@
               <div class="stat tile tex"><span class="stat__label">K.O. Rate</span><span class="stat__value">80%</span>
               </div>
             </div>
-            <div class="profile-card__levels">
+            </a>
+            <div class="profile-card profile-card--extra">
+              <div class="profile-card__levels">
               <div class="level-chip level-chip--mini level-chip--e" data-pl="e"><span class="level-chip__badge">E</span>
                 <div class="level-chip__body"><span class="level-chip__label">Level</span><span
                     class="level-chip__value">25</span></div>
@@ -131,7 +135,8 @@
                     class="level-chip__value">12</span></div>
               </div>
             </div>
-          </article>
+          </div>
+          </div>
 
           <aside class="news-stack news-stack--shop main__news" data-figma="1:6496 News stack">
             <!-- News items closed: the news opens as the Campaign window on first entry; Shop (Figma 1:854 menu button) + the event card (388:146972) take their place -->
@@ -248,7 +253,9 @@
         <div class="screen__safe">
           <div class="char3d" data-char3d aria-hidden="true"></div>
           <img class="main__character" src="mtx/assets/img/char-lobby.webp" alt="">
-          <article class="profile-card career__profile" data-figma="1:1080 Profile card (loose layers)">
+          <div class="profile-stack career__profile" data-figma="1:1080 Profile card (loose layers)">
+            <!-- player mini profile: its own box + focus stop (A = Profile); the screen's extra content sits in the box under it (user 2026-11-24) -->
+            <a class="profile-card profile-card--me focus-ring focus-ring--out" data-nav data-id="me" data-fn="openProfile" aria-label="Open profile">
             <header class="profile-card__head tile tex">
               <h2 class="profile-card__name">SX.MTX</h2>
               <p class="profile-card__tag"><img class="profile-card__flag" src="mtx/assets/svg/flag-th.svg" alt="Thailand"><span class="profile-card__aka">The Mighty</span></p>
@@ -262,7 +269,9 @@
               <div class="stat tile tex"><span class="stat__label">K.O. Rate</span><span class="stat__value">80%</span>
               </div>
             </div>
-            <div class="fitness" style="--v:.49" data-figma="1:1110 Fitness meter">
+            </a>
+            <div class="profile-card profile-card--extra">
+              <div class="fitness" style="--v:.49" data-figma="1:1110 Fitness meter">
               <span class="fitness__seg fitness__seg--1"></span><span class="fitness__seg fitness__seg--2"></span><span
                 class="fitness__seg fitness__seg--3"></span><span class="fitness__seg fitness__seg--4"></span>
               <span class="fitness__dim"></span><span class="fitness__mark"></span>
@@ -279,7 +288,8 @@
               <span class="glyph" data-btn="y" style="--g:27px">Y</span>
               <span class="simulate-btn__label">Hold to simulate day</span>
             </a>
-          </article>
+          </div>
+          </div>
 
           <aside class="news-stack news-stack--shop career__news" data-figma="1:1219 News stack">
             <!-- News items closed: the news opens as the Campaign window on first entry; the Shop button (Figma 1:854 menu button) takes their place -->
@@ -322,7 +332,8 @@ board</h3>
         <div class="screen__chrome">
           <img class="brand" src="mtx/assets/svg/logo.svg" alt="Muay Thai Xtreme" data-figma="1:1121 Layer_1 (logo)">
           <div data-use="player-hud"></div>
-          <nav class="hint-bar" data-hints='{"b":"Back","a":"Confirm","y":"Hold to Simulate","ls":"Move"}' data-figma="1:1238 Hint bar">
+          <!-- Simulate day: Y shown on the Simulate day button only, not in the hint bar (user 2026-11-24) -->
+          <nav class="hint-bar" data-hints='{"b":"Back","a":"Confirm"}' data-figma="1:1238 Hint bar">
           </nav>
           <div data-use="social-bar"></div>
         </div>
@@ -1653,7 +1664,7 @@ Mention</h1>
   <script src="mtx/js/skill-state.js?v=1"></script>
   <script src="mtx/js/style-presets.js?v=4"></script>
   <script src="mtx/js/style-dev.js?v=4"></script>
-  <script src="mtx/js/screens/screen-main.js?v=406"></script>
+  <script src="mtx/js/screens/screen-main.js?v=407"></script>
   <script src="mtx/js/screens/screen-charselect.js?v=c3i"></script>
   <script src="mtx/js/screens/screen-career.js?v=402"></script>
   <script src="mtx/js/screens/screen-tactical.js?v=402"></script>

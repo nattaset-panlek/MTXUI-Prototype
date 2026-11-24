@@ -138,7 +138,9 @@
     actions: {
       startQuickFight,
       prevQuickMode() { prevQuickMode(); },
-      nextQuickMode() { nextQuickMode(); }
+      nextQuickMode() { nextQuickMode(); },
+      // player mini profile box (Main / Career): A = the Profile page, as Options > Profile (user 2026-11-24)
+      openProfile() { window.MTX_SCREENS?.customize?.show?.(0); }
     }
   };
 })();

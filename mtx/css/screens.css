@@ -248,10 +248,7 @@
   width: 440px
 }
 /* Main profile card: focus ring on mouse hover (thread #17), same gradient ring as the mode cards */
-#s-main .main__profile::after { content: ""; position: absolute; inset: calc(var(--focus-w) * -1); padding: var(--focus-w); border-radius: inherit; background: var(--grad-focus);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
-  opacity: 0; transition: opacity .1s; pointer-events: none; z-index: 3 }
-#s-main .main__profile:hover::after { opacity: 1 }
+/* (thread #17 hover ring now = the focus ring of the player box, .profile-card--me, end of file) */
 
 .main__news {
   left: 1497px;   /* right edge = last mode card */
@@ -1585,7 +1582,7 @@
 
 /* Card states: Figma MTX / Item Slot State */
 .reward-tile.focus-ring--out { --focus-w: 3px }
-.reward-tile.focus-ring--out::after { inset: -8px; border-radius: 0 }   /* global --grad-focus ring, 3px clear of the card */
+.reward-tile.focus-ring--out::after { border-radius: 0 }   /* global --grad-focus ring; gap = --focus-gap (base.css) */
 .reward-tile__art { transition: opacity .15s ease }
 .reward-tile.is-focused .reward-tile__glow { opacity: .4 }
 .reward-tile.is-pressed .item-card__dim { display: block; background: rgb(0 0 0 / .25) }
@@ -2176,9 +2173,7 @@ html body .attr__trigger .glyph[data-btn] {
   box-shadow: none
 }
 
-.attr-row::after {
-  inset: -6px
-}
+/* .attr-row::after inset: global focus gap (base.css) */
 
 .attr-row__name {
   width: auto;
@@ -8379,3 +8374,31 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-attributes .attr-points.is-empty .attr-points__gem b { color: #6b6f7a }
 #s-attributes .attr-points.is-empty .attr-points__gem { opacity: 1 }
 #s-attributes .attr-side.is-flash .attr-points__gem b { color: #131416 }
+
+/* Main / Career: player mini profile and the screen's extra content are 2 boxes (user 2026-11-24).
+   .profile-stack = the old card's spot (left / top / width from .main__profile / .career__profile); box 1 is a focus stop
+   (A = Profile, up from the content below), hover = the same ring (thread #17). */
+.profile-stack { position: absolute; display: flex; flex-direction: column; gap: 12px }
+.profile-stack > .profile-card { position: relative; left: auto; top: auto; width: auto }
+.profile-card--me { color: inherit; text-decoration: none; cursor: pointer; z-index: 1 }
+.profile-card--me:hover::after { opacity: 1 }
+
+/* Career: Hold to simulate day = the box's main action, a full-width yellow CTA (user 2026-11-24: clearer) */
+#s-career .simulate-btn { height: 56px; margin-top: 4px; padding: 0 12px; gap: 10px; justify-content: center; border-radius: 2px;
+  background: linear-gradient(129.5deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .35);
+  font: 400 20px/1 var(--font-display); letter-spacing: 0; color: #141415; white-space: nowrap; box-sizing: border-box; width: 100% }
+#s-career .simulate-btn__label { line-height: 1 }
+#s-career .simulate-btn .glyph { --g: 28px !important; flex: none }
+#s-career .simulate-btn__hold-bar { background: rgb(0 0 0 / .22); border-right: 3px solid #141415 }
+#s-career .simulate-btn.is-unlocked-flash { animation: simBtnFlashY .3s ease forwards }
+@keyframes simBtnFlashY { 0% { filter: brightness(1.6) } 100% { filter: none } }
+/* Main / Career: the 2-box profile sits in the top-left corner (user 2026-11-24): same 60 px left edge, top 48 = the HUD's top edge.
+   Character Select's single card (.main__profile there) keeps top 246. */
+.profile-stack.main__profile, .profile-stack.career__profile { top: 48px }
+
+/* Focus rings sit outside every element now (--focus-gap, base.css). Scroll boxes get room for the ring (3 px ring + gap) on
+   each side; the same negative margin keeps the rows where they were (user 2026-11-24). */
+.lb-table__rows { --ring-room: calc(3px + var(--focus-gap)); box-sizing: content-box; padding: var(--ring-room);
+  margin: calc(8px - var(--ring-room)) calc(var(--ring-room) * -1) calc(var(--ring-room) * -1) }
+/* Career Simulate day: the ring is drawn outside the button, so the button must not clip it */
+.simulate-btn { overflow: visible }

@@ -76,7 +76,7 @@
 .login.is-leaving .login__panel{transform:translateX(100%)}
 
 /* Login CTA: .btn-cta::after is the hold ring, so this non-hold button draws the shared focus ring (base.css) there */
-.login__actions .btn-cta.focus-ring::after{inset:0;padding:var(--focus-w);background:var(--grad-focus);z-index:3;
+.login__actions .btn-cta.focus-ring::after{inset:calc((var(--focus-w) + var(--focus-gap)) * -1);padding:var(--focus-w);background:var(--grad-focus);z-index:3;
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
 .login__actions .btn-cta.focus-ring.is-focused::after{opacity:1}
