@@ -90,8 +90,13 @@
 
   // sub-stat max (user 2026-11-19): each sub-stat can go up to its attribute's Max Stat (e.g. Chaiya Attacking 80,
   // Defending 120). Spending can never take the attribute itself past Max Stat, so the subs never reach it together.
+  // 2026-11-24 (sheet row "Max Possible Attribute"): a sub-stat's bar is full at its maxPossible (points + full Mastery Tree bonus);
+  // points alone stop at maxPossible - tree (the tree bonus fills the rest). Styles without that row keep Max Stat for both.
   function subMaxes(a) {
-    return a.subs.map(() => a.max);
+    return a.subs.map(s => s[2]?.maxPossible ?? a.max);
+  }
+  function subPointCaps(a) {
+    return a.subs.map(s => s[2] ? s[2].maxPossible - (s[2].tree || 0) : a.max);
   }
 
   function values() {
@@ -249,12 +254,12 @@
       `<div class="attr-capbar">${ladder}</div>`;
 
     // sub-stat rows: bar out of 100; focused row shows the left / right keys with their availability
-    const smax = subMaxes(a);
+    const smax = subMaxes(a), pcap = subPointCaps(a);
     rows.innerHTML = a.subs.map(([n, b], i) => {
       // sub-stat bar on its own scale: 0 -> this sub-stat's max (rule B)
       const v = vals[i], g = pending[`${tab}:${i}`] || 0, sm = smax[i], pc = x => x / sm * 100;
       const pv = Math.min(100, pc(v));
-      const canAdd = left > 0 && !atCap && !full && v + g < sm, canRemove = g > 0;
+      const canAdd = left > 0 && !atCap && !full && v + g < pcap[i], canRemove = g > 0;
       const G = api.getGlyphs?.()[api.getDevice?.()] || {};
       // Skill Tree bonus (user 2026-11-18): added into the sub-stat value; shown as the yellow bar segment + the "+N" badge after the value
       const bl = bonusOf(n), bn = bonusSum(bl);
@@ -303,7 +308,7 @@
     ring.querySelector(".attr-overall__arc")?.setAttribute("stroke-dashoffset", (100 - pct).toFixed(2));
     api.bind("attrPoints").textContent = left;
     api.bind("attrPointsBox").classList.toggle("is-empty", left <= 0);
-    api.bind("attrPointsLabel").textContent = left > 0 ? "Attribute points" : "No points left";
+    api.bind("attrPointsLabel").textContent = "Attribute points";   // same label at 0 too; the number turns grey (user 2026-11-24)
     api.bind("attrConfirm").classList.toggle("is-idle", !pendingTotal());
   }
   //#endregion
@@ -321,7 +326,7 @@
     }
     if (pendingTotal() >= pts()) { api.rumble(120, 0.2); api.toast("No points left"); return; }
     if (overallFull()) { api.rumble(120, 0.2); api.toast(`Overall is at ${OVERALL_MAX} · this style can't go higher`); return; }
-    const sm = subMaxes(a)[i];
+    const sm = subPointCaps(a)[i];
     if (values()[tab][i] + (pending[key] || 0) >= sm) { api.rumble(120, 0.2); api.toast(`${a.subs[i][0]} is at its max (${sm})`); return; }
     const lv = level(), cap = a.caps[lv - 1];
     if (attrValue(tab) >= a.max) { api.rumble(120, 0.2); api.toast(`${SHORT[tab]} is at its Max Stat (${a.max})`); return; }

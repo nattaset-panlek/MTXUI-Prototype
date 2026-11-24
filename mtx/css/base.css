@@ -58,8 +58,13 @@ button{font:inherit;color:inherit}
    Uses the "scale" property (not transform) so rings that rotate / move with transform keep working. */
 .focus-ring::after{scale:.92;transition:opacity .14s ease-out,scale .14s ease-out}
 .focus-ring.is-focused::after{scale:1}
+/* flowing colours (user 2026-11-24): the gradient slides along the ring while focused; one 200 % tile per loop = seamless.
+   Also used by the Skill Tree node ring (screens.css) and the Loadout focus frame (loadout.css). */
+.focus-ring::after{background:var(--grad-focus-flow);background-size:200% 100%}
+.focus-ring.is-focused::after{animation:ring-flow var(--focus-flow-s) linear infinite}
+@keyframes ring-flow{from{background-position:0% 0}to{background-position:200% 0}}
 @keyframes ring-in{from{opacity:0;scale:.92}to{opacity:1;scale:1}}   /* for rings that only exist while focused (no out step) */
-@media (prefers-reduced-motion:reduce){.focus-ring::after{scale:1;transition:opacity .1s}}
+@media (prefers-reduced-motion:reduce){.focus-ring::after{scale:1;transition:opacity .1s}.focus-ring.is-focused::after{animation:none}}
 .focus-ring--thin{--focus-w:2px}
 .focus-ring--3{--focus-w:3px}
 .is-pressed{transform:scale(.985)}

@@ -310,3 +310,9 @@
 /* slot tags = shared key-hint glyphs (white cut-out), no own chip (overrides the earlier .tl-tag box) */
 .tl-tag { left: 118px; top: 8px; width: 30px; height: 30px; background: none; box-shadow: none }
 .tl-tag .glyph, .tl-fk .glyph { --g: 26px; margin: 0 }
+
+/* focus frame: same flowing colours as every focus ring (base.css ring-flow, user 2026-11-24) */
+.tl-focus { background: var(--grad-focus-flow); background-size: 200% 100%; animation: ring-flow var(--focus-flow-s) linear infinite }
+.tl-focus.is-in { animation: tl-ring-in .14s ease-out both, ring-flow var(--focus-flow-s) linear infinite }
+.tl-focus.is-out { animation: tl-ring-out .14s ease-out forwards, ring-flow var(--focus-flow-s) linear infinite }
+@media (prefers-reduced-motion: reduce) { .tl-focus { animation: none } }

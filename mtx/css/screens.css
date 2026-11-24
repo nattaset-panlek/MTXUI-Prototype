@@ -8402,3 +8402,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
   margin: calc(8px - var(--ring-room)) calc(var(--ring-room) * -1) calc(var(--ring-room) * -1) }
 /* Career Simulate day: the ring is drawn outside the button, so the button must not clip it */
 .simulate-btn { overflow: visible }
+
+/* Skill Tree node ring: same flowing colours as every focus ring (base.css ring-flow) */
+.tnode>span.tnode__focus { background: var(--grad-focus-flow); background-size: 200% 100%; animation: ring-flow var(--focus-flow-s) linear infinite }
+@media (prefers-reduced-motion: reduce) { .tnode>span.tnode__focus { animation: none } }

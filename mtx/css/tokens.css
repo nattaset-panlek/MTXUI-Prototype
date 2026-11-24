@@ -68,5 +68,8 @@
   /* ---- radii / misc ---- */
   --r-xs:1px;  --r-sm:2px;  --r-md:3px;  --r-tag:4px;  --r-pill:999px;
   --focus-w:4px;
-  --focus-gap:4px;   /* every focus ring sits this far outside its element (user 2026-11-24: same spacing everywhere) */
+  --focus-gap:4px;
+  /* flowing focus ring (user 2026-11-24): the --grad-focus colours twice, ending on the first colour, so a 200 % wide tile loops seamlessly */
+  --grad-focus-flow:linear-gradient(90deg,#f3eed0,#e4b996 12.5%,#766ab2 25%,#5a8dc2 37.5%,#8bcab2 50%,#e4b996 62.5%,#766ab2 75%,#5a8dc2 87.5%,#f3eed0);
+  --focus-flow-s:3s;   /* one loop */   /* every focus ring sits this far outside its element (user 2026-11-24: same spacing everywhere) */
 }
