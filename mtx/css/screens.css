@@ -8406,3 +8406,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* Skill Tree node ring: same flowing colours as every focus ring (base.css ring-flow) */
 .tnode>span.tnode__focus { background: var(--grad-focus-flow); background-size: 200% 100%; animation: ring-flow var(--focus-flow-s) linear infinite }
 @media (prefers-reduced-motion: reduce) { .tnode>span.tnode__focus { animation: none } }
+
+/* Attributes -1 / +1: arrow buttons (user 2026-11-24), shown on the focused or hovered row, yellow on hover */
+#s-attributes .attr-row__key { display: grid; place-items: center; width: 28px; height: 28px; box-sizing: border-box; border-radius: 2px;
+  background: rgb(255 255 255 / .08); color: #fff; cursor: pointer; transition: background .1s, color .1s }
+#s-attributes .attr-row__key svg { width: 16px; height: 16px; display: block }
+#s-attributes .attr-row:hover .attr-row__key { visibility: visible }
+#s-attributes .attr-row__key:not(.is-off):hover { background: #f4dd2f; color: #141415 }
+#s-attributes .attr-row__key.is-off { cursor: default }

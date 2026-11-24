@@ -92,6 +92,9 @@
   // Defending 120). Spending can never take the attribute itself past Max Stat, so the subs never reach it together.
   // 2026-11-24 (sheet row "Max Possible Attribute"): a sub-stat's bar is full at its maxPossible (points + full Mastery Tree bonus);
   // points alone stop at maxPossible - tree (the tree bonus fills the rest). Styles without that row keep Max Stat for both.
+  // -1 / +1 buttons on a sub-stat row: left / right arrows (user 2026-11-24: reads as clickable; was the A / D key glyphs)
+  const ARROW_L = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>';
+  const ARROW_R = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></svg>';
   function subMaxes(a) {
     return a.subs.map(s => s[2]?.maxPossible ?? a.max);
   }
@@ -224,6 +227,7 @@
     const left = pts() - pendingTotal();
     const focusIdx = api.getFocused?.()?.classList.contains("attr-row") ? +api.getFocused().dataset.id.slice(1) : -1;
     // 5a (user 2026-11-19): base + spent (+ pending) out of Max Stat (100); Skill Tree bonus is NOT counted here
+    // shown max = this Style Level's cap (Lv1 50 ... Lv5 100), not Max Stat (user 2026-11-24)
     const limit = Math.min(cap, a.max), atCap = total >= limit, full = overallFull();
 
     // hero: attribute total vs this level's cap + the cap bar: five equal segments = Mastery Lv 1-5.
@@ -249,7 +253,7 @@
     api.bind("attrHead").innerHTML =
       `<p class="attr-hero__kicker">Attribute</p>` +
       `<h2 class="attr-hero__name">${SHORT[tab]}</h2>` +
-      `<p class="attr-hero__total${atCap ? " is-cap" : ""}"><span>${total}</span><small>/ ${a.max}</small></p>` +
+      `<p class="attr-hero__total${atCap ? " is-cap" : ""}"><span>${total}</span><small>/ ${limit}</small></p>` +
       `<p class="attr-capbar__label">Style Level</p>` +
       `<div class="attr-capbar">${ladder}</div>`;
 
@@ -271,9 +275,9 @@
         `<i class="attr-row__bonusfill" style="width:${pb}%" title="${bl.map(b => `${b.label} +${b.value}${b.detail ? " · " + b.detail : ""}`).join("\n")}"></i><i class="attr-row__gain" style="width:${pg}%"></i><i class="attr-row__rest"></i>` +
         `<span class="attr-row__tick${g ? " is-gain" : ""}" style="left:calc(5px + ${(pv + pb + pg) / 100} * (100% - 11px))"></span></span>` +
         `<span class="attr-row__adjust">` +
-        `<span class="glyph attr-row__key${canRemove ? "" : " is-off"}" data-btn="dl" aria-hidden="true">${G.dl || "A"}</span>` +
+        `<span class="attr-row__key${canRemove ? "" : " is-off"}" data-btn="dl" role="button" aria-label="Remove a point">${ARROW_L}</span>` +
         `<span class="attr-row__value${g ? " is-gain" : ""}">${v + g + bn}</span>` +   // white; green only while it has unconfirmed points (user 2026-11-18)
-        `<span class="glyph attr-row__key${canAdd ? "" : " is-off"}" data-btn="dr" aria-hidden="true">${G.dr || "D"}</span></span>` +
+        `<span class="attr-row__key${canAdd ? "" : " is-off"}" data-btn="dr" role="button" aria-label="Add a point">${ARROW_R}</span></span>` +
         `<span class="attr-row__bonus">${bn ? `<em class="attr-bonus">+${bn}</em>` : ""}</span>` +
         `<span class="attr-row__gaintag">${g ? "+" + g : ""}</span></a>`;
     }).join("");
