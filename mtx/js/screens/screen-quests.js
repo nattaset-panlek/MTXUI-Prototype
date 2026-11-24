@@ -227,8 +227,22 @@
     else if (bottom > list.scrollTop + view) list.scrollTop = bottom - view;
     syncScroll();
   }
+  // bar = the rows' own height (list minus its focus-ring padding), 14 px right of the rows; the bar's margin-top
+  // (no-brand shift) is taken out so it lines up with the first row
   function syncScroll() {
-    window.MTX_UI.syncScrollbar(api.bind("mqList"), api.$("#s-quests .quests__scroll"), { thumb: api.bind("questThumb") });
+    const list = api.bind("mqList"), bar = api.$("#s-quests .quests__scroll"), thumb = api.bind("questThumb");
+    if (!list || !bar || !thumb) return;
+    const over = list.scrollHeight - list.clientHeight;
+    bar.hidden = over <= 1;
+    if (bar.hidden) return;
+    const lcs = getComputedStyle(list), bcs = getComputedStyle(bar);
+    const pad = parseFloat(lcs.paddingTop) || 0, view = list.clientHeight - 2 * pad;
+    bar.style.top = list.offsetTop + pad - (parseFloat(bcs.marginTop) || 0) + "px";
+    bar.style.left = list.offsetLeft + list.offsetWidth - pad + 14 - (parseFloat(bcs.marginLeft) || 0) + "px";
+    bar.style.height = view + "px";
+    const h = Math.max(48, Math.round(view * view / (list.scrollHeight - 2 * pad)));
+    thumb.style.height = h + "px";
+    thumb.style.top = Math.round(list.scrollTop / over * (view - h)) + "px";
   }
 
   // thread #41: say which level's quests count and why the others are blocked
