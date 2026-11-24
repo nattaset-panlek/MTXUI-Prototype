@@ -700,3 +700,7 @@ body.dev-text-picking #stage *{cursor:text!important}
 #devPlayerWallet > .chip { align-self: flex-start; width: auto !important; margin-top: 8px }
 .sp-table tr.sp-save td { background: rgba(13,153,255,.05) }
 .pl-xp, .pl-k > span { white-space: nowrap } .pl-xp small { display: inline !important }
+
+/* Tabs: square corners everywhere (user 2026-11-24). Any element with role="tab" or a class ending in -tab / __tab
+   (lb-tab, attr-tab, fz__tab, st-tab, mq-tab, tl-tab ...); the focus ring follows (border-radius: inherit). */
+:is([role="tab"], [class$="-tab"], [class*="-tab "], [class$="__tab"], [class*="__tab "]) { border-radius: 0 !important }

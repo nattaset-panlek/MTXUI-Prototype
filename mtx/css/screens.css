@@ -8442,3 +8442,20 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
    (-195, -48 from the box, box at card x -12) -> -2.2 px 3.2 px. */
 #s-attributes .attr-side > .attr-pattern { position: absolute; left: 0; top: 0; width: 334px; height: 540px; z-index: 0; pointer-events: none; opacity: .05;
   background: url(../assets/img/attr-pattern.png) -2.2px 3.2px / 51.2px 51.2px repeat }
+
+/* Career extra box = Figma 953:129321 (user 2026-11-24): day tiles + Simulate day button.
+   Days: 52 x 50, #0c0d0d 85 %, grey numbers; today cream #feefd1 / ink #121111; past = hand brush X (day-cross-brush.svg). */
+#s-career .mini-cal__day { background: rgb(12 13 13 / .85); box-shadow: none; border-radius: 0 }
+#s-career .mini-cal__day b, #s-career .mini-cal__day span { color: #6c6c6c }
+#s-career .mini-cal__day.is-today { background: #feefd1 }
+#s-career .mini-cal__day.is-today b, #s-career .mini-cal__day.is-today span { color: #121111 }
+#s-career .mini-cal__day.is-past::after { background-image: url(../assets/svg/day-cross-brush.svg); opacity: 1 }
+/* Simulate day: 60 px; not selected = #16181f, cream label #fff7e1, white key, 1 px #cacaca edge;
+   selected / hovered / held = gold, ink label, black key, 1 px black edge. Modi 27, key 37.
+   The Muay Thai gym calendar art (sim-calendar.png, Figma mask group) sits at the right end, shown on gold only. */
+#s-career .simulate-btn { height: 60px; background: #16181f; box-shadow: inset 0 0 0 1px #cacaca; color: #fff7e1; font-size: 27px }
+#s-career .simulate-btn:is(.is-focused, :hover, .is-holding) { box-shadow: inset 0 0 0 1px #000 }
+#s-career .simulate-btn .glyph { --g: 37px !important }
+#s-career .simulate-btn .simulate-btn__hold-bar { display: block; position: absolute; inset: 0; width: auto; border: 0; z-index: 1; pointer-events: none;
+  background: url(../assets/img/sim-calendar.png) 308px -70px / 160px 176px no-repeat; mix-blend-mode: multiply; opacity: 0; transition: opacity .12s }
+#s-career .simulate-btn:is(.is-focused, :hover, .is-holding) .simulate-btn__hold-bar { opacity: .55 }
