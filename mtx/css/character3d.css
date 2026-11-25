@@ -5,6 +5,9 @@
 #s-rewards.has-char3d.rewards--skin .rewards__hero,
 #s-store.has-char3d.rewards--skin .rewards__hero{display:none}
 .char3d__canvas{display:block;width:100%;height:100%}
+/* Video mode (user 2026-11-25): transparent clip fills the same view box; the canvas and video never show together */
+.char3d__video{display:block;width:100%;height:100%;object-fit:cover;object-position:48% 0}
+.char3d[data-mode="video"] .char3d__canvas,.char3d:not([data-mode="video"]) .char3d__video{display:none}
 .screen.has-char3d .main__character{display:none}
 /* Chromium left the inherited visibility stale after the screen's delayed hide; state it directly. */
 .screen.is-active .char3d{visibility:visible}
@@ -16,6 +19,8 @@
 #dev .dev3d-pick{display:flex;gap:4px;margin:6px 0}
 #dev .dev3d-pick button{flex:1;padding:5px;border:0;border-radius:4px;background:#1e1e1e;color:#e5e5e5;font-size:11px;cursor:pointer}
 #dev .dev3d-pick button.is-current{background:#0d99ff;color:#fff}
+#dev .dev3d-mode{align-items:center}
+#dev .dev3d-mode span{flex:0 0 62px;font-size:11px;color:#e5e5e5}
 #dev .dev3d-values{display:block;margin-top:6px;font-size:10px;opacity:.65;word-break:break-all;user-select:all}
 /* the 3D tab docks the panel at the side, so the model stays visible while adjusting */
 #dev:has(#tabContentChar3d[style*="flex"]){left:auto;right:10px;top:70px;bottom:auto;width:300px;max-height:calc(100vh - 80px);transform:none;margin:0;box-shadow:0 8px 24px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06)}

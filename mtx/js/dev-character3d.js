@@ -1,5 +1,5 @@
 /* Dev tools · 3D
-   On/off, view box and camera for the 3D character, per screen. Saved in this browser only.
+   Character mode 2D / 3D / Video, view box and camera for the 3D character, per screen. Saved in this browser only.
    The values line can be copied into DEFAULTS in components/character3d.js to make them permanent. */
 (() => {
   const el = document.getElementById("tabContentChar3d");
@@ -31,7 +31,7 @@
     <input type="number" data-key="${f.key}" min="${f.min}" max="${f.max}" step="${f.step}"></div>`;
 
   el.innerHTML = `<section class="dev-sec">
-      <label>Show 3D character <input type="checkbox" id="char3dOn"></label>
+      <div class="dev3d-pick dev3d-mode"><span>Character</span><button type="button" data-mode="2d">2D</button><button type="button" data-mode="3d">3D</button><button type="button" data-mode="video">Video</button></div>
       <div class="dev3d-pick">${SCREENS.map(s => `<button type="button" data-id="${s.id}">${s.name}</button>`).join("")}</div>
     </section>
     <section class="dev-sec"><h3 class="dev-sec__title">View</h3>${VIEW.map(row).join("")}</section>
@@ -44,8 +44,8 @@
   const FIELDS = [...VIEW, ...CAMERA];
   function refresh() {
     const v = api.get(selected.id);
-    el.querySelector("#char3dOn").checked = api.isEnabled();
-    el.querySelectorAll(".dev3d-pick button").forEach(b => b.classList.toggle("is-current", b.dataset.id === selected.id));
+    el.querySelectorAll(".dev3d-mode button").forEach(b => b.classList.toggle("is-current", b.dataset.mode === api.mode()));
+    el.querySelectorAll(".dev3d-pick:not(.dev3d-mode) button").forEach(b => b.classList.toggle("is-current", b.dataset.id === selected.id));
     el.querySelectorAll("input[data-key]").forEach(i => { if (document.activeElement !== i || i.type === "range") i.value = v[i.dataset.key]; });
     el.querySelector("#char3dValues").textContent = `"${selected.id}": ` + JSON.stringify(Object.fromEntries(FIELDS.map(f => [f.key, v[f.key]])));
   }
@@ -55,12 +55,14 @@
     if (key) {
       const n = parseFloat(e.target.value);
       if (Number.isFinite(n)) api.set(selected.id, { [key]: n });
-    } else if (e.target.id === "char3dOn") api.setEnabled(e.target.checked);
+    }
     refresh();
   });
   el.addEventListener("click", e => {
-    const pick = e.target.closest(".dev3d-pick button");
-    if (pick) {
+    const mode = e.target.closest(".dev3d-mode button");
+    const pick = !mode && e.target.closest(".dev3d-pick button");
+    if (mode) api.setMode(mode.dataset.mode);
+    else if (pick) {
       selected = SCREENS.find(s => s.id === pick.dataset.id);
       window.MTX.show(selected.page);   // edit while looking at that screen
     } else if (e.target.closest("#char3dReset")) api.reset(selected.id);

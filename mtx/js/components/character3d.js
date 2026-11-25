@@ -3,13 +3,15 @@
    One renderer and model are shared; the canvas moves to the visible host.
    If WebGL or loading fails, the host stays empty and the screen keeps its static art.
    Dev tools settings (on/off, view box, camera) are kept per screen in localStorage.
-   window.MTX_CHARACTER3D = { state(), next(), isEnabled(), setEnabled(on), get(screenId), set(screenId, patch), reset(screenId), setColor(hex, metalness) } */
+   Display mode (user 2026-11-25): "2d" static art | "3d" model | "video" transparent clip (default) (assets/video/character-idle.webm).
+   window.MTX_CHARACTER3D = { state(), next(), mode(), setMode(m), isEnabled(), setEnabled(on), get(screenId), set(screenId, patch), reset(screenId), setColor(hex, metalness) } */
 (function () {
   //#region [Variables/Fields]
   const BASE = new URL("../../", document.currentScript.src).href;   // .../mtx/
   const THREE_URL = BASE + "js/vendor/three-0.170.0/three.module.min.js";
   const FBX_URL = BASE + "js/vendor/three-0.170.0/loaders/FBXLoader.js";
   const MODEL_DIR = BASE + "assets/models/fighter/";
+  const VIDEO_URL = BASE + "assets/video/character-idle.webm?v=2";   // VP9 alpha, 880x1080, from the green screen capture 2026-11-25
   const CLIPS = [                 // the first file also supplies the mesh; all four share the rig
     { id: "breathing-idle", loops: 1 },
     { id: "boxing-a", loops: 2 },
@@ -45,7 +47,10 @@
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(saved)); } catch { /* still applies for this visit */ }
   }
-  const isEnabled = () => saved.enabled !== false;
+  const MODES = ["2d", "3d", "video"];
+  const modeOf = () => MODES.includes(saved.mode) ? saved.mode : (saved.enabled === true ? "3d" : "video");   // default Video (user 2026-11-25)
+  const isEnabled = () => modeOf() === "3d";
+  let video = null, videoReady = false;
   const settingsOf = id => ({ ...DEFAULTS[id], ...saved[id] });
 
   function applyView(h) {
@@ -62,9 +67,10 @@
     camera.lookAt(0, y, 0);
   }
   function markScreens() {
-    const on = isEnabled() && frames > 0;
+    const m = modeOf();
+    const on = (m === "3d" && frames > 0) || (m === "video" && videoReady);
     hosts.forEach(h => h.closest(".screen")?.classList.toggle("has-char3d", on));
-    hosts.forEach(h => { h.hidden = !isEnabled(); });
+    hosts.forEach(h => { h.hidden = m === "2d"; h.dataset.mode = m; });
   }
   //#endregion
 
@@ -81,7 +87,22 @@
     return hosts.find(h => !h.hasAttribute("data-char3d-off") && h.closest(".screen")?.classList.contains("is-active")) || null;
   }
 
+  // Video mode: one shared <video> moves to the visible host, like the 3D canvas.
+  function syncVideo() {
+    const target = modeOf() === "video" && !document.hidden && !overlayOnTop()
+      ? hosts.find(h => !h.hasAttribute("data-char3d-off") && h.closest(".screen")?.classList.contains("is-active")) : null;
+    if (!target) { video?.pause(); return; }
+    if (!video) {
+      video = Object.assign(document.createElement("video"), { className: "char3d__video", src: VIDEO_URL, muted: true, loop: true, playsInline: true, preload: "auto" });
+      video.addEventListener("loadeddata", () => { videoReady = true; markScreens(); }, { once: true });
+      video.addEventListener("error", () => console.warn("[char3d] video not loaded, keeping static art"));
+    }
+    if (video.parentNode !== target) target.appendChild(video);
+    video.play().catch(() => {});
+  }
+
   function sync() {
+    syncVideo();
     if (failed) return;
     const next = visibleHost();
     if (!next) return stop();
@@ -218,7 +239,7 @@
 
   //#region [Public Methods]
   window.MTX_CHARACTER3D = {
-    state: () => ({ running: !!raf, loaded: !!mixer, failed, frames, clip: current?.id || null, clips: actions.map(a => a.id), host: host?.closest(".screen")?.id || null }),
+    state: () => ({ mode: modeOf(), video: video ? { ready: videoReady, paused: video.paused, host: video.parentNode?.closest?.(".screen")?.id || null } : null, running: !!raf, loaded: !!mixer, failed, frames, clip: current?.id || null, clips: actions.map(a => a.id), host: host?.closest(".screen")?.id || null }),
     next: () => { if (mixer) playNext(); },
     attach(left, right) {   // show the model in an overlay host; an optional second host copies each frame
       if (ext && ext.left === left && ext.right === right) { if (!raf) sync(); return; }
@@ -240,7 +261,9 @@
       material.metalness = metalness;
     },
     isEnabled,
-    setEnabled(on) { saved.enabled = !!on; save(); markScreens(); sync(); },
+    setEnabled(on) { this.setMode(on ? "3d" : "2d"); },
+    mode: modeOf,
+    setMode(m) { if (!MODES.includes(m)) return; saved.mode = m; delete saved.enabled; save(); markScreens(); sync(); },
     get: settingsOf,
     set(id, patch) {
       saved[id] = { ...saved[id], ...patch };
