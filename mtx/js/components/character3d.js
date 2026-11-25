@@ -11,7 +11,7 @@
   const THREE_URL = BASE + "js/vendor/three-0.170.0/three.module.min.js";
   const FBX_URL = BASE + "js/vendor/three-0.170.0/loaders/FBXLoader.js";
   const MODEL_DIR = BASE + "assets/models/fighter/";
-  const VIDEO_URL = BASE + "assets/video/character-idle.webm?v=2";   // VP9 alpha, 880x1080, from the green screen capture 2026-11-25
+  const VIDEO_URL = BASE + "assets/video/character-idle.webm?v=3";   // 704x864 crf 40 (< 25 MiB Cloudflare asset limit)   // VP9 alpha, 704x864, from the green screen capture 2026-11-25
   const CLIPS = [                 // the first file also supplies the mesh; all four share the rig
     { id: "breathing-idle", loops: 1 },
     { id: "boxing-a", loops: 2 },
