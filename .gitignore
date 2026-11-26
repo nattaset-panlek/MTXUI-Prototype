@@ -6,3 +6,6 @@ bakes/
 node_modules/
 .DS_Store
 Thumbs.db
+
+# generated image rounds (large, not used by the prototype)
+mtx/assets/img/gen/
