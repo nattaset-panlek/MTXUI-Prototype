@@ -60,7 +60,7 @@
     $$(".glyph[data-btn]").forEach(g => {
       // [data-combat] = fight input keys (skill Input rows): keyboard shows the combat map (MTX_UI.COMBAT_KB)
       const combat = "combat" in g.dataset && d === "kb" && window.MTX_UI?.COMBAT_KB?.[g.dataset.btn];
-      g.textContent = combat || (GLYPHS[d][g.dataset.btn] ?? g.dataset.btn.toUpperCase());
+      g.textContent = combat || (d === "kb" && g.dataset.kb) || (GLYPHS[d][g.dataset.btn] ?? g.dataset.btn.toUpperCase());   // [data-kb] = a screen's own keyboard key (Character Select Remove = I)
     });
   }
 
@@ -156,6 +156,7 @@
   //#endregion
 
   function show(key, push = true, viaWipe = false) {
+    if (key === "rewards" && window.MTX_STORE_TABS) { window.MTX_STORE_TABS.pend("rewards"); key = "store"; }   // Rewards is a tab of the one Store
     if (push && key === "main" && cur !== "main" && findLeaveGuard(() => show(key, push), true)) return;
     // video screen transitions (components/screen-wipe.js, e.g. Main <-> Ultimate Fight): the change runs under the video full cover
     if (!viaWipe && window.MTX_UI?.wipe?.route(cur, key, () => show(key, push, true), screens[key])) return;
@@ -437,7 +438,7 @@
 
   /* ---------------------------------------------------------------- keyboard / mouse */
   const KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right",
-    Enter: "a", " ": "a", Escape: "back", Backspace: "back", y: "y", x: "x", q: "lt", e: "rt", z: "zl", c: "zr", r: "rs", f: "view", Tab: "menu" };   // Q / E = L1 / R1 (lt / rt) · Z / C = L2 / R2 (zl / zr)
+    Enter: "a", " ": "a", Escape: "back", Backspace: "back", y: "y", x: "x", i: "x", q: "lt", e: "rt", z: "zl", c: "zr", r: "rs", f: "view", Tab: "menu" };   // Q / E = L1 / R1 (lt / rt) · Z / C = L2 / R2 (zl / zr)
   let editing = false;
   addEventListener("keydown", e => {
     if (wireMode && e.key === "Escape") { e.preventDefault(); setNavEdit(false); return; }   // leave navigation editing, not the screen

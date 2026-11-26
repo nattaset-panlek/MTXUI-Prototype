@@ -328,6 +328,22 @@
   background: #fff
 }
 
+/* empty slot (user 2026-11-26): hollow dot; no character or profile card, CTA reads Create */
+.charsel__dots i.is-empty {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .45)
+}
+
+.charsel__dots i.is-empty.is-active {
+  box-shadow: inset 0 0 0 1.5px #fff
+}
+
+#s-charselect.is-empty-slot .profile-card,
+#s-charselect.is-empty-slot .char3d,
+#s-charselect.is-empty-slot .main__character {
+  visibility: hidden
+}
+
 .charsel__cta {
   width: 100%
 }
@@ -827,6 +843,11 @@
 
 .style-panel .btn-cta {
   margin-top: auto
+}
+/* the Select / Enter CTA is also a .focus-ring, whose ::after is scaled to 92 % while the button is not focused
+   (base.css). The hold ring is that same ::after, so holding A with a style marker focused shrank the ring behind the pill. */
+#s-tactical .style-panel .btn-cta.focus-ring::after {
+  scale: 1
 }
 
 /* ---- Zoom: the screen opens on the whole map with no panel (#s-tactical without .is-zoomed);
@@ -7802,6 +7823,57 @@ button.is-overlay { opacity: .45; cursor: default }
 .item-card.is-claimed .reward-tile__corner, .item-card.is-claimed .reward-tile__glow { opacity: 1 }
 .item-card.is-claimed .reward-tile__glow { opacity: .22 }
 
+/* ---- Item Slot Corner (Figma 980:89494, user 2026-11-26): dark textured card, rarity = 2-tone corner bottom right,
+   price = small chip bottom left (Corner Label 980:89544), claimed / locked / timer = veil over the card (Corner State 980:89732).
+   --k = card short side / 156 (Figma px), so sizes follow the card (84 Quests, 216 Rewards / Store) */
+.item-card.reward-tile { --k: calc(min(100cqw, 100cqh) / 156); container-type: size; background: #16181a; border-radius: 3px;
+  box-shadow: inset 0 0 0 1px #373737 }
+/* texture = Figma Rectangle 9955 as rendered in the card (dark scratches, 20% already in the image): 1:1 980:89423, 1:2 980:89689 */
+.item-card__tex { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: url(../assets/img/item-card-tex.webp) 0 0/100% 100% no-repeat }
+.item-card--tall .item-card__tex { background-image: url(../assets/img/item-card-tex-tall.webp) }
+.item-card--wide .item-card__tex { background-size: cover }
+.item-card.reward-tile .item-card__art { left: 9%; top: 5.1%; width: 82%; height: 74.4%; z-index: 1 }
+.item-card.reward-tile.item-card--tall .item-card__art { height: 87.7% }
+/* radius = Figma 3 px at 156, scaled by card size (container units cannot size the card itself) */
+#s-store .item-card.reward-tile, .pk-tiles .item-card.reward-tile { border-radius: 4px }
+.quest-rewards .item-card.reward-tile { border-radius: 2px }
+.item-card.reward-tile.item-card--wide .item-card__art { left: 1px; top: 1px; width: calc(100% - 2px); height: calc(100% - 2px - var(--k) * 3) }
+.item-card__line { position: absolute; z-index: 2; left: 0; bottom: 0; right: calc(var(--k) * 30); height: calc(var(--k) * 2.7); background: var(--rar-hi); pointer-events: none }
+.item-card__corner { position: absolute; z-index: 2; right: 0; bottom: 0; width: calc(var(--k) * 36); height: calc(var(--k) * 29); pointer-events: none }
+.item-card__corner-hi { fill: var(--rar-hi) }
+.item-card__corner-lo { fill: var(--rar-lo) }
+.item-card .reward-tile__glow, .item-card .reward-tile__corner { display: none }
+/* Corner Label: chip, dark icon + text on the currency colour */
+.item-card .item-label { left: calc(var(--k) * 10); right: auto; bottom: calc(var(--k) * 10); z-index: 3; height: calc(var(--k) * 24); max-width: calc(100% - var(--k) * 46);
+  padding: 0 calc(var(--k) * 6); gap: calc(var(--k) * 6); justify-content: flex-start; border-radius: calc(var(--k) * 2);
+  background: #f6f1eb; font: 600 calc(var(--k) * 16)/1 var(--font-ui); color: #16181f }
+.item-card .item-label--r { background: #f5e5b5; color: #16181f }
+.item-card .item-label--credit { background: #f6df2f; color: #16181f }
+.item-card .item-label--qty, .item-card .item-label--name { background: #131417; color: #f6f1eb; padding: 0 calc(var(--k) * 8) }
+.item-card .item-label--name { font-size: calc(var(--k) * 14) }
+.item-label__icon { flex: none; width: calc(var(--k) * 16); height: calc(var(--k) * 11); fill: currentColor }
+.item-label--money .item-label__icon { height: calc(var(--k) * 9) }
+.item-label--credit .item-label__icon { height: calc(var(--k) * 13) }
+.item-label__cut { fill: #f6df2f }
+/* Corner State: veil + icon + caption */
+.item-state { position: absolute; z-index: 4; inset: 0;   /* flush on the card edge: covers its stroke and the rarity line (Figma veil 154 at 7 in the 168 state, 2 px stroke) */
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--k) * 6); padding-bottom: calc(var(--k) * 8); box-sizing: border-box; border: calc(var(--k) * 2) solid #3a3c43; border-radius: inherit;
+  background: rgb(11 12 14 / .85); font: 600 calc(var(--k) * 16)/1 var(--font-ui); text-transform: uppercase; text-align: center; pointer-events: none }
+.item-state b { font: inherit }
+.item-state__icon { width: calc(var(--k) * 22); height: calc(var(--k) * 17) }
+.item-state--claimed { color: #0de573 }
+.item-state--locked { background: rgb(11 12 14 / .9); color: #9a9ea8 }
+.item-state--locked .item-state__icon { width: calc(var(--k) * 16); height: calc(var(--k) * 17.6); fill: currentColor }
+.item-state--timer { background: rgb(11 12 14 / .75); gap: calc(var(--k) * 4); color: #ff594d }
+.item-state--timer small { font: 600 calc(var(--k) * 9)/1 var(--font-ui); letter-spacing: .08em; color: #c9ccd2 }
+.item-state--timer b { font-size: calc(var(--k) * 20) }
+.item-card.is-claimed .item-card__dim, .item-card.is-locked .item-card__dim { display: none }
+.item-card.is-locked .reward-tile__art { filter: grayscale(1) }
+.item-card .reward-tile__new { z-index: 3; left: calc(var(--k) * 10); top: calc(var(--k) * 10); height: calc(var(--k) * 20); padding: 0 calc(var(--k) * 6);
+  border-radius: calc(var(--k) * 2); font: 700 calc(var(--k) * 14)/calc(var(--k) * 20) var(--font-ui) }
+
 /* Store: same layout as Rewards, grid left and preview right */
 #s-store .st-view { left: 91px; width: 945px }
 #s-store .st-list { position: relative; left: 0; top: 0; width: auto; height: auto; overflow: visible; padding: 12px 24px 40px }
@@ -8486,3 +8558,133 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* #38: n/4 tracked on the Track button; dimmed when full */
 .mq-track__count { margin-left: 8px; opacity: .65; font-size: .8em }
 .mq-track.is-full { opacity: .55 }
+
+/* Skill tree core (user 2026-11-26): no diamond, the node IS the style icon (black silhouette + style emblem, Figma 977:75713).
+   Focus ring = 3 px outline of the same silhouette (--fs is set on the .tnode--root by JS: style-node-<style>-shape.svg) */
+#s-skilltree .tnode--root .node-core__emblem { width: 120px; height: 120px }
+#s-skilltree .tnode--root>span.tnode__focus { --fs: inherit; --fr: 0deg; --fz: 1; width: 134px; height: 134px; padding: 0;
+  -webkit-mask: var(--fs) center/100% 100% no-repeat, var(--fs) center/calc(100% - 6px) calc(100% - 6px) no-repeat; -webkit-mask-composite: xor;
+  mask: var(--fs) center/100% 100% no-repeat, var(--fs) center/calc(100% - 6px) calc(100% - 6px) no-repeat; mask-composite: exclude }
+
+/* ---- Rewards thread #36 (user 2026-11-26): the gym / style colour (--style-color from the Tactical screen, like Quests) ---- */
+#s-rewards { --sub: var(--style-color, #6100ff) }
+#s-rewards .bg-scrim { background: linear-gradient(90deg, color-mix(in srgb, var(--sub) 26%, transparent), transparent 62%), rgb(0 0 0 / .35) !important }
+#s-rewards .reward-group__title { padding-left: 12px; border-left: 4px solid var(--sub); color: color-mix(in srgb, var(--sub) 45%, #fff) }
+
+/* ---- Rewards = Figma "Rewards - store layout" 980:96284 (section 980:96283, user 2026-11-26), Figma frame px = stage px.
+   Tabs top left (Store | Rewards | MTX Points), Style Level list on the left (Item Slot Corner 156 px, 12 px gap, 20 px between groups),
+   scrollbar x652, preview art x1017, rarity + type + name under it at x715 y836. No description / CTA (A = Unlock in the hint bar).
+   Margins of 0 cancel the no-brand shift (no-brand.css). */
+#s-rewards > .screen__safe > .rewards__title,
+#s-rewards .rewards__info p,
+#s-rewards .rewards__actions { display: none }
+#s-rewards .rw-tabs { left: 70px; top: 76px; z-index: 3 }   /* shared lb-tabs component as on other screens: only the position is set here */
+#s-rewards > .screen__safe > .reward-grid { margin-top: 0; left: 94px; top: 163px; width: 528px; height: 815px; padding: 12px; scroll-padding: 12px }
+#s-rewards .reward-group + .reward-group { margin-top: 20px }
+#s-rewards .reward-group__title { display: flex; align-items: center; gap: 14px; height: 24px; margin: 0 0 10px; padding: 0 0 0 20px; border: 0;
+  font: 700 16px/24px var(--font-ui); letter-spacing: 4px; color: #f6f1eb }
+#s-rewards .reward-group__title::after { content: ""; order: 1; flex: 1; height: 1px; background: rgb(255 255 255 / .3) }
+#s-rewards .reward-group__count { order: 2; font: 600 14px/21px var(--font-ui); letter-spacing: 1px; color: #acacbb }
+#s-rewards .reward-group__grid { grid-template-columns: repeat(3, 156px); grid-auto-rows: 156px; gap: 12px }
+#s-rewards .rewards__bar { left: 652px }
+/* preview: fighter skins = the Figma Fighter Model art (980:96293, faded feet); other items sit in the same area */
+#s-rewards > .screen__safe > .rewards__hero { margin-top: 0; left: 900px; top: 230px; width: 620px; height: 560px; object-fit: contain }
+#s-rewards.rewards--skin > .screen__safe > .rewards__hero { left: 1017px; top: 149px; width: 493px; height: 876px; object-fit: cover; object-position: 50% 0 }
+/* no style colour decor on Rewards (user 2026-11-26): plain scrim as in Figma, no glow */
+#s-rewards .rw-glow { display: none }
+#s-rewards .bg-scrim { background: rgb(0 0 0 / .35) !important }
+#s-rewards > .screen__safe > .rewards__info { margin-top: 0; left: 715px; top: 836px; width: 603px; z-index: 2 }
+#s-rewards .rw-meta { display: flex; align-items: center; gap: 12px; height: 26px; margin-bottom: 12px }
+#s-rewards .rw-meta__rarity { height: 26px; padding: 0 8px; border-radius: 2px; background: var(--rw-rar, #9a9ea8); font: 700 16px/26px var(--font-ui); text-transform: uppercase; color: #fff }
+#s-rewards .rw-meta__type { font: 600 18px/27px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #f6f1eb }
+#s-rewards .rewards__info h2 { font: 400 24px/43px var(--font-display) }
+
+/* ---- Store = Figma "Store - store layout" 980:96431 (user 2026-11-26: replaces the old Store). Same frame as Rewards:
+   tabs top left, one list column (156 px cards, 3 per row, 12 gap, 20 between sections), scrollbar x652 y214 751 high,
+   preview x1017 (skins / people = Fighter Model art), rarity + type + name at x715 y836. 2:1 items = Figma banner (324 x 156). */
+#s-store > .screen__safe > .store__title, #s-store .st-balance, #s-store .st-detail p, #s-store .st-detail__price, #s-store .st-detail__type { display: none }
+#s-store .rw-tabs { left: 70px; top: 76px; z-index: 3 }   /* shared lb-tabs component as on other screens: only the position is set here */
+#s-store > .screen__safe > .st-view { margin-top: 0; left: 94px; top: 163px; width: 528px; height: 815px; -webkit-mask-image: none; mask-image: none }
+#s-store .st-list { padding: 12px }
+#s-store .st-section + .st-section { margin-top: 20px }
+#s-store .st-section__title { justify-content: space-between; align-items: center; height: 24px; margin: 0 0 10px; padding: 0; border: 0;
+  font: 700 16px/24px var(--font-ui); letter-spacing: 4px; color: #f6f1eb }
+#s-store .st-section__title span { font: 600 14px/21px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #acacbb }
+#s-store .st-grid { grid-template-columns: repeat(3, 156px); grid-auto-rows: 156px; gap: 12px }
+#s-store .store__scroll { left: 652px; top: 214px; height: 751px }
+#s-store > .screen__safe > .st-detail__hero, #s-store > .screen__safe > .st-detail__hero[data-ratio] { margin-top: 0; left: 900px; top: 230px; width: 620px; height: 560px; object-fit: contain }
+#s-store.rewards--skin > .screen__safe > .st-detail__hero[data-ratio] { left: 1017px; top: 149px; width: 493px; height: 876px; object-fit: cover; object-position: 50% 0 }
+#s-store.has-char3d.rewards--skin .rewards__hero { display: block }
+#s-store [data-char3d] { display: none }
+#s-store > .screen__safe > .st-detail { margin-top: 0; left: 715px; top: 836px; width: 603px; z-index: 2 }
+#s-store .st-detail h2 { font: 400 24px/43px var(--font-display) }
+#s-store .rw-meta { display: flex; align-items: center; gap: 12px; height: 26px; margin-bottom: 12px }
+#s-store .rw-meta__rarity { height: 26px; padding: 0 8px; border-radius: 2px; background: var(--rw-rar, #9a9ea8); font: 700 16px/26px var(--font-ui); text-transform: uppercase; color: #fff }
+#s-store .rw-meta__type { font: 600 18px/27px var(--font-ui); letter-spacing: 1px; text-transform: uppercase; color: #f6f1eb }
+/* banner (Figma 980:96461): #101114, 1 px rarity stroke, art 322 x 126 at the top, name top left, price chip bottom left */
+#s-store .item-card.item-card--wide { background: #101114; box-shadow: inset 0 0 0 1px var(--rar-hi) }
+#s-store .item-card--wide .item-card__tex, #s-store .item-card--wide .item-card__line, #s-store .item-card--wide .item-card__corner { display: none }
+#s-store .item-card.reward-tile.item-card--wide .item-card__art { left: 1px; top: 1px; width: calc(100% - 2px); height: 126px; object-fit: cover }
+#s-store .item-card__name { position: absolute; z-index: 3; left: 12px; top: 10px; font: 900 18px/27px var(--font-ui); text-transform: uppercase; color: #fff; pointer-events: none }
+#s-store .item-card--wide .item-label { left: 10px; bottom: 10px }   /* Figma 980:96465: chip at y+122 of 156 */
+#s-store .item-card__timer { display: none }   /* no promo timer on cards (user 2026-11-26) */
+
+/* chips, tags and badges: content centred on the box axis (cap height trimmed), not by line-height (user 2026-11-26) */
+.item-card .item-label, .item-state, .item-card .reward-tile__new, .item-card__timer, .rw-meta__rarity {
+  display: inline-flex; align-items: center; justify-content: center }
+.item-card .item-label b, .item-state b, .item-state small, .item-card .reward-tile__new b, .item-card__timer b, .rw-meta__rarity b {
+  display: block; line-height: 1; text-box: trim-both cap alphabetic }
+.item-card .item-label { justify-content: flex-start }
+#s-store .item-card--wide .item-card__timer { left: auto; right: 10px }   /* banner name owns the top left */
+
+/* ---- MTX Points tab = Store screen in mode "points" (Figma 980:96561): coins card with the amount and a bonus tag,
+   $ price on the dark Quantity chip, preview = coins at 963,260 600 x 560, "Best value" yellow tag with black text */
+.item-card__amount { position: absolute; z-index: 2; left: calc(var(--k) * 10); right: calc(var(--k) * 10); top: calc(var(--k) * 90); height: calc(var(--k) * 30);
+  display: flex; align-items: center; justify-content: center; font: 800 calc(var(--k) * 26)/1 var(--font-ui); color: #fff; pointer-events: none; text-box: trim-both cap alphabetic }
+.item-card__bonus { position: absolute; z-index: 3; left: calc(var(--k) * 10); top: calc(var(--k) * 8); height: calc(var(--k) * 20); display: inline-flex; align-items: center; pointer-events: none }
+.item-card__bonus b { display: block; font: 700 calc(var(--k) * 15)/1 var(--font-ui); color: #f6df2f; text-box: trim-both cap alphabetic }
+#s-store.store--points > .screen__safe > .st-detail__hero[data-ratio="1:1"] { left: 963px; top: 260px; width: 600px; height: 560px; object-fit: contain }
+#s-store .rw-meta__rarity.is-tag { color: #000 }
+
+/* Store / Rewards background = Figma screen__bg 980:96285 exported as one image (gym photo with exposure +0.08 and
+   saturation -37%, black scrim 35%, Scath Texture overlay), so colour, softness and texture match exactly */
+#s-store > .screen__bg, #s-rewards > .screen__bg { background: #05070b url(../assets/img/store-bg.webp) 0 0/1920px 1080px no-repeat }
+#s-store > .screen__bg > *, #s-rewards > .screen__bg > * { display: none !important }
+
+/* rarity chip on a light colour (Normal grey, Standard lime, Legendary gold, tags): black text, user 2026-11-26 */
+#s-store .rw-meta__rarity.is-light, #s-rewards .rw-meta__rarity.is-light { color: #000 }
+
+/* list fade top and bottom (user 2026-11-26): Rewards grid and the Store / MTX Points list */
+#s-rewards > .screen__safe > .reward-grid, #s-store > .screen__safe > .st-view {
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 40px), transparent 100%) }
+
+/* Rewards tab of the one Store (Figma 980:96284 headers): STYLE LEVEL n ---- x/5 UNLOCKED */
+#s-store .st-section--rewards .st-section__title { gap: 14px; padding-left: 20px }
+#s-store .st-section--rewards .st-section__title::after { content: ""; order: 1; flex: 1; height: 1px; background: rgb(255 255 255 / .3) }
+#s-store .st-section--rewards .st-section__title span { order: 2 }
+
+/* Store tab = 4 columns so the 2:1 Featured banners sit side by side (user 2026-11-26). The list frame is one column wider
+   on every tab (so nothing jumps when switching); scrollbar and preview move right by one column (168 px).
+   Rewards and MTX Points keep 3 columns (Figma). */
+#s-store > .screen__safe > .st-view { width: 696px }
+#s-store:not(.store--points):not(.store--rewards) .st-grid { grid-template-columns: repeat(4, 156px) }
+#s-store .store__scroll { left: 820px }
+#s-store > .screen__safe > .st-detail { left: 883px; width: 600px }
+#s-store > .screen__safe > .st-detail__hero, #s-store > .screen__safe > .st-detail__hero[data-ratio] { left: 1068px }
+#s-store.rewards--skin > .screen__safe > .st-detail__hero[data-ratio] { left: 1185px }
+#s-store.store--points > .screen__safe > .st-detail__hero[data-ratio="1:1"] { left: 1131px }
+
+/* Store tab: shape groups inside a section (2:1 / 1:1 / 1:2), same 12 px gap between them as between cards */
+#s-store .st-section > .st-grid + .st-grid { margin-top: 12px }
+
+/* list panel as wide as the grid of the current tab (Store 4 columns, Rewards / MTX Points 3), user 2026-11-26 */
+#s-store > .screen__safe > .st-view { width: max-content }
+
+/* Store (all tabs): skins / people always show the Fighter Model image, whatever Dev Tools sets (3D / 2D / Video), user 2026-11-26.
+   !important: character3d.css loads later and hides .rewards__hero when 3D is on */
+#s-store .rewards__hero { display: block !important }
+#s-store .char3d, #s-store [data-char3d] { display: none !important }
+
+/* rarity chip text: black on every rarity (user 2026-11-26) */
+#s-store .rw-meta__rarity, #s-rewards .rw-meta__rarity { color: #000 }

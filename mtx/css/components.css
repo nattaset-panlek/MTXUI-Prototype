@@ -622,3 +622,10 @@ body[data-device="kb"] .btn-cta .glyph{font:800 13px/1 var(--font-ui)}
 .find-strip.is-long .find-strip__est{color:#f6df2f}
 @keyframes findStripIn{from{transform:translateY(-55px);opacity:0}}
 @keyframes findPulse{50%{opacity:.25}}
+/* thread #35: the wallet shows only the currencies the screen can spend. Rewards = R Point only; Store = Money + R Point */
+#s-rewards .player-hud--rpoint .wallet > :is(.wallet__cell:not(.wallet__rpoint), .wallet__divider:not(.wallet__rpoint)),
+#s-rewards .player-hud--rpoint .wallet > .wallet__divider.wallet__rpoint { display: none }
+#s-rewards .player-hud--rpoint .wallet { width: 162px }
+#s-store .player-hud--rpoint .wallet > div.wallet__cell:first-of-type,
+#s-store .player-hud--rpoint .wallet > i.wallet__divider:first-of-type { display: none }
+#s-store .player-hud--rpoint .wallet { width: 245px }

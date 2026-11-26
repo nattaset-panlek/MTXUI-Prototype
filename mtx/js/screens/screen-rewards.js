@@ -8,15 +8,24 @@
   // Rewards are bought with R points (same confirm modal as the Shop, screen-store.js); no Claim / hold any more.
   // claimedSet = owned rewards (saved as "rewards_claimed": the Shop also reads it as owned).
 
-  // Item data lives in data/items.js; this is only which items each Style Level gives
-  const PAGES = [
-    { pageName: "Page 1", subtitle: "MTX Genesis 2026", ids: ["r0_0","r0_1","r0_2","r0_3","r0_4"] },
-    { pageName: "Page 2", subtitle: "Muay Thai Warriors", ids: ["r1_0","r1_1","r1_2","r1_3","r1_4"] },
-    { pageName: "Page 3", subtitle: "Apex Legends", ids: ["r2_0","r2_1","r2_2","r2_3","r2_4"] }
-  ].map(p => ({ ...p, items: p.ids.map(id => {
-    const it = window.MTX_ITEMS.get(id);
-    return { ...it, title: it.name, thumb: it.img };
-  }) }));
+  // Item data lives in data/items.js; the Style Level lists depend on the style picked on the Tactical screen
+  // (MTX_ITEMS.rewardIds(style)); "mtx:style" rebuilds them.
+  const PAGE_INFO = [
+    { pageName: "Page 1", subtitle: "MTX Genesis 2026" },
+    { pageName: "Page 2", subtitle: "Muay Thai Warriors" },
+    { pageName: "Page 3", subtitle: "Apex Legends" }
+  ];
+  const styleId = () => window.MTX_SCREENS?.tactical?.getSelStyle?.() || (() => { try { return localStorage.getItem("mtx.style"); } catch (e) { return null; } })() || "phranakhon";
+  let pagesStyle = null;
+  let PAGES = [];
+  function buildPages() {
+    pagesStyle = styleId();
+    PAGES = window.MTX_ITEMS.rewardIds(pagesStyle).map((ids, i) => ({ ...PAGE_INFO[i], ids, items: ids.map(id => {
+      const it = window.MTX_ITEMS.get(id);
+      return { ...it, title: it.name, thumb: it.img };
+    }) }));
+  }
+  buildPages();
   let claimedSet = new Set(["r0_3"]);
   //#endregion
 
@@ -48,6 +57,7 @@
   }
 
   function enter() {
+    if (pagesStyle !== styleId()) { buildPages(); focusedTileId = null; }
     renderPage();
     renderWallet();
   }
@@ -99,10 +109,10 @@
     if (window.MTX_UI.dialog.isOpen()) return false;
     const it = getActiveTile();
     if (!it) return false;
-    if (claimedSet.has(it.id)) { api.toast(`${it.title} already owned`); return false; }
+    if (claimedSet.has(it.id)) { api.toast(`${it.title} already unlocked`); return false; }
     if (lockLevel(it)) { api.toast(`Requires R Level ${lockLevel(it)}`); api.rumble(60, 0.2); return false; }
     window.MTX_UI.dialog.open({
-      title: `Buy ${it.title}?`, body: `${window.MTX_ITEMS.RARITY[it.rarity]?.label || ""} ${it.type}`,
+      title: `Unlock ${it.title}?`, body: `${window.MTX_ITEMS.RARITY[it.rarity]?.label || ""} ${it.type}`,
       primary: priceBtn(rPrice(it)), secondary: "Cancel",
       onPrimary: () => buy(it.id)
     });
@@ -128,7 +138,7 @@
     tileEl?.classList.add("is-bought");
     setTimeout(() => tileEl?.classList.remove("is-bought"), 500);
     api.rumble(150, 0.6);
-    api.toast(`Bought ${it.title} for ${fmt(price)} R`);
+    api.toast(`Unlocked ${it.title} for ${fmt(price)} R`);
     api.log(`Rewards: bought ${it.title} for ${fmt(price)} R`, "action");
   }
 
@@ -145,7 +155,9 @@
   function loadState() {
     currentPage = +api.store.get("rewards_page", "0") || 0;
     if (currentPage >= PAGES.length || currentPage < 0) currentPage = 0;
-    const savedClaimed = api.store.get("rewards_claimed", "r0_3");
+    // Figma 980:96284: Style Level 1 starts 4/5 unlocked (one time, older saves too)
+    if (!api.store.get("rewards_fig1", "")) { api.store.set("rewards_claimed", "r0_0,r0_2,r0_3,r0_4"); api.store.set("rewards_fig1", "1"); }
+    const savedClaimed = api.store.get("rewards_claimed", "r0_0,r0_2,r0_3,r0_4");
     claimedSet = new Set(savedClaimed ? savedClaimed.split(",") : ["r0_3"]);
   }
 
@@ -172,8 +184,17 @@
   }
 
   // Scrollbar: shared .scrollbar look (MTX / Scrollbar), right of the grid
+  // Figma store layout (980:96292): the bar is fixed at y214, 751 high (shorter than the list), thumb scaled to it
+  const BAR = { top: 214, height: 751, min: 48 };
   function updateScrollbar() {
-    window.MTX_UI.syncScrollbar(api.$("#s-rewards .reward-grid"), api.bind("rewardsScroll"), { thumb: api.bind("rewardsThumb") });
+    const grid = api.$("#s-rewards .reward-grid"), bar = api.bind("rewardsScroll"), thumb = api.bind("rewardsThumb");
+    window.MTX_UI.syncScrollbar(grid, bar, { thumb });
+    if (!grid || !bar || bar.hidden) return;
+    const over = grid.scrollHeight - grid.clientHeight, h = Math.max(BAR.min, Math.round(BAR.height * grid.clientHeight / grid.scrollHeight));
+    bar.style.top = BAR.top + "px";
+    bar.style.height = BAR.height + "px";
+    thumb.style.height = h + "px";
+    thumb.style.top = Math.round(grid.scrollTop / over * (BAR.height - h)) + "px";
   }
 
   function renderPage() {
@@ -183,7 +204,8 @@
     const all = getAllItems();
     let html = "";
     PAGES.forEach((page, level) => {
-    html += `<section class="reward-group"><h3 class="reward-group__title">Style Level ${level + 1}</h3><div class="reward-group__grid">`;
+    const got = page.items.filter(it => claimedSet.has(it.id)).length;
+    html += `<section class="reward-group"><h3 class="reward-group__title">Style Level ${level + 1}<span class="reward-group__count" data-level="${level}">${got}/${page.items.length} Unlocked</span></h3><div class="reward-group__grid">`;
     let smallCount = 0;   // layout: 1:1 cards fill columns 1-2, the 1:2 card takes column 3
     sortByRarity(page.items).forEach(it => {
       const column = isTallCard(it) ? 3 : (smallCount++ % 2) + 1;
@@ -193,18 +215,19 @@
         cls: `${isClaimed ? "is-claimed" : ""} ${lockLevel(it) ? "is-locked" : ""}`,
         style: `grid-column:${column}`,
         attrs: 'data-fn="buyReward"',
-        badge: NEW_ITEMS.has(it.id) && !isClaimed && !lockLevel(it) ? "New" : ""
+        badge: ""
       });
     });
     html += "</div></section>";
     });
     grid.innerHTML = html;
     const first = grid.querySelector(".reward-tile");
-    if (first) api.$("#s-rewards").dataset.first = first.dataset.id;
+    const hi = PAGES[1]?.items.find(isTallCard);   // Figma highlight: the 1:2 card of Style Level 2
+    if (first) api.$("#s-rewards").dataset.first = hi ? hi.id : first.dataset.id;
 
     renderClaimStats();
     if (!focusedTileId || !all.some(x => x.id === focusedTileId)) {
-      focusedTileId = first.dataset.id;
+      focusedTileId = api.$("#s-rewards").dataset.first;
     }
     renderDetail(focusedTileId);
     updateScrollbar();
@@ -214,7 +237,7 @@
   const REQ_R_LEVEL = { r2_0: 20, r2_4: 30 };
   const NEW_ITEMS = new Set(["r0_4", "r1_1"]);
   function lockLevel(it) {
-    const need = REQ_R_LEVEL[it.id] || 0;
+    const need = it.reqR || REQ_R_LEVEL[it.id] || 0;
     const have = window.MTX_PLAYER?.get?.().r?.level ?? 0;
     return need > have && !claimedSet.has(it.id) ? need : 0;
   }
@@ -224,9 +247,9 @@
 
   // Rewards: owned > locked (R Level) > R price
   function labelHtml(it) {
-    if (claimedSet.has(it.id)) return itemLabel("status", "Owned");
+    if (claimedSet.has(it.id)) return itemLabel("status", "Unlocked");
     if (lockLevel(it)) return itemLabel("locked", `R LV ${lockLevel(it)}`);
-    return itemLabel("r", rPrice(it));
+    return itemLabel("r", fmt(rPrice(it)));
   }
 
   // Sort inside a Style Level group: Normal to Legendary
@@ -243,7 +266,7 @@
     const isClaimed = claimedSet.has(tileId);
     tileEl.classList.toggle("is-claimed", isClaimed);
     const tile = getTileById(tileId);
-    const label = tileEl.querySelector(".item-label");
+    const label = tileEl.querySelector(".item-label, .item-state");
     if (tile && label) label.outerHTML = labelHtml(tile);
     tileEl.querySelector(".reward-tile__new")?.remove();
   }
@@ -253,15 +276,17 @@
     PAGES.forEach(p => totalItems += p.items.length);
     const claimedCount = claimedSet.size;
     const el = api.bind("claimedCount");
-    if (el) el.textContent = `${claimedCount}/${totalItems} owned`;
+    if (el) el.textContent = `${claimedCount}/${totalItems} unlocked`;
+    PAGES.forEach((p, i) => {   // Style Level header: n/5 Unlocked
+      const c = api.$(`#s-rewards .reward-group__count[data-level="${i}"]`);
+      if (c) c.textContent = `${p.items.filter(it => claimedSet.has(it.id)).length}/${p.items.length} Unlocked`;
+    });
   }
 
-  // Fighter skins preview on the 3D model; the Dev Tools 3D switch falls back to the 2D art
+  // Skins and people (fighter / char art): preview = the Figma Fighter Model art (980:96293, user 2026-11-26), not the 3D model
+  const isPersonArt = it => it.person || /^(fighter|char)/.test(it.thumb);
   function showSkinPreview(it) {
-    const isSkin = /^fighter/.test(it.thumb);
-    api.$("#s-rewards").classList.toggle("rewards--skin", isSkin);
-    api.$("#s-rewards [data-char3d]")?.toggleAttribute("data-char3d-off", !isSkin);
-    window.MTX_CHARACTER3D?.refresh?.();
+    api.$("#s-rewards").classList.toggle("rewards--skin", isPersonArt(it));
   }
 
   function renderDetail(tileId) {
@@ -270,11 +295,17 @@
     const isClaimed = claimedSet.has(it.id);
 
     const heroEl = api.bind("rewardHero");
-    if (heroEl) heroEl.src = `mtx/assets/img/${it.hero}.webp`;
+    if (heroEl) heroEl.src = `mtx/assets/img/${isPersonArt(it) ? "fighter-model" : it.hero}.webp`;
     showSkinPreview(it);
 
     const titleEl = api.bind("rewardTitle");
     if (titleEl) titleEl.textContent = it.title;
+
+    const rar = window.MTX_ITEMS.RARITY[it.rarity];
+    const rarEl = api.bind("rewardRarity");
+    if (rarEl) { rarEl.innerHTML = `<b>${rar?.label || ""}</b>`; rarEl.style.setProperty("--rw-rar", rar?.color || "#9a9ea8"); rarEl.classList.toggle("is-light", ["normal", "standard", "legendary"].includes(it.rarity)); }
+    const typeEl = api.bind("rewardType");
+    if (typeEl) typeEl.textContent = it.type || "";
 
     const descEl = api.bind("rewardDesc");
     if (descEl) descEl.textContent = it.desc;
@@ -286,7 +317,7 @@
       btn.classList.toggle("is-locked", !!locked);
       const label = btn.querySelector(".btn-cta__label");
       if (label) {
-        label.textContent = isClaimed ? "Owned" : locked ? "Locked" : "Buy";
+        label.textContent = isClaimed ? "Unlocked" : locked ? "Locked" : "Unlock";
       }
     }
 
@@ -297,13 +328,31 @@
     if (grid) {
       grid.addEventListener("scroll", updateScrollbar, { passive: true });
     }
+    // Store | Rewards | MTX Points tabs (Figma lb-tabs 980:96425); MTX Points has no screen yet
+    // tab hub lives in screen-store.js (Store and MTX Points are one screen)
+    document.querySelectorAll("#s-rewards [data-rw-tab]").forEach(t => t.addEventListener("click", () => window.MTX_STORE_TABS?.go(t.dataset.rwTab)));
+    // Tactical style changed: other Style Level rewards (screen re-renders now if it is open, else on enter)
+    document.addEventListener("mtx:style", () => {
+      if (pagesStyle === styleId()) return;
+      buildPages();
+      focusedTileId = null;
+      renderPage();
+    });
 
 
   }
   //#endregion
 
+  // Q / E (LT / RT): Store | Rewards | MTX Points tabs
+  function onInput(a) {
+    if (a !== "lt" && a !== "rt") return false;
+    window.MTX_STORE_TABS?.step("rewards", a === "lt" ? -1 : 1);
+    return true;
+  }
+
   window.MTX_SCREENS.rewards = {
     bindApi,
+    onInput,
     init,
     enter,
     focus,

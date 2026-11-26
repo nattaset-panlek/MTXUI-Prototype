@@ -576,9 +576,11 @@
   function buildTree() {
     const nodesEl = api.bind("treeNodes");
     if (!nodesEl) return;
+    // core = the style icon itself (silhouette + emblem, Figma 977:75713), no diamond; focus ring = outline of the same silhouette (user 2026-11-26)
+    const coreStyle = window.MTX_SCREENS?.tactical?.getSelStyle?.() || "phranakhon";
     nodesEl.innerHTML = TREE.nodes.map(n => n.type === "root"
-      ? `<a class="tnode tnode--root" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${DY(n.y) + ROOT_DY}px">
-          <span class="tnode__focus" aria-hidden="true"></span><span class="node-core"><span class="node-core__circle"></span><span class="node-core__diamond"></span><img class="node-core__emblem" data-bind="coreEmblem" src="mtx/assets/svg/style-${window.MTX_SCREENS?.tactical?.getSelStyle?.() || "phranakhon"}-sel.svg" alt=""></span>
+      ? `<a class="tnode tnode--root" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${DY(n.y) + ROOT_DY}px;--fs:url(../assets/svg/style-node-${coreStyle}-shape.svg)">
+          <span class="tnode__focus" aria-hidden="true"></span><span class="node-core"><span class="node-core__circle"></span><img class="node-core__emblem" data-bind="coreEmblem" src="mtx/assets/svg/style-node-${coreStyle}.svg" alt=""></span>
           <span class="tnode__label">${esc(n.name)}</span></a>`
       : `<a class="tnode tnode--${n.type}" data-nav data-id="${n.id}" data-fn="toggleSkill" style="left:${n.x}px;top:${DY(n.y)}px${moveArt(n) ? `;--fm:url(${moveArt(n).replace(LO, "../assets/svg/loadout/")})` : ""}">
           <span class="tnode__focus" aria-hidden="true"></span>

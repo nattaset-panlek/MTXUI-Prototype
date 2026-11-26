@@ -108,7 +108,10 @@
     const emblem = api.bind("emblem");
     if (emblem) emblem.src = `mtx/assets/svg/style-${selStyle}-sel.svg`;
     const core = api.bind("coreEmblem");
-    if (core) core.src = `mtx/assets/svg/style-${selStyle}-sel.svg`;
+    if (core) {   // skill tree core = style icon; its focus ring uses the same silhouette
+      core.src = `mtx/assets/svg/style-node-${selStyle}.svg`;
+      core.closest(".tnode")?.style.setProperty("--fs", `url(../assets/svg/style-node-${selStyle}-shape.svg)`);
+    }
     const treeSub = api.bind("treeStyle");
     if (treeSub) treeSub.textContent = s.title + " Mastery";
 

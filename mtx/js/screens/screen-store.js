@@ -11,6 +11,14 @@
   // Item data lives in data/items.js; this is only what the Store sells and in which section.
   // An item listing both prices is bought with Cash.
   const RARITY_ORDER = Object.keys(DB.RARITY);   // inside a section: Normal to Legendary, same as Rewards
+  // Figma 980:96431 sample (the items drawn in the frame); not shown: the Store lists the data below (user 2026-11-26)
+  const SECTIONS_FIGMA = [
+    { title: "Featured", ids: ["seux_shorts", "lumpinee_arena", "outfit_seux"] },
+    { title: "Gloves", count: "20 items", ids: ["glove_temple", "glove_shadow", "glove_mtx26", "glove_sakura", "glove_golden", "glove_ivory"] },
+    { title: "Fighters & outfits", count: "10 items", ids: ["fighter_samart", "fighter_kru", "fighter_naga"] },
+    { title: "R Shop", count: "10 items", ids: ["cos_avatar_1", "emote_victory", "cos_vinyl", "cos_badge_beast", "cos_badge_sorcerer", "cos_belt_1"] }
+  ].map(s => ({ ...s, items: s.ids.map(id => DB.get(id)).sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) }));
+  // what the Store sells, from data/items.js; header count = items in the section
   const SECTIONS = [
     { title: "Featured", ids: ["seux_shorts", "lumpinee_arena"] },
     { title: "Gloves", ids: ["glove_mtx26", "glove_black", "glove_sakura", "glove_midnight", "glove_temple", "glove_shadow", "glove_golden", "glove_ironshin",
@@ -22,7 +30,29 @@
     { title: "Packs & bundles", ids: ["pack_legend", "pack_rookie", "bundle_season", "pack_gloves", "pack_ink", "pack_emote", "bundle_champion"] },
     { title: "Currency & tickets", ids: ["cash_pack", "r0_3", "r1_3", "r2_3", "ticket_1", "ticket_5"] }
   ].map(s => ({ ...s, items: s.ids.map(id => DB.get(id)).sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity)) }));
-  const ITEMS = SECTIONS.flatMap(s => s.items);
+  // MTX Points tab (Figma 980:96561): same screen, other list + preview (mode "points")
+  const POINTS = [
+    { title: "MTX Points", count: "Pay with platform", ids: ["pts_500", "pts_1100", "pts_2400", "pts_5000", "pts_10500", "pts_21000"] },
+    { title: "Limited offers", ids: ["pts_first", "pts_weekly", "pts_champion", "pts_season", "pts_tickets"] }
+  ].map(s => ({ ...s, items: s.ids.map(id => DB.get(id)) }));
+  // Rewards tab: the Style Level lists of the style picked on the Tactical screen (MTX_ITEMS.rewardIds), rebuilt on "mtx:style".
+  // Bought with R points; claimed set = "rewards_claimed" (also counts as owned in the Store).
+  const styleId = () => window.MTX_SCREENS?.tactical?.getSelStyle?.() || (() => { try { return localStorage.getItem("mtx.style"); } catch (e) { return null; } })() || "phranakhon";
+  const byRarity = items => [...items].sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
+  const rewardSections = () => DB.rewardIds(styleId()).map((ids, i) => ({ title: `Style Level ${i + 1}`, rewards: true, items: byRarity(ids.map(id => DB.get(id))) }));
+
+  // The one Store: three groups, one per tab (user 2026-11-26)
+  const STORE = {
+    store: SECTIONS,
+    get rewards() { return rewardSections(); },
+    points: POINTS
+  };
+  const firstOf = m => m === "points" ? "pts_5000"   // Figma highlight
+    : m === "rewards" ? (STORE.rewards[1]?.items.find(i => i.ratio === "1:2") || STORE.rewards[0].items[0]).id   // Figma highlight: Style Level 2, 1:2
+    : SECTIONS[0].items[0].id;
+  let mode = "store", pendingMode = null;
+  const curSections = () => STORE[mode];
+  const ITEMS = [...SECTIONS, ...POINTS].flatMap(s => s.items);
   const isPack = it => !!it?.contents;
   const cashOf = it => DB.price(it, "cash")?.val || 0;
   const rOf = it => DB.price(it, "r")?.val || 0;
@@ -45,8 +75,24 @@
   };
   const timeLeft = it => Math.max(0, it.timer - (Date.now() - timerStart) / 1000);
 
+  const claimedSet = () => new Set((api.store.get("rewards_claimed", "") || "").split(",").filter(Boolean));
+  const REQ_R_LEVEL = { r2_0: 20, r2_4: 30 };   // placeholder: R Level needed
+  function lockLevel(it) {
+    const need = it.reqR || REQ_R_LEVEL[it.id] || 0;
+    const have = P()?.get?.().r?.level ?? 0;
+    return need > have && !claimedSet().has(it.id) ? need : 0;
+  }
+  // R price; rewards with only a Cash price use that number as R (placeholder until the data has R prices)
+  const rewardPrice = it => (it.prices.find(p => p.type === "r") || it.prices.find(p => p.type === "cash") || { val: 0 }).val;
+  function rewardLabel(it) {
+    if (claimedSet().has(it.id)) return UI().itemLabel("status", "Unlocked");
+    if (lockLevel(it)) return UI().itemLabel("locked", `R LV ${lockLevel(it)}`);
+    return UI().itemLabel("r", fmt(rewardPrice(it)));
+  }
+
   // Claimed in Rewards also counts as owned (consumables are never owned)
   function isOwned(it) {
+    if (it.owned) return true;
     if (it.grantsCash || it.stack) return false;
     return owned.has(it.id) || (api.store.get("rewards_claimed", "") || "").split(",").includes(it.id);
   }
@@ -58,29 +104,52 @@
       : `<span class="st-chip"><i class="st-chip__cash"></i>${fmt(p.val)}</span>`).join("");
   }
 
+  const fmtUsd = v => `$${v.toFixed(2)}`;
   function storeLabel(it) {
+    if (it.usd) return isOwned(it) ? UI().itemLabel("status", "Owned") : UI().itemLabel("qty", fmtUsd(it.usd));
     return isOwned(it) ? UI().itemLabel("status", "Owned") : UI().itemPriceLabel(it, ["cash", "r"]);
   }
 
-  function cardHtml(it) {
-    const timer = it.timer ? `<span class="item-card__timer" data-timer="${it.id}"><img src="mtx/assets/svg/icon-clock.svg" alt="">${fmtTimer(timeLeft(it))}</span>` : "";
+  function rewardCardHtml(it, col) {
+    const claimed = claimedSet().has(it.id);
     return UI().itemCard(it, {
-      label: storeLabel(it) + timer,
+      label: rewardLabel(it),
+      cls: `${claimed ? "is-claimed" : ""} ${lockLevel(it) ? "is-locked" : ""}`,
+      style: `grid-column:${col}`,
+      badge: ""
+    });
+  }
+
+  function cardHtml(it) {
+    const timer = false ? `<span class="item-card__timer" data-timer="${it.id}"><img src="mtx/assets/svg/icon-clock.svg" alt=""><b>${fmtTimer(timeLeft(it))}</b></span>` : "";
+    const name = it.ratio === "2:1" ? `<span class="item-card__name">${it.name}</span>` : "";
+    const pts = it.usd && it.grantsCash && /^[0-9]/.test(it.name) ? `<span class="item-card__amount">${fmt(it.grantsCash)}</span>` : "";
+    const bonus = it.bonus ? `<span class="item-card__bonus"><b>${it.bonus}</b></span>` : "";
+    return UI().itemCard(it, {
+      label: storeLabel(it) + timer + name,   // Figma MTX Points card: coin art + $ chip only
       cls: isOwned(it) ? "is-claimed" : "",
       attrs: isPack(it) ? 'data-fn="openPack"' : "",
-      badge: it.isNew && !it.timer && !isOwned(it) ? "New" : ""
+      badge: ""
     });
   }
 
   // Right side: same preview as Rewards
   function renderDetail(it) {
     if (!it) return;
-    const isSkin = /^fighter/.test(it.img);
+    const isSkin = it.person || /^(fighter|char)/.test(it.img);
     api.$("#s-store").classList.toggle("rewards--skin", isSkin);
-    api.$("#s-store [data-char3d]")?.toggleAttribute("data-char3d-off", !isSkin);
-    window.MTX_CHARACTER3D?.refresh?.();
     const hero = api.bind("storeHero");
-    hero.src = DB.src(it.hero);
+    hero.src = isSkin ? DB.src("fighter-model") : it.usd && it.grantsCash ? DB.src("coins-big") : DB.src(it.hero);
+    api.$("#s-store").classList.toggle("store--points", mode === "points");
+    const rarEl = api.bind("storeRarity");
+    if (rarEl) {
+      rarEl.innerHTML = `<b>${it.tag || DB.RARITY[it.rarity].label}</b>`;
+      rarEl.style.setProperty("--rw-rar", it.tag ? "#f6df2f" : DB.RARITY[it.rarity].color);
+      rarEl.classList.toggle("is-tag", !!it.tag);
+      rarEl.classList.toggle("is-light", !!it.tag || ["normal", "standard", "legendary"].includes(it.rarity));   // light chip: black text (user 2026-11-26)
+    }
+    const kindEl = api.bind("storeKind");
+    if (kindEl) kindEl.textContent = it.type || "";
     hero.dataset.ratio = it.ratio;
     api.bind("storeName").textContent = it.name;
     api.bind("storeType").textContent = `${DB.RARITY[it.rarity].label} ${it.type}`;
@@ -105,6 +174,14 @@
     render();
     renderWallet();
     bindScroller();
+    document.querySelectorAll("#s-store [data-rw-tab]").forEach(t => t.addEventListener("click", () => goTab(t.dataset.rwTab)));
+    document.addEventListener("mtx:style", () => {   // Tactical style changed: other Rewards lists
+      if (mode !== "rewards" || api.getCur() !== "store") return;
+      applyMode("rewards");
+      render();
+      const first = api.$(`#s-store .item-card[data-id="${firstOf("rewards")}"]`);
+      if (first) { api.setFocus(first); focus(first); }
+    });
     const host = api.bind("storeList");
     host?.addEventListener("click", e => {
       const card = e.target.closest(".item-card");
@@ -112,6 +189,50 @@
       api.setFocus(card);
       startHold(card);
     });
+  }
+
+  // ---- tabs: Store | Rewards | MTX Points (Figma lb-tabs). Store and MTX Points are this screen in two modes. ----
+  const TABS = ["store", "rewards", "points"];
+  function applyMode(m) {
+    mode = m;
+    const scr = api.$("#s-store");
+    scr.dataset.first = firstOf(m);
+    scr.classList.toggle("store--rewards", m === "rewards");
+    scr.classList.toggle("store--points", m === "points");
+    scr.querySelectorAll("[data-rw-tab]").forEach(t => {
+      const on = t.dataset.rwTab === m;
+      t.classList.toggle("is-active", on);
+      t.setAttribute("aria-selected", on);
+    });
+    const lbl = [...scr.querySelectorAll(".hint-bar *")].find(n => !n.children.length && /^(Buy|Purchase|Unlock)$/.test(n.textContent.trim()));
+    if (lbl) lbl.textContent = m === "points" ? "Purchase" : m === "rewards" ? "Unlock" : "Buy";
+  }
+  function setMode(m) {   // switch tab while the Store is open
+    if (m === mode) return;
+    applyMode(m);
+    render();
+    const first = api.$(`#s-store .item-card[data-id="${firstOf(m)}"]`);
+    if (first) { api.setFocus(first); focus(first); }
+    api.rumble(50, 0.2);
+  }
+  // tab change = instant screen swap, no enter / leave motion (user 2026-11-26); same switch the video wipe uses
+  function instant(fn) {
+    const m = window.MTX_UI?.motion, was = m?.enabled;
+    if (m) m.enabled = false;
+    try { fn(); } finally { if (m) m.enabled = was; }
+  }
+  function goTab(tab) {
+    if (api.getCur() === "store") setMode(tab);
+    else { pendingMode = tab; instant(() => window.MTX?.show?.("store", false)); }
+  }
+  // Q / E (LT / RT): previous / next tab, wraps
+  const stepTab = (from, dir) => goTab(TABS[(TABS.indexOf(from) + dir + TABS.length) % TABS.length]);
+  // pend(tab): the next time the Store opens it shows that tab (app.js maps show("rewards") to the Store's Rewards tab)
+  window.MTX_STORE_TABS = { go: goTab, step: stepTab, pend: tab => { pendingMode = tab; } };
+  function onInput(a) {
+    if (a !== "lt" && a !== "rt") return false;
+    stepTab(mode, a === "lt" ? -1 : 1);
+    return true;
   }
 
   // ---- Pack page ----
@@ -149,6 +270,10 @@
   };
 
   function enter() {
+    // Figma 980:96284: Style Level 1 starts 4/5 unlocked (one time, older saves too)
+    if (!api.store.get("rewards_fig1", "")) { api.store.set("rewards_claimed", "r0_0,r0_2,r0_3,r0_4"); api.store.set("rewards_fig1", "1"); }
+    applyMode(pendingMode || "store");
+    pendingMode = null;
     rPoints = +api.store.get("store_r", rPoints) || 0;   // Rewards spends the same balance
     render();
     renderWallet();
@@ -156,12 +281,28 @@
     timerTick = setInterval(tickTimers, 1000);
   }
 
+  const fmtEnds = s => `Ends in ${Math.floor(s / 86400)}D ${String(Math.floor(s % 86400 / 3600)).padStart(2, "0")}H`;
+  function sectionCount(sec) {
+    const t = sec.items.filter(i => i.timer).map(timeLeft);
+    if (sec.count) return sec.count;
+    return t.length && (sec.title === "Featured" || t.length === sec.items.length) ? fmtEnds(Math.min(...t)) : `${sec.items.length} items`;
+  }
+
   function render() {
     const host = api.bind("storeList");
     if (!host) return;
-    host.innerHTML = SECTIONS.map(sec =>
-      `<section class="st-section"><h2 class="st-section__title">${sec.title}<span>${sec.items.length} items</span></h2>` +
-      `<div class="st-grid">${sec.items.map(it => cardHtml(it)).join("")}</div></section>`).join("");
+    host.innerHTML = curSections().map((sec, si) => {
+      if (sec.rewards) {
+        let n = 0;
+        const got = sec.items.filter(it => claimedSet().has(it.id)).length;
+        return `<section class="st-section st-section--rewards"><h2 class="st-section__title">${sec.title}<span data-level="${si}">${got}/${sec.items.length} Unlocked</span></h2>` +
+          `<div class="st-grid">${sec.items.map(it => rewardCardHtml(it, it.ratio === "1:2" ? 3 : (n++ % 2) + 1)).join("")}</div></section>`;
+      }
+      // Store tab: one grid per card shape (2:1 banners, then 1:1, then 1:2), so mixed shapes leave no holes (user 2026-11-26)
+      const groups = mode === "store" ? ["2:1", "1:1", "1:2"].map(r => sec.items.filter(it => (it.ratio || "1:1") === r)).filter(g => g.length) : [sec.items];
+      return `<section class="st-section"><h2 class="st-section__title">${sec.title}<span>${sectionCount(sec)}</span></h2>` +
+        groups.map(g => `<div class="st-grid">${g.map(it => cardHtml(it)).join("")}</div>`).join("") + "</section>";
+    }).join("");
     host.dataset.y = 0;
     host.style.transform = "translateY(0)";
     updateScroller();
@@ -179,6 +320,8 @@
     const bar = api.bind("storeScroll"), thumb = api.bind("storeThumb");
     if (!bar || !thumb || !api.bind("storeList")) return;
     const { list, y, max } = scrollState();
+    const panel = list.parentElement;   // panel is as wide as its grid (3 or 4 columns): the bar follows its right edge
+    bar.style.left = panel.offsetLeft + panel.offsetWidth + 42 + "px";   // 3 columns: x652 as in Figma
     bar.hidden = max <= 1;
     if (bar.hidden) return;
     const track = bar.clientHeight, view = list.parentElement.clientHeight;
@@ -236,7 +379,7 @@
   // ---- buy: A / Space / click opens a modal to choose ----
   function focusedItem() {
     const el = api.getFocused();
-    return el && el.classList.contains("item-card") ? [el, ITEMS.find(i => i.id === el.dataset.id)] : [null, null];
+    return el && el.classList.contains("item-card") ? [el, DB.get(el.dataset.id)] : [null, null];
   }
 
   function canHold() {
@@ -252,6 +395,7 @@
     const [el, item] = onPack ? [api.bind("packBuy"), DB.get(packId)]
       : card ? [card, DB.get(card.dataset.id)] : focusedItem();
     if (!el || !item) return false;
+    if (mode === "rewards" && !onPack) return openUnlock(item, el);
     if (isOwned(item)) { api.toast(`${item.name} already owned`); return false; }
     if (item.stack && (stacks[item.id] || 0) >= item.stack) { api.toast(`${item.name} stack is full`); return false; }
     openBuy(item, el);
@@ -262,6 +406,14 @@
 
   // Two prices: choose the currency. One price: Buy or Cancel.
   function openBuy(item, el) {
+    if (item.usd) {
+      window.MTX_UI.dialog.open({
+        title: `Purchase ${item.name}?`, body: "Paid through your platform store (prototype: no real payment)",
+        primary: { html: `<span class="dlg-price"><span>${fmtUsd(item.usd)}</span></span>` }, secondary: "Cancel",
+        onPrimary: () => buyPlatform(item, el)
+      });
+      return;
+    }
     const c = cashOf(item), r = rOf(item);
     const body = `${DB.RARITY[item.rarity].label} ${item.type}`;
     if (c && r) {
@@ -317,6 +469,63 @@
     api.log(`Store: bought ${item.name} for ${fmt(price)} ${useCash ? "Cash" : "R"}`, "action");
   }
 
+  // ---- Rewards tab: unlock with R points (same confirm modal) ----
+  function openUnlock(item, el) {
+    if (claimedSet().has(item.id)) { api.toast(`${item.name} already unlocked`); return false; }
+    const need = lockLevel(item);
+    if (need) { api.toast(`Requires R Level ${need}`); api.rumble(60, 0.2); return false; }
+    window.MTX_UI.dialog.open({
+      title: `Unlock ${item.name}?`, body: `${DB.RARITY[item.rarity]?.label || ""} ${item.type}`,
+      primary: priceBtn("r", rewardPrice(item)), secondary: "Cancel",
+      onPrimary: () => unlockReward(item, el)
+    });
+    return true;
+  }
+  function unlockReward(item, card) {
+    const price = rewardPrice(item);
+    rPoints = +api.store.get("store_r", rPoints) || 0;
+    if (price > rPoints) { api.toast(`Not enough R points, need ${fmt(price - rPoints)} more`); api.rumble(120, 0.5); return; }
+    rPoints -= price;
+    api.store.set("store_r", rPoints);
+    if (item.grantsCash && P()) { cash = P().get().cash + item.grantsCash; P().set({ cash }); }
+    const set = claimedSet(); set.add(item.id);
+    api.store.set("rewards_claimed", [...set].join(","));
+    renderWallet();
+    card.classList.add("is-claimed");
+    card.querySelector(".item-label, .item-state")?.replaceWith(document.createRange().createContextualFragment(rewardLabel(item)));
+    STORE.rewards.forEach((sec, si) => {
+      const c = api.$(`#s-store .st-section--rewards [data-level="${si}"]`);
+      if (c) c.textContent = `${sec.items.filter(it => set.has(it.id)).length}/${sec.items.length} Unlocked`;
+    });
+    renderDetail(item);
+    card.classList.add("is-bought");
+    setTimeout(() => card.classList.remove("is-bought"), 500);
+    api.rumble(150, 0.6);
+    api.toast(`Unlocked ${item.name} for ${fmt(price)} R`);
+    api.log(`Rewards: unlocked ${item.name} for ${fmt(price)} R`, "action");
+  }
+
+  function buyPlatform(item, card) {
+    if (P()) cash = P().get().cash;
+    if (item.grantsCash) cash += item.grantsCash;
+    else if (item.stack) stacks[item.id] = Math.min(item.stack, (stacks[item.id] || 0) + (item.qty || 1));
+    else owned.add(item.id);
+    P()?.set({ cash });
+    api.store.set("store_owned", JSON.stringify([...owned]));
+    api.store.set("store_stacks", JSON.stringify(stacks));
+    renderWallet();
+    if (isOwned(item)) {
+      card.classList.add("is-claimed");
+      card.querySelector(".item-label")?.replaceWith(document.createRange().createContextualFragment(storeLabel(item)));
+    }
+    renderDetail(item);
+    card.classList.add("is-bought");
+    setTimeout(() => card.classList.remove("is-bought"), 500);
+    api.rumble(150, 0.6);
+    api.toast(item.grantsCash ? `+${fmt(item.grantsCash)} MTX Points added` : `Purchased ${item.name}`);
+    api.log(`Store: platform purchase ${item.name} ${fmtUsd(item.usd)}`, "action");
+  }
+
   function resetStore() {
     cash = P()?.DEFAULTS.cash ?? 19523;
     rPoints = 1500;
@@ -336,6 +545,8 @@
     init,
     enter,
     focus,
+    onInput,
+    goTab,
     canHold,
     startHold,
     cancelHold,
