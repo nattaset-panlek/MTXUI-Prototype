@@ -177,7 +177,8 @@
     window.MTX_SCREENS?.[key]?.enter?.();
     if (changed) window.MTX_UI?.motion?.enter(s);   // after enter() has built the screen's rows
     const want = (!push && remembered[key]) || s.dataset.first;
-    setFocus($(`[data-nav][data-id="${want}"]`, s) || navs()[0]);
+    if (window.MTX_POINTER?.noPreselect(s)) setFocus(null);   // data-pointer="none" + mouse: nothing selected on entry (components/pointer-input.js)
+    else setFocus($(`[data-nav][data-id="${want}"]`, s) || navs()[0]);
     // screens build their rows in enter(): refresh the navigation editor once they exist
     if (wireMode) requestAnimationFrame(() => { updateWireHandles(); renderWires(); });
   }
@@ -197,7 +198,7 @@
   }
   function center(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
   function move(dir) {
-    if (!focused) { setFocus(navs()[0]); return; }
+    if (!focused) { setFocus($(`[data-nav][data-id="${screens[cur].dataset.first}"]`, screens[cur]) || navs()[0]); return; }   // nothing focused (mouse entry): the first press lands on data-first
     const t = navTarget(focused, dir);
     if (t) setFocus(t);
   }
@@ -368,6 +369,7 @@
     }
     if (window.MTX_MODE_CARD?.isLocked?.()) { if (a === "a" || a === "back") window.MTX_MODE_CARD.cancelFind(); return; }   // locked Match Find (Main Quick Fight): only A / B work, they cancel
     if (dev) setDevice(dev);
+    if (dev && dev !== "kb") window.MTX_POINTER?.setKeys();   // pad input
     logIn(label);
     if (!/^(up|down|left|right)$/.test(a)) log(label + " · " + a.toUpperCase(), "input");
     // Intro / Login: Options and Settings open over them (Tab / Menu); anything else on the Intro starts the game
@@ -594,7 +596,10 @@
       const glyph = e.target.closest(".mode-card__pager .glyph");
       if (glyph && scrCareer) { logIn("Click"); glyph.dataset.btn === "lt" ? scrCareer.prevMode?.() : scrCareer.nextMode?.(); return; }
     }
-    const el = e.target.closest("[data-nav]"); if (!el || !screens[cur].contains(el)) return;
+    const el = e.target.closest("[data-nav]");
+    // click on empty space (user 2026-11-26): data-pointer="none" screens drop the selection and its focus ring
+    if (!el && window.MTX_POINTER?.clearsOnEmptyClick(screens[cur]) && screens[cur].contains(e.target)) { setFocus(null); return; }
+    if (!el || !screens[cur].contains(el)) return;
     if (navHeld) { navHeld = false; return; }   // that press was a hold, handled on pointerdown / up
     setDevice("kb"); logIn("Click");
     if (focused !== el) setFocus(el);
@@ -928,6 +933,7 @@
   });
   $("#editText").addEventListener("change", e => {
     editing = e.target.checked;
+    document.body.classList.toggle("text-editing", editing);   // base.css: the play-mode default cursor stays off while editing
     $$("#stage h1,#stage h2,#stage h3,#stage p,#stage span,#stage b").forEach(el => {
       if (el.children.length === 0 && el.textContent.trim()) el.contentEditable = editing ? "plaintext-only" : "false";
     });

@@ -131,7 +131,7 @@ html:not([data-hud-style]) .level-chip--mini .level-chip__body::after{content:""
 .btn-cta__tex{z-index:-1;background:var(--tex-white) center/cover;mix-blend-mode:multiply}
 .btn-cta__label{font:400 30px/1 var(--font-display);text-transform:uppercase;color:var(--text-cta);padding-top:4px;text-shadow:0 0 2px rgb(30 30 29 / .6)}
 .btn-cta.is-ready-unlock{transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
-.btn-cta.is-ready-unlock:hover:not(.is-holding){filter:brightness(1.12);box-shadow:0 0 18px rgba(242,223,87,.45)}
+body.input-mouse .btn-cta.is-ready-unlock:hover:not(.is-holding){filter:brightness(1.12);box-shadow:0 0 18px rgba(242,223,87,.45)}
 .btn-cta__hold-bar{position:absolute;left:0;top:0;bottom:0;width:var(--hold-p,0%);border-radius:inherit;pointer-events:none;z-index:0;background:linear-gradient(90deg,rgba(255,255,255,.25),rgba(255,244,165,.9));box-shadow:0 0 16px rgba(255,244,165,.85);border-right:2px solid #fff;display:none}
 .btn-cta.is-holding .btn-cta__hold-bar{display:block}
 .btn-cta.is-holding{transform:scale(.97);box-shadow:0 0 24px rgba(242,223,87,.6)!important}
@@ -162,15 +162,15 @@ body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed
 .mode-card.is-fading .mode-card__sub{opacity:0}
 .mode-card__fx{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .mode-card__fist{position:absolute;left:206px;top:-96px;width:247px;height:247px;mix-blend-mode:multiply;opacity:0;transition:opacity .25s ease}
-.mode-card.is-focused .mode-card__fist,.mode-card:hover .mode-card__fist{opacity:.45}
+.mode-card.is-focused .mode-card__fist,body.input-mouse .mode-card:hover .mode-card__fist{opacity:.45}
 .mode-card.is-focused{background:linear-gradient(rgb(0 0 0 / .1),rgb(0 0 0 / .1)),var(--grad-gold),var(--yellow);--tex-o:.5}
-.mode-card.is-focused .mode-card__title,.mode-card:hover .mode-card__title{color:var(--text-ink-2)}
-.mode-card.is-focused .mode-card__sub,.mode-card:hover .mode-card__sub,.mode-card.is-focused .mode-card__label,.mode-card:hover .mode-card__label{color:var(--text-ink-2)}
+.mode-card.is-focused .mode-card__title,body.input-mouse .mode-card:hover .mode-card__title{color:var(--text-ink-2)}
+.mode-card.is-focused .mode-card__sub,body.input-mouse .mode-card:hover .mode-card__sub,.mode-card.is-focused .mode-card__label,body.input-mouse .mode-card:hover .mode-card__label{color:var(--text-ink-2)}
 /* Figma 613:60103 Hover: same yellow as focus, without the ring */
-.mode-card:hover{background:linear-gradient(rgb(0 0 0 / .1),rgb(0 0 0 / .1)),var(--grad-gold),var(--yellow);--tex-o:.5}
+body.input-mouse .mode-card:hover{background:linear-gradient(rgb(0 0 0 / .1),rgb(0 0 0 / .1)),var(--grad-gold),var(--yellow);--tex-o:.5}
 .mode-card__label{position:absolute;left:24px;top:94px;margin:0;font:600 15px/20px var(--font-ui);text-transform:uppercase;color:var(--text-2,#acacbb);transition:color .18s ease}
 /* Figma 613:60103 Disabled (sample 613:59368) */
-.mode-card.is-disabled,.mode-card.is-disabled:hover{background:#272727;opacity:.3;pointer-events:none}
+.mode-card.is-disabled,body.input-mouse .mode-card.is-disabled:hover{background:#272727;opacity:.3;pointer-events:none}
 .mode-card.is-disabled::before{background:url(../assets/img/tex-tile.webp) 0 0/8px repeat;opacity:.3;mix-blend-mode:overlay}
 .mode-card.is-disabled .mode-card__title,.mode-card.is-disabled .mode-card__sub,.mode-card.is-disabled .mode-card__label{color:var(--text-dim)}
 .mode-card.is-disabled .mode-card__fist,.mode-card.is-disabled .mode-card__pager{opacity:0}
@@ -192,15 +192,15 @@ body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed
 .mode-card.is-locked.is-focused{background:var(--surface-card-dark);--tex-o:.1}
 .mode-card.is-locked.is-focused .mode-card__title,.mode-card.is-locked.is-focused .mode-card__sub{color:var(--text-off)}
 .mode-card__pager{position:absolute;right:16px;bottom:13px;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .25s ease;z-index:2}
-.mode-card.is-focused .mode-card__pager,.mode-card:hover .mode-card__pager{opacity:1}
+.mode-card.is-focused .mode-card__pager,body.input-mouse .mode-card:hover .mode-card__pager{opacity:1}
 .mode-card__pager i{width:9px;height:9px;border-radius:50%;background:rgb(0 0 0 / .5);cursor:pointer;position:relative;transition:background .25s ease,opacity .25s ease}
 .mode-card__pager i::after{content:"";position:absolute;inset:-8px -4px}   /* bigger click area round the 9 px dot (thread #15) */
 .mode-card__pager i.is-active,
 .mode-card.is-focused .mode-card__pager i.is-active{background:#ffffff;transform:none}
-.mode-card__pager i:not(.is-active):hover{background:rgb(0 0 0 / .75);transform:none}
+body.input-mouse .mode-card__pager i:not(.is-active):hover{background:rgb(0 0 0 / .75);transform:none}
 .mode-card__pager .glyph{--g:22px;font-size:10px;cursor:pointer;user-select:none;transition:transform .12s ease,filter .12s ease}
 .mode-card.is-focused .mode-card__pager .glyph{background:#1e2026;color:#ffffff;box-shadow:0 2px 4px rgb(0 0 0 / .3)}
-.mode-card__pager .glyph:hover{transform:scale(1.15);filter:brightness(1.2)}
+body.input-mouse .mode-card__pager .glyph:hover{transform:scale(1.15);filter:brightness(1.2)}
 .mode-card__pager .glyph:active{transform:scale(.92)}
 
 /* ---------- Red slash (Figma "Vector 683" band + "Vector 684" wedge) ---------- */
@@ -276,7 +276,7 @@ body.show-layers .btn-cta__tex{transform:translate(10px,10px);outline:1px dashed
 .btn-cta.is-holding .btn-cta__grad,.btn-cta.is-unlocked-flash .btn-cta__grad{box-shadow:inset 0 0 0 1px #000,0 0 0 2px #141415}
 .btn-cta.is-holding::after{opacity:1}
 .btn-cta.is-holding{transform:scale(.98);box-shadow:none!important}
-.btn-cta.is-ready-unlock:hover:not(.is-holding){box-shadow:none;filter:brightness(1.06)}
+body.input-mouse .btn-cta.is-ready-unlock:hover:not(.is-holding){box-shadow:none;filter:brightness(1.06)}
 /* finished hold: the full ring flashes once, no glow */
 .btn-cta.is-unlocked-flash{animation:cta-done .45s ease-out}
 .btn-cta.is-unlocked-flash::after{opacity:1;--hold-p:100%;animation:cta-ring .45s ease-out forwards}
@@ -327,7 +327,7 @@ body[data-device="kb"] .btn-cta .glyph{padding:0 13px;font:800 12px/1 var(--font
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 .btn-cta--secondary.is-holding .btn-cta__grad,.btn-cta--secondary.is-unlocked-flash .btn-cta__grad{box-shadow:none}
-.btn-cta--secondary.is-ready-unlock:hover:not(.is-holding){filter:brightness(1.1)}
+body.input-mouse .btn-cta--secondary.is-ready-unlock:hover:not(.is-holding){filter:brightness(1.1)}
 
 /* ghost (outline) variant, kept for overlays on art where a solid pill is too heavy */
 .btn-cta--ghost .btn-cta__grad,.btn-cta--ghost .btn-cta__tex{display:none}
@@ -539,9 +539,9 @@ body[data-device="kb"] .btn-cta .glyph{font:800 13px/1 var(--font-ui)}
 .shop-btn{gap:16px;box-shadow:inset 0 0 0 1px #2a2c33;transition:color .15s ease,box-shadow .15s ease}
 .shop-btn__icon{width:28px;height:28px;flex:none}
 .shop-btn__go{width:12px;height:20px;margin-left:auto;flex:none;transition:transform .15s ease}
-.shop-btn:hover,.shop-btn.is-focused{color:#fff}
-.shop-btn:hover{box-shadow:inset 0 0 0 1px #8a8a8a}
-.shop-btn:hover .shop-btn__go,.shop-btn.is-focused .shop-btn__go{transform:translateX(5px);color:#f6df2f}
+body.input-mouse .shop-btn:hover,.shop-btn.is-focused{color:#fff}
+body.input-mouse .shop-btn:hover{box-shadow:inset 0 0 0 1px #8a8a8a}
+body.input-mouse .shop-btn:hover .shop-btn__go,.shop-btn.is-focused .shop-btn__go{transform:translateX(5px);color:#f6df2f}
 
 /* CTA = Figma CTA set without the key (225:145953): the key lives in the page hint bar, or floats under a modal */
 .btn-cta .glyph{display:none!important}

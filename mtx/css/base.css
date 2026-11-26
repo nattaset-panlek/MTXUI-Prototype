@@ -45,6 +45,10 @@ button{font:inherit;color:inherit}
 
 /* ---- Focus ring (Figma: gradient stroke, 3-4px, inside) ---- */
 [data-nav]{cursor:pointer}
+/* Play mode (user 2026-11-26): the game cursor is always the default arrow; it changes only while a dev state is on
+   (Comment, layout / nav / text editing, nav graph). Text fields keep the text cursor. */
+body:not(.cmt-on):not(.layout-editing):not(.nav-editing):not(.text-editing):not(.dev-text-picking):not(.nav-graph-open) #stage :is(*, *::before, *::after):not(input):not(textarea),
+body:not(.cmt-on):not(.layout-editing):not(.nav-editing):not(.text-editing):not(.dev-text-picking):not(.nav-graph-open) #stage{cursor:default!important}
 .focus-ring{position:relative}
 .focus-ring::after{content:"";position:absolute;inset:0;padding:var(--focus-w);border-radius:inherit;background:var(--grad-focus);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;

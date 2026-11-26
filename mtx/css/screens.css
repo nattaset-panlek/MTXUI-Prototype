@@ -311,7 +311,7 @@
   transition: opacity .15s, transform .15s
 }
 
-.charsel__arrow:hover .charsel__chev {
+body.input-mouse .charsel__arrow:hover .charsel__chev {
   opacity: 1;
   transform: scale(1.15)
 }
@@ -695,7 +695,7 @@
 }
 
 .style-marker.is-focused:not(.is-selected) .style-marker__icon,
-.style-marker:hover:not(.is-selected) .style-marker__icon {
+body.input-mouse .style-marker:hover:not(.is-selected) .style-marker__icon {
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--sel) 35%, transparent)) drop-shadow(0 0 22px color-mix(in srgb, var(--sel) 15%, transparent));
   transform: scale(1.06)
 }
@@ -3115,7 +3115,7 @@ html body .attr__trigger .glyph[data-btn] {
   background: var(--tone)
 }
 
-.sp-reply:hover::after { opacity: 1 }
+body.input-mouse .sp-reply:hover::after { opacity: 1 }
 
 .sp-reply__tone {
   font: 700 13px/16px var(--font-ui);
@@ -3379,46 +3379,46 @@ html body .attr__trigger .glyph[data-btn] {
 
 /* focus & cursor aim hover with enhanced style glow matching exact node shape */
 .tnode.is-focused,
-.tnode:hover {
+body.input-mouse .tnode:hover {
   z-index: 90 !important
 }
 
 .tnode.is-focused .tnode__lock,
-.tnode:hover .tnode__lock {
+body.input-mouse .tnode:hover .tnode__lock {
   transform: translate(-50%, -50%) scale(1.18);
   filter: drop-shadow(0 0 16px var(--style-color, #8bcab2))
 }
 
 .tnode.is-focused .tnode__lock::before,
-.tnode:hover .tnode__lock::before {
+body.input-mouse .tnode:hover .tnode__lock::before {
   box-shadow: inset 0 0 0 4px #141414, inset 0 0 0 6px var(--style-color, #8bcab2), 0 0 0 3px #050505
 }
 
 .tnode.is-focused .tnode__star,
-.tnode:hover .tnode__star {
+body.input-mouse .tnode:hover .tnode__star {
   transform: translate(-50%, -50%) scale(1.22);
   filter: drop-shadow(0 0 18px var(--style-color, #f4f1ea))
 }
 
 .tnode.is-focused .tnode__star .edge,
-.tnode:hover .tnode__star .edge {
+body.input-mouse .tnode:hover .tnode__star .edge {
   background: var(--grad-focus)
 }
 
 .tnode.is-focused>span.node,
-.tnode:hover>span.node {
+body.input-mouse .tnode:hover>span.node {
   transform: translate(-50%, -50%) scale(calc(var(--k) * 1.22));
   filter: drop-shadow(0 0 14px var(--style-color, #ed153f)) drop-shadow(0 0 28px var(--style-color, #ed153f))
 }
 
 .tnode.is-focused .node__ring,
-.tnode:hover .node__ring {
+body.input-mouse .tnode:hover .node__ring {
   background: var(--grad-focus);
   filter: drop-shadow(0 0 8px #fff)
 }
 
 .tnode.is-focused .node__glow,
-.tnode:hover .node__glow {
+body.input-mouse .tnode:hover .node__glow {
   opacity: 1 !important;
   filter: blur(4px) brightness(2) !important
 }
@@ -3445,7 +3445,7 @@ html body .attr__trigger .glyph[data-btn] {
 }
 
 .tnode.is-focused .tnode__label,
-.tnode:hover .tnode__label {
+body.input-mouse .tnode:hover .tnode__label {
   color: var(--yellow-2);
   text-shadow: 0 0 10px rgba(242, 223, 87, .7)
 }
@@ -3946,7 +3946,7 @@ html body .attr__trigger .glyph[data-btn] {
 
 /* Management Screen Vacant Cards */
 .sim-card,
-.sim-card:hover {
+body.input-mouse .sim-card:hover {
   border: none !important;
   outline: none !important;
 }
@@ -3958,7 +3958,7 @@ html body .attr__trigger .glyph[data-btn] {
   cursor: default;
 }
 
-.sim-card--vacant:hover,
+body.input-mouse .sim-card--vacant:hover,
 .sim-card.is-focused .sim-card--vacant {
   border: none !important;
   outline: none !important;
@@ -4473,7 +4473,7 @@ html body .attr__trigger .glyph[data-btn] {
   outline: none
 }
 
-.ev-card:hover::after { opacity: 1 }
+body.input-mouse .ev-card:hover::after { opacity: 1 }
 
 .ev-card__title {
   margin: 0;
@@ -4739,7 +4739,7 @@ html body .attr__trigger .glyph[data-btn] {
   outline: none
 }
 
-.iv-choice:hover::after { opacity: 1 }
+body.input-mouse .iv-choice:hover::after { opacity: 1 }
 
 .iv-choice__head {
   position: absolute;
@@ -4949,7 +4949,7 @@ html body .attr__trigger .glyph[data-btn] {
 }
 
 .mq-row { position: relative; border-bottom: 1px solid rgb(255 255 255 / .05); transition: background .15s }
-.mq-row:hover, .mq-row.is-focused {
+body.input-mouse .mq-row:hover, .mq-row.is-focused {
   background: linear-gradient(90deg, color-mix(in srgb, var(--sub) 32%, transparent), color-mix(in srgb, var(--sub) 8%, transparent) 55%, transparent)
 }
 
@@ -5968,7 +5968,7 @@ html body .attr__trigger .glyph[data-btn] {
 /* two tabs (Profile / Style preset); inside Customization the header is a back breadcrumb */
 .cc-hub.is-crumb { gap: 12px }
 .cc-hub__back { display: inline-flex; align-items: center; gap: 8px; font: 400 15px/1 var(--font-display); text-transform: uppercase; color: var(--text-muted); cursor: pointer }
-.cc-hub__back:hover { color: var(--text-1) }
+body.input-mouse .cc-hub__back:hover { color: var(--text-1) }
 .cc-hub__sep { font: 400 15px/1 var(--font-display); color: var(--line-2) }
 .cc-subrow .cc-key { min-width: 34px; height: 28px; font-size: 13px }
 
@@ -7041,7 +7041,7 @@ body[data-device="xbox"] .cc-key--view, body[data-device="ps"] .cc-key--view { b
 .col-link__label { font: 400 20px/1 var(--font-display); text-transform: uppercase; padding-top: 2px }
 .col-link__count { font: 600 14px/1 var(--font-ui); color: var(--text-muted) }
 .col-link__count b { color: var(--yellow-3) }
-.col-link:hover { box-shadow: inset 0 0 0 1px #8a8a8a }
+body.input-mouse .col-link:hover { box-shadow: inset 0 0 0 1px #8a8a8a }
 
 /* ================= Collection: Q / E tabs + one scrolling grid ================= */
 .col-tabs { position: absolute; left: 92px; top: 262px; display: flex; align-items: center; gap: 10px }
@@ -8102,7 +8102,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 .tnode.is-owned>span.tnode__perk { display: block; filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--lvc, #e08a4e) 55%, transparent)) }
 .tnode[data-lv="2"] { --lvc: #d4d4d4 }
 .tnode[data-lv="3"] { --lvc: #f4dd2f }
-.tnode.is-focused>span.tnode__perk, .tnode--perk:hover>span.tnode__perk { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
+.tnode.is-focused>span.tnode__perk, body.input-mouse .tnode--perk:hover>span.tnode__perk { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
 .tnode__lv { font-style: normal; color: #f4dd2f }
 .tnode[data-lv="1"] .tnode__lv { color: #e08a4e }
 .tnode[data-lv="2"] .tnode__lv { color: #d4d4d4 }
@@ -8116,7 +8116,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 .tnode--dsm { --mvc: #ff4060 }
 .tnode--spe { --mvc: #c7f029 }
 .tnode--sgm { --mvc: #4da3ff }
-.tnode.is-focused>span.tnode__move, .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
+.tnode.is-focused>span.tnode__move, body.input-mouse .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 14px var(--style-color, #ed153f)) }
 
 /* ---- Tree focus = Selected Prismatic outline in the node's own shape (no glow, no scale) ----
    .tnode__focus is a 3 px line ring: the face silhouette as a mask, minus the same silhouette 6 px smaller. */
@@ -8124,24 +8124,24 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
   --fs: url(../assets/svg/node-shape.svg); width: 98px; height: 97px;
   -webkit-mask: var(--fs) center/100% 100% no-repeat, var(--fs) center/calc(100% - 6px) calc(100% - 6px) no-repeat;
   -webkit-mask-composite: xor; mask: var(--fs) center/100% 100% no-repeat, var(--fs) center/calc(100% - 6px) calc(100% - 6px) no-repeat; mask-composite: exclude }
-.tnode.is-focused>span.tnode__focus, .tnode:hover>span.tnode__focus { display: block }
+.tnode.is-focused>span.tnode__focus, body.input-mouse .tnode:hover>span.tnode__focus { display: block }
 /* locked face: diamond */
 .tnode:not(.is-ready):not(.is-owned)>span.tnode__focus, .tnode--root>span.tnode__focus { --fs: linear-gradient(#000 0 0); width: 54px; height: 54px;
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; padding: 3px; box-sizing: border-box }
 .tnode--root>span.tnode__focus { width: 116px; height: 116px; display: none; z-index: 3 }
-.tnode--root.is-focused>span.tnode__focus, .tnode--root:hover>span.tnode__focus { display: block }
+.tnode--root.is-focused>span.tnode__focus, body.input-mouse .tnode--root:hover>span.tnode__focus { display: block }
 /* owned perk / DSM / SPE: the frame or slot art outline */
 .tnode--perk.is-owned>span.tnode__focus { --fs: var(--fm); width: 106px; height: 104px }
 .tnode--perk.is-owned[data-lv="3"]>span.tnode__focus { width: 112px; height: 109px }
 .tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus, .tnode--sgm.is-owned>span.tnode__focus { --fs: var(--fm); width: 100px; height: 100px }
 /* no glow / scale on focus any more */
-.tnode.is-focused .tnode__lock, .tnode:hover .tnode__lock { transform: translate(-50%, -50%) scale(1.18); filter: none }
-.tnode.is-focused .tnode__lock::before, .tnode:hover .tnode__lock::before { box-shadow: inset 0 0 0 4px #141414, inset 0 0 0 6px #3b3b3b, 0 0 0 3px #050505 }
-.tnode.is-focused>span.node, .tnode:hover>span.node { transform: translate(-50%, -50%) scale(calc(var(--k) * 1.22)); filter: none }
-.tnode.is-focused .node__ring, .tnode:hover .node__ring { background: var(--ring); filter: none }
-.tnode.is-focused .node__glow, .tnode:hover .node__glow { filter: blur(6px) !important; opacity: inherit !important }
-.tnode.is-focused>span.tnode__perk, .tnode--perk:hover>span.tnode__perk { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--lvc, #e08a4e) 55%, transparent)) }
-.tnode.is-focused>span.tnode__move, .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--mvc) 55%, transparent)) }
+.tnode.is-focused .tnode__lock, body.input-mouse .tnode:hover .tnode__lock { transform: translate(-50%, -50%) scale(1.18); filter: none }
+.tnode.is-focused .tnode__lock::before, body.input-mouse .tnode:hover .tnode__lock::before { box-shadow: inset 0 0 0 4px #141414, inset 0 0 0 6px #3b3b3b, 0 0 0 3px #050505 }
+.tnode.is-focused>span.node, body.input-mouse .tnode:hover>span.node { transform: translate(-50%, -50%) scale(calc(var(--k) * 1.22)); filter: none }
+.tnode.is-focused .node__ring, body.input-mouse .tnode:hover .node__ring { background: var(--ring); filter: none }
+.tnode.is-focused .node__glow, body.input-mouse .tnode:hover .node__glow { filter: blur(6px) !important; opacity: inherit !important }
+.tnode.is-focused>span.tnode__perk, body.input-mouse .tnode--perk:hover>span.tnode__perk { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--lvc, #e08a4e) 55%, transparent)) }
+.tnode.is-focused>span.tnode__move, body.input-mouse .tnode:hover>span.tnode__move { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 0 1px rgb(255 255 255 / .5)) drop-shadow(0 0 4px color-mix(in srgb, var(--mvc) 55%, transparent)) }
 .tnode--root.is-focused .node-core__diamond { box-shadow: none }
 
 /* Dev > Skill tree > Tree glow off: no node / frame / link / core glow (focus ring and shapes stay) */
@@ -8154,11 +8154,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 /* smooth focus move: the face scales up and the prismatic ring grows + fades in with it (.14s), instead of popping */
 .tnode>span.node, .tnode>span.tnode__perk, .tnode>span.tnode__move, .tnode .tnode__lock { transition: transform .14s ease-out, filter .14s }
 .tnode>span.tnode__focus { display: block; opacity: 0; --fz: 1; --fr: 0deg; transform: translate(-50%, -50%) rotate(var(--fr)) scale(calc(var(--fz) * .9)); transition: opacity .14s ease-out, transform .14s ease-out }
-.tnode.is-focused>span.tnode__focus, .tnode:hover>span.tnode__focus { opacity: 1; transform: translate(-50%, -50%) rotate(var(--fr)) scale(var(--fz)) }
+.tnode.is-focused>span.tnode__focus, body.input-mouse .tnode:hover>span.tnode__focus { opacity: 1; transform: translate(-50%, -50%) rotate(var(--fr)) scale(var(--fz)) }
 .tnode.is-ready>span.tnode__focus, .tnode.is-owned>span.tnode__focus { --fz: 1.22 }
 .tnode--perk.is-owned>span.tnode__focus, .tnode--dsm.is-owned>span.tnode__focus, .tnode--spe.is-owned>span.tnode__focus, .tnode--sgm.is-owned>span.tnode__focus { --fz: 1.18 }
 .tnode:not(.is-ready):not(.is-owned)>span.tnode__focus { --fz: 1.18; --fr: 45deg }
-.tnode--root>span.tnode__focus, .tnode--root.is-focused>span.tnode__focus, .tnode--root:hover>span.tnode__focus { display: block; --fz: 1; --fr: 45deg }
+.tnode--root>span.tnode__focus, .tnode--root.is-focused>span.tnode__focus, body.input-mouse .tnode--root:hover>span.tnode__focus { display: block; --fz: 1; --fr: 45deg }
 
 
 /* Skill tree detail = shared skill info card (.tl-info, components/skill-info.js) */
@@ -8166,7 +8166,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-skilltree .tl-info .skill-detail__desc { height: 180px; overflow: hidden }
 #s-skilltree .tl-info .tl-lv span { cursor: pointer }
 #s-skilltree .tl-info .tl-lv span.is-owned:not(.is-on) { color: #f4f1ea; box-shadow: inset 0 0 0 1px #f4f1ea }
-#s-skilltree .tl-info .tl-lv span:not(.is-on):hover { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }
+body.input-mouse #s-skilltree .tl-info .tl-lv span:not(.is-on):hover { color: #f4dd2f; box-shadow: inset 0 0 0 1px #f4dd2f }
 #s-skilltree .tl-info:not(.is-perk) .tl-info__fx { top: 14px !important }
 #s-skilltree .tl-info:not(.is-perk) .tl-info__stats { top: 90px }
 .tl-info__stats { position: absolute; left: 21px; top: 160px; display: flex; gap: 16px; margin: 0; font: 600 13px/1 var(--font-ui); text-transform: uppercase }
@@ -8472,7 +8472,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 .profile-stack { position: absolute; display: flex; flex-direction: column; gap: 12px }
 .profile-stack > .profile-card { position: relative; left: auto; top: auto; width: auto }
 .profile-card--me { color: inherit; text-decoration: none; cursor: pointer; z-index: 1 }
-.profile-card--me:hover::after { opacity: 1 }
+body.input-mouse .profile-card--me:hover::after { opacity: 1 }
 
 /* Career: Hold to simulate day = the box's main action, a full-width yellow CTA (user 2026-11-24: clearer) */
 #s-career .simulate-btn { height: 56px; margin-top: 4px; padding: 0 12px; gap: 10px; justify-content: center; border-radius: 2px;
@@ -8502,17 +8502,17 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-attributes .attr-row__key { display: grid; place-items: center; width: 28px; height: 28px; box-sizing: border-box; border-radius: 2px;
   background: rgb(255 255 255 / .08); color: #fff; cursor: pointer; transition: background .1s, color .1s }
 #s-attributes .attr-row__key svg { width: 16px; height: 16px; display: block }
-#s-attributes .attr-row:hover .attr-row__key { visibility: visible }
-#s-attributes .attr-row__key:not(.is-off):hover { background: #f4dd2f; color: #141415 }
+body.input-mouse #s-attributes .attr-row:hover .attr-row__key { visibility: visible }
+body.input-mouse #s-attributes .attr-row__key:not(.is-off):hover { background: #f4dd2f; color: #141415 }
 #s-attributes .attr-row__key.is-off { cursor: default }
 
 /* Style Hub card selected / hovered: title on the style-colour bar turns dark ink (--text-ink-2, not pure black), like the
    focused mode cards (user 2026-11-24). The white scratch text fill is dropped for a flat ink. */
-#s-mastery .tab-card:is(.is-focused, :hover) .tab-card__title { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--text-ink-2) }
+#s-mastery .tab-card:is(.is-focused) .tab-card__title, body.input-mouse #s-mastery .tab-card:hover .tab-card__title { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--text-ink-2) }
 /* mouse hover = the selected look (style-colour bar + picture zoom), like the mode cards; the focus ring stays on the selected card only */
-#s-mastery .tab-card:hover .tab-card__body { background: linear-gradient(transparent 265px, var(--style-color) 265px), var(--surface-card) }
-#s-mastery .tab-card:hover .tab-card__art>img { transform: scale(1.1) }
-#s-mastery .tab-card:hover .tab-card__art::after { opacity: .2 }
+body.input-mouse #s-mastery .tab-card:hover .tab-card__body { background: linear-gradient(transparent 265px, var(--style-color) 265px), var(--surface-card) }
+body.input-mouse #s-mastery .tab-card:hover .tab-card__art>img { transform: scale(1.1) }
+body.input-mouse #s-mastery .tab-card:hover .tab-card__art::after { opacity: .2 }
 
 /* Career Hold to simulate day = Figma option F "One Label (Mode Card)" (948:72440, user pick 2026-11-24).
    Not selected: black card + light scratches (mode card idle); selected / hovered: gold + scratches (mode card focused);
@@ -8521,7 +8521,7 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
 #s-career .simulate-btn { height: 72px; padding: 0 20px; gap: 14px; justify-content: flex-start; border-radius: 0;
   background: #020202; box-shadow: inset 0 0 0 2px #000; --tex-o: .12; --tex-blend: screen;
   font: 400 29px/1 var(--font-display); letter-spacing: 0; color: #4e4e4e; white-space: nowrap; transition: background .12s, color .12s }
-#s-career .simulate-btn:is(.is-focused, :hover, .is-holding) { background: linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%); --tex-o: .5; color: #27282d; --key-tone: #000 }
+#s-career .simulate-btn:is(.is-focused, .is-holding), body.input-mouse #s-career .simulate-btn:hover { background: linear-gradient(100deg, #f2df57 0%, #f3ad3b 82%, #f2df57 98%); --tex-o: .5; color: #27282d; --key-tone: #000 }
 #s-career .simulate-btn .glyph { --g: 36px !important; flex: none }
 #s-career .simulate-btn .simulate-btn__hold-bar { display: none }
 #s-career .simulate-btn::after { inset: calc((4px + var(--focus-gap)) * -1); padding: 4px; scale: 1; animation: none; opacity: 0; transition: opacity .12s;
@@ -8545,11 +8545,11 @@ body[data-device="kb"] .vk__hints--kb { display: flex }
    selected / hovered / held = gold, ink label, black key, 1 px black edge. Modi 27, key 37.
    The Muay Thai gym calendar art (sim-calendar.png, Figma mask group) sits at the right end, shown on gold only. */
 #s-career .simulate-btn { height: 60px; background: #16181f; box-shadow: inset 0 0 0 1px #cacaca; color: #fff7e1; font-size: 27px }
-#s-career .simulate-btn:is(.is-focused, :hover, .is-holding) { box-shadow: inset 0 0 0 1px #000 }
+#s-career .simulate-btn:is(.is-focused, .is-holding), body.input-mouse #s-career .simulate-btn:hover { box-shadow: inset 0 0 0 1px #000 }
 #s-career .simulate-btn .glyph { --g: 37px !important }
 #s-career .simulate-btn .simulate-btn__hold-bar { display: block; position: absolute; inset: 0; width: auto; border: 0; z-index: 1; pointer-events: none;
   background: url(../assets/img/sim-calendar.png) 308px -70px / 160px 176px no-repeat; mix-blend-mode: multiply; opacity: 0; transition: opacity .12s }
-#s-career .simulate-btn:is(.is-focused, :hover, .is-holding) .simulate-btn__hold-bar { opacity: .55 }
+#s-career .simulate-btn:is(.is-focused, .is-holding) .simulate-btn__hold-bar, body.input-mouse #s-career .simulate-btn:hover .simulate-btn__hold-bar { opacity: .55 }
 
 /* Skill tree (user 2026-11-24): locked node ring sits a focus-gap off the lock diamond (44 + 3 px edge, x1.18 on focus);
    the core diamond loses its own prismatic edge, so only the focus ring shows that colour */

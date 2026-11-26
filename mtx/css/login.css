@@ -21,7 +21,7 @@
 .login__actions .btn-cta{width:100%;min-width:0;height:52px;justify-content:center;border-radius:0}
 .login__cancel{display:flex;justify-content:center;height:44px;box-sizing:border-box;background:rgb(0 0 0 / .35);align-items:center;gap:10px;font:500 18px/1 var(--font-ui);letter-spacing:.14em;text-transform:uppercase;color:#81898b;cursor:pointer;padding:6px 4px;border-bottom:2px solid transparent}
 .login__cancel .glyph{opacity:.85}
-.login__cancel.is-focused,.login__cancel:hover{color:var(--text-1)}
+.login__cancel.is-focused,body.input-mouse .login__cancel:hover{color:var(--text-1)}
 
 .login__links{display:flex;justify-content:space-between;align-items:center;width:369px;margin:20px 0 0 6px}
 .login__link{display:inline-flex;align-items:center;gap:8px;font:400 13px/1 var(--font-ui);color:#81898b;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -33,7 +33,7 @@
 
 .login__platforms{display:flex;justify-content:space-between;align-items:center;width:375px;margin:22px 0 0 -2px}
 .login__platforms img{cursor:pointer;transition:opacity .15s}
-.login__platforms img:hover{opacity:.8}
+body.input-mouse .login__platforms img:hover{opacity:.8}
 .login__platforms img[alt="Steam"]{width:187px;height:95px}
 .login__platforms img[alt^="Epic"]{width:129px;height:54px}
 .login__panel--signup .login__platforms{margin:0}

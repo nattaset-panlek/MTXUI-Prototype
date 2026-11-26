@@ -7,7 +7,7 @@
 .news-ev__title br{display:block}
 /* Q ● ● ● E pager: shown (and Q / E active) only while the card is selected or hovered, like the mode cards */
 .news-ev__pager{position:absolute;right:14px;bottom:12px;display:flex;align-items:center;gap:7px;opacity:0;transition:opacity .25s ease}
-.news-ev.is-focused .news-ev__pager,.news-ev:hover .news-ev__pager{opacity:1}
+.news-ev.is-focused .news-ev__pager,body.input-mouse .news-ev:hover .news-ev__pager{opacity:1}
 .news-ev__pager i{width:9px;height:9px;border-radius:50%;background:rgb(255 255 255 / .3);cursor:pointer}
 .news-ev__pager i.is-on{background:#fff}
 .news-ev__pager .glyph{--g:22px;font-size:10px;cursor:pointer}

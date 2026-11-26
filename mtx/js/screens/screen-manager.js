@@ -1014,13 +1014,7 @@
       btn.addEventListener("touchend", () => cancelSimulateHold());
     });
 
-    // Mouse hover moves the focus, so the hint matches what A / a click will do. mousemove, not mouseenter:
-    // a mouse left resting on a card must not take the focus back from the pad or keyboard.
-    api.$("#managementCards")?.addEventListener("mousemove", e => {
-      const el = e.target.closest("[data-nav]");
-      if (!el || el === api.getFocused() || isModalOpen() || document.body.classList.contains("layout-editing")) return;
-      api.setFocus(el);
-    });
+    // Mouse hover moves the focus: #s-management is data-pointer="hover" (components/pointer-input.js), which skips it while isModalOpen().
 
     api.$("#resetCareerBtn")?.addEventListener("click", () => resetCareer());
     api.$("#resetAllStorageBtn")?.addEventListener("click", () => {

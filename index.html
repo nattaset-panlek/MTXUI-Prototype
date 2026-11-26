@@ -18,22 +18,22 @@
 -->
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="mtx/css/tokens.css?v=403">
-  <link rel="stylesheet" href="mtx/css/base.css?v=pg6-sd4-fg6">
-  <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw12">
+  <link rel="stylesheet" href="mtx/css/base.css?v=pg6-sd4-fg6-cur1">
+  <link rel="stylesheet" href="mtx/css/components.css?v=fs11-uw12-hv1">
   <link rel="stylesheet" href="mtx/css/match-result.css?v=24">
-  <link rel="stylesheet" href="mtx/css/login.css?v=cta1-fg1">
+  <link rel="stylesheet" href="mtx/css/login.css?v=cta1-fg1-hv1">
   <link rel="stylesheet" href="mtx/css/shader-preload.css?v=3">
   <link rel="stylesheet" href="mtx/css/dialog.css?v=cta1-fg2">
-  <link rel="stylesheet" href="mtx/css/spotlight.css?v=bl1">
-  <link rel="stylesheet" href="mtx/css/campaign.css?v=30">
-  <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1-fg2">
+  <link rel="stylesheet" href="mtx/css/spotlight.css?v=bl1-hv1">
+  <link rel="stylesheet" href="mtx/css/campaign.css?v=30-hv1">
+  <link rel="stylesheet" href="mtx/css/tournament.css?v=pop1-fg2-hv1">
   <link rel="stylesheet" href="mtx/css/no-brand.css?v=8c">
-  <link rel="stylesheet" href="mtx/css/screens.css?v=st160">
+  <link rel="stylesheet" href="mtx/css/screens.css?v=st160-hv1">
   <link rel="stylesheet" href="mtx/css/key-glyphs.css?v=dp1">
   <link rel="stylesheet" href="mtx/css/character3d.css?v=vid1">
   <link rel="stylesheet" href="mtx/css/hud-style.css?v=9">
   <link rel="stylesheet" href="mtx/css/loadout.css?v=11-fg2">
-  <link rel="stylesheet" href="mtx/css/node-detail.css?v=10-fb8">
+  <link rel="stylesheet" href="mtx/css/node-detail.css?v=10-fb8-hv1">
   <link rel="stylesheet" href="mtx/css/dev-comments.css?v=5">
 </head>
 
@@ -92,7 +92,7 @@
       <div id="marqueeBox" hidden></div>
 
       <!-- ============================ Main Menus (Figma 1:6345) ============================ -->
-      <section class="screen" id="s-main" data-screen="main" data-first="ultimate" data-lt="fn:prevQuickMode"
+      <section class="screen" id="s-main" data-pointer="none" data-screen="main" data-first="ultimate" data-lt="fn:prevQuickMode"
         data-rt="fn:nextQuickMode" data-figma="1:6345 Main Menus">
         <div class="screen__bg">
           <img class="bg-cover" src="mtx/assets/img/bg-lobby.webp" alt="">
@@ -246,7 +246,7 @@
       </section>
 
       <!-- ============================ Career (Figma 1:1039) ============================ -->
-      <section class="screen" id="s-career" data-screen="career" data-first="next" data-y="fn:holdSimulateDay"
+      <section class="screen" id="s-career" data-pointer="none" data-screen="career" data-first="next" data-y="fn:holdSimulateDay"
         data-lt="fn:prevCareerMode" data-rt="fn:nextCareerMode"
         data-figma="1:1039 Career">
         <div class="screen__bg"><img class="bg-cover" src="mtx/assets/img/bg-locker.webp" alt=""></div>
@@ -340,7 +340,7 @@ board</h3>
       </section>
 
       <!-- ============================ Mastery hub (Figma 1:1807) ============================ -->
-      <section class="screen" id="s-mastery" data-screen="mastery" data-first="attributes" data-y="go:tactical"
+      <section class="screen" id="s-mastery" data-pointer="none" data-screen="mastery" data-first="attributes" data-y="go:tactical"
         data-figma="1:1807 Mastery">
         <div class="screen__bg">
           <div class="bg-texture"></div>
@@ -525,7 +525,7 @@ board</h3>
       </section>
 
       <!-- ============================ Quests (Figma 1:5475) ============================ -->
-      <section class="screen" id="s-quests" data-screen="quests" data-first="q0" data-lt="fn:prevQuestLevel"
+      <section class="screen" id="s-quests" data-pointer="hover" data-screen="quests" data-first="q0" data-lt="fn:prevQuestLevel"
         data-rt="fn:nextQuestLevel" data-x="fn:trackQuest" data-figma="123:100 Mastery Quest">
         <div class="screen__bg">
           <div class="bg-texture"></div>
@@ -587,7 +587,7 @@ board</h3>
       <!-- ============================ Store (Figma 128:99, mtx-figma-export_Store) ============================
            Figma frame is 1920x1376 with uneven cards (412/417 px, 20-25 px gaps). Here: fitted to 1920x1080, one 4-column
            grid (410 px cards, 24 px gaps, featured = 2 columns), catalogue scrolls inside the viewport. Hold A to buy. -->
-      <section class="screen" id="s-store" data-screen="store" data-first="seux_shorts" data-figma="128:99 Store">
+      <section class="screen" id="s-store" data-screen="store" data-first="seux_shorts" data-pointer="hover" data-figma="128:99 Store">
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
@@ -627,7 +627,7 @@ board</h3>
 
       <!-- ============================ Pack (Figma 128:437 "Pack collection", mtx-figma-export_PackCollection) ============================
            Opened from a pack / bundle card in the Store. Tiles normalised to 216 px with 14 px gaps (Figma: 213-216 px, 10-14 px). -->
-      <section class="screen" id="s-pack" data-screen="pack" data-first="pk0" data-figma="128:437 Pack collection">
+      <section class="screen" id="s-pack" data-pointer="hover" data-screen="pack" data-first="pk0" data-figma="128:437 Pack collection">
         <div class="screen__bg">
           <div class="bg-texture"></div>
           <div class="bg-gym"><img src="mtx/assets/img/bg-gym.webp" alt=""></div>
@@ -712,7 +712,7 @@ Collection</h1>
       </section>
 
       <!-- ============================ Attributes (Figma 51:180, named "Tactical Style") ============================ -->
-      <section class="screen" id="s-attributes" data-screen="attributes" data-first="a0"
+      <section class="screen" id="s-attributes" data-pointer="hover" data-screen="attributes" data-first="a0"
         data-lt="fn:prevTab" data-rt="fn:nextTab" data-figma="51:180 Tactical Style (Attributes)">
         <div class="screen__bg">
           <div class="bg-texture"></div>
@@ -770,7 +770,7 @@ Collection</h1>
       </section>
 
       <!-- ============================ Management (Figma 2:427) ============================ -->
-      <section class="screen" id="s-management" data-screen="management" data-first="mgr" data-y="go:collection"
+      <section class="screen" id="s-management" data-pointer="hover" data-screen="management" data-first="mgr" data-y="go:collection"
         data-figma="2:427 Management">
         <div class="screen__bg">
           <div class="bg-texture"></div>   <!-- Mastery background -->
@@ -809,7 +809,7 @@ Collection</h1>
       </section>
 
       <!-- ============================ Leaderboard (Figma 144:249, mtx-figma-exportLeaderborad) ============================ -->
-      <section class="screen" id="s-leaderboard" data-screen="leaderboard" data-first="lbYou" data-lt="fn:lbPrevTab"
+      <section class="screen" id="s-leaderboard" data-pointer="hover" data-screen="leaderboard" data-first="lbYou" data-lt="fn:lbPrevTab"
         data-rt="fn:lbNextTab" data-figma="144:249 Leaderboard">
         <div class="screen__bg">
           <div class="bg-texture"></div>
@@ -910,7 +910,7 @@ Collection</h1>
       </section>
 
       <!-- ============================ Match History (Figma 216:633, opened from Profile) ============================ -->
-      <section class="screen" id="s-history" data-screen="history" data-first="mh0" data-lt="fn:mhPrevTab"
+      <section class="screen" id="s-history" data-pointer="hover" data-screen="history" data-first="mh0" data-lt="fn:mhPrevTab"
         data-rt="fn:mhNextTab" data-figma="216:633 Match History">
         <div class="screen__bg">
           <div class="bg-texture"></div>
@@ -1690,7 +1690,7 @@ Mention</h1>
   <script src="mtx/js/sim-data.js?v=400"></script>
   <script src="mtx/js/sim-scenarios.js?v=400"></script>
   <script src="mtx/js/sim-events.js?v=400"></script>
-  <script src="mtx/js/screens/screen-manager.js?v=400"></script>
+  <script src="mtx/js/screens/screen-manager.js?v=400-hv1"></script>
   <script src="mtx/js/screens/screen-quests.js?v=qi6"></script>
   <script src="mtx/js/screens/screen-rewards.js?v=db1-unlock1-st9"></script>
   <script src="mtx/js/attr-data.js?v=401-mp1"></script>
@@ -1712,7 +1712,8 @@ Mention</h1>
   <script src="mtx/js/screens/screen-lobby.js?v=sb19v60"></script>
   <script src="mtx/js/screens/screen-login.js?v=hb1"></script>
   <script src="mtx/js/screens/screen-campaign.js?v=hb1"></script>
-  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsq-r6-uw3-nd4pv-vs1-lo1-sd3-at1-st1-cs1"></script>
+  <script src="mtx/js/components/pointer-input.js?v=2"></script>
+  <script src="mtx/js/app.js?v=dp1fcblmvcdfvprsq-r6-uw3-nd4pv-vs1-lo1-sd3-at1-st1-cs1-pi1"></script>
   <script src="mtx/js/components/character3d.js?v=vid4"></script>
   <script src="mtx/js/dev-text.js?v=400"></script>
   <script src="mtx/js/dev-bake.js?v=400"></script>

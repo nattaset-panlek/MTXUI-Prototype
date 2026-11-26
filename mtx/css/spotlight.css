@@ -17,7 +17,7 @@
 .spot__body{margin:18px 0 0;width:674px;font:500 17px/26px var(--font-ui);text-transform:uppercase;color:#969696}
 /* slide action (Shop / Claim): key in a dark circle + large grey word, like the B Back control */
 .spot__cta{display:inline-flex;align-items:center;gap:36px;margin-top:34px;cursor:pointer;font:500 40px/1 var(--font-ui);letter-spacing:.02em;text-transform:uppercase;color:#acacbb;transition:color .15s}
-.spot__cta:hover{color:#fff}
+body.input-mouse .spot__cta:hover{color:#fff}
 .spot__cta-key{display:grid;place-items:center;width:44px;height:44px}
 .spot__cta-key .glyph{transform:scale(1.7)}
 .spot__dots{position:absolute;z-index:1;left:0;right:0;bottom:26px;display:flex;justify-content:center;gap:10px}
