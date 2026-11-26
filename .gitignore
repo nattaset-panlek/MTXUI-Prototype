@@ -7,5 +7,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# generated image rounds (large, not used by the prototype)
-mtx/assets/img/gen/
+# generated image rounds: keep the images, not the zips (each zip is the same files, over the 25 MiB Cloudflare limit)
+mtx/assets/img/gen/*.zip

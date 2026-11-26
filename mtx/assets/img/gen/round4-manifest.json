@@ -1,0 +1,122 @@
+[
+  {
+    "id": "outfit_seux",
+    "sheet": "F3",
+    "cell": 1,
+    "file": "C:\\Personal\\Figma FlowUX Prototype\\Figma FlowUX Prototype\\mtx-controller-flow\\mtx\\assets\\img\\gen\\items\\outfit_seux.png",
+    "width": 512,
+    "height": 1024,
+    "native_crop_dimensions": [
+      296,
+      591
+    ],
+    "alpha": true,
+    "visible_bbox": [
+      93,
+      47,
+      419,
+      977
+    ],
+    "boundary_pixels": 0
+  },
+  {
+    "id": "fighter_kru",
+    "sheet": "F3",
+    "cell": 2,
+    "file": "C:\\Personal\\Figma FlowUX Prototype\\Figma FlowUX Prototype\\mtx-controller-flow\\mtx\\assets\\img\\gen\\items\\fighter_kru.png",
+    "width": 512,
+    "height": 1024,
+    "native_crop_dimensions": [
+      295,
+      591
+    ],
+    "alpha": true,
+    "visible_bbox": [
+      93,
+      53,
+      414,
+      977
+    ],
+    "boundary_pixels": 0
+  },
+  {
+    "id": "fighter_naga",
+    "sheet": "F3",
+    "cell": 3,
+    "file": "C:\\Personal\\Figma FlowUX Prototype\\Figma FlowUX Prototype\\mtx-controller-flow\\mtx\\assets\\img\\gen\\items\\fighter_naga.png",
+    "width": 512,
+    "height": 1024,
+    "native_crop_dimensions": [
+      296,
+      591
+    ],
+    "alpha": true,
+    "visible_bbox": [
+      98,
+      47,
+      426,
+      976
+    ],
+    "boundary_pixels": 0
+  },
+  {
+    "id": "fighter_samart",
+    "sheet": "F3",
+    "cell": 4,
+    "file": "C:\\Personal\\Figma FlowUX Prototype\\Figma FlowUX Prototype\\mtx-controller-flow\\mtx\\assets\\img\\gen\\items\\fighter_samart.png",
+    "width": 512,
+    "height": 1024,
+    "native_crop_dimensions": [
+      296,
+      592
+    ],
+    "alpha": true,
+    "visible_bbox": [
+      103,
+      51,
+      422,
+      978
+    ],
+    "boundary_pixels": 0
+  },
+  {
+    "id": "bundle_champion",
+    "sheet": "F3",
+    "cell": 5,
+    "file": "C:\\Personal\\Figma FlowUX Prototype\\Figma FlowUX Prototype\\mtx-controller-flow\\mtx\\assets\\img\\gen\\items\\bundle_champion.png",
+    "width": 512,
+    "height": 1024,
+    "native_crop_dimensions": [
+      295,
+      592
+    ],
+    "alpha": true,
+    "visible_bbox": [
+      52,
+      44,
+      441,
+      979
+    ],
+    "boundary_pixels": 0
+  },
+  {
+    "id": "pts_champion",
+    "sheet": "F3",
+    "cell": 6,
+    "file": "C:\\Personal\\Figma FlowUX Prototype\\Figma FlowUX Prototype\\mtx-controller-flow\\mtx\\assets\\img\\gen\\items\\pts_champion.png",
+    "width": 512,
+    "height": 1024,
+    "native_crop_dimensions": [
+      296,
+      592
+    ],
+    "alpha": true,
+    "visible_bbox": [
+      53,
+      46,
+      445,
+      979
+    ],
+    "boundary_pixels": 0
+  }
+]
