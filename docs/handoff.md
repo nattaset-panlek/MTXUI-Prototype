@@ -1,3 +1,16 @@
+## Prototype: mouse / pointer input (2026-11-26, pushed nattaset 84c7a83, mtxworkingstation 5984b00)
+- Module `mtx/js/components/pointer-input.js` (window.MTX_POINTER). Screen section attribute `data-pointer`:
+  - `hover`: hover selects (Store, Quests, Leaderboard, History, Attributes, Management, Pack). Keys / pad continue from it; only a real mouse move retakes.
+  - `none`: no mouse pre-select, empty click clears (Main, Ultimate Fight, Mastery).
+- Overlays: `MTX_POINTER.hoverPick(root, selector, onPick, {when})` is used by Tournament hub and Settings.
+- Hover selects without scrolling: screens skip scroll-into-view while `MTX_POINTER.isHoverPick()`.
+- Mouse mode starts on, turns off on a trusted keydown or pad, back on with mouse movement. `body.input-mouse` mirrors it; all game `:hover` CSS is gated behind it (hud-style.css not, it nests under html).
+- app.js stage click asks `MTX_SCREENS[cur].onClick(e)` first (skilltree detail card, main / career pagers) and `ownsClick(el)` (store / pack hold).
+- Play mode cursor is always default (base.css), except Comment / layout / nav / text editing.
+- Not done: Loadout grid hover; the 2 pre-existing 404s in the console.
+- Character Select: 4 slots, empty slot CTA Create, hint I (pad X) Remove, chevron arrows. Character display 2D / 3D / Video (Video default, assets/video/character-idle.webm, under 25 MiB for Cloudflare).
+- Publish: robocopy excludes *.zip (gen image-round zips are over the Cloudflare 25 MiB limit; their images are tracked unzipped).
+
 ## START HERE: status 2026-11-20 (moving to another machine)
 - Prototype repo: mtx-controller-flow = github nattaset-panlek/MTXUI-Prototype, branch main. Everything is committed and pushed (this file is also copied to mtx-controller-flow/docs/handoff.md).
 - On the new machine: clone the repo, run `node tools/bake-server.mjs` in mtx-controller-flow, open http://127.0.0.1:8765. Bump `?v=` in index.html when a css/js file changes.
