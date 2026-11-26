@@ -299,6 +299,23 @@
   cursor: pointer
 }
 
+/* mouse arrows (user 2026-11-26): Q / E stay in the hint bar, the picker shows plain chevrons */
+.charsel__chev {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: square;
+  opacity: .7;
+  transition: opacity .15s, transform .15s
+}
+
+.charsel__arrow:hover .charsel__chev {
+  opacity: 1;
+  transform: scale(1.15)
+}
+
 .charsel__info {
   display: flex;
   flex-direction: column;
