@@ -13,7 +13,8 @@ if not exist "C:\Personal\mtxworkingstation\" (
 if not exist "%DEST%" mkdir "%DEST%"
 
 rem mtx\ is mirrored: files deleted here are deleted there too
-robocopy "%SRC%mtx" "%DEST%\mtx" /MIR /NFL /NDL /NJH /NP
+rem mtx\assets\img\gen (generated image rounds, zips over the 25 MiB Cloudflare limit) is not used by the prototype: skipped
+robocopy "%SRC%mtx" "%DEST%\mtx" /MIR /XD "%SRC%mtx\assets\img\gen" /NFL /NDL /NJH /NP
 if errorlevel 8 (echo Copy of mtx failed & pause & exit /b 1)
 
 copy /Y "%SRC%index.html" "%DEST%\index.html" >nul
