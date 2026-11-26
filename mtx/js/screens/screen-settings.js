@@ -126,6 +126,7 @@
   }
   function render() {
     if (!root) return;
+    const keepScroll = window.MTX_POINTER?.isHoverPick?.() ? root.querySelector(".st-list")?.scrollTop : null;   // hover: the list stays where it is
     const L = live(), [cur] = L[focus] || [];
     let fi = -1;
     const list = rows().map((r, i) => { if (r.kind !== "head") fi++; return rowHtml(r, i, r.kind === "head" ? -1 : fi); }).join("");
@@ -143,7 +144,8 @@
         ${window.MTX_UI.hintBar({ b: "Back", ...fieldHints(cur), y: "Restore", menu: dirty() ? { label: "Save", attrs: "data-st-save" } : { label: "Saved", off: true } }, { cls: "st__hints" })}
       </div>`;
     const el = root.querySelector(".st-row.is-focused"), box = root.querySelector(".st-list");
-    if (el && box) { const t = el.offsetTop, bt = t + el.offsetHeight; if (bt > box.scrollTop + box.clientHeight) box.scrollTop = bt - box.clientHeight + 20; if (t < box.scrollTop) box.scrollTop = Math.max(0, t - 60); }
+    if (box && keepScroll != null) box.scrollTop = keepScroll;
+    else if (el && box) { const t = el.offsetTop, bt = t + el.offsetHeight; if (bt > box.scrollTop + box.clientHeight) box.scrollTop = bt - box.clientHeight + 20; if (t < box.scrollTop) box.scrollTop = Math.max(0, t - 60); }
     // scrollbar: thumb = visible share of the list, at the scroll position (Figma: 7 px yellow thumb on a 3 px track)
     const sb = root.querySelector(".st-scroll"), th = sb?.querySelector("em");
     if (box && sb && th) { const H = sb.clientHeight, tH = Math.max(60, H * Math.min(1, box.clientHeight / box.scrollHeight)), max = box.scrollHeight - box.clientHeight;
@@ -197,6 +199,11 @@
       focus = live().findIndex(([, i]) => i === +r.dataset.stRow);
       change(e.target.closest(".st-arrow--l") ? -1 : 1);
     });
+    // mouse hover selects a row, so its description shows (components/pointer-input.js: real moves only)
+    window.MTX_POINTER?.hoverPick(root, "[data-st-row]", r => {
+      const i = live().findIndex(([, n]) => n === +r.dataset.stRow);
+      if (i >= 0 && i !== focus) { focus = i; render(); }
+    }, { when: () => open && !window.MTX_UI?.dialog?.isOpen?.() });
   }
   function show(o = {}) {
     window.MTX_FRIENDS?.close?.(); window.MTX_OPTIONS?.close?.(); mount(); open = true; root.hidden = false; document.getElementById("stage")?.classList.add("ovl-open");

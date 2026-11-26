@@ -92,7 +92,7 @@
     if (el && el.classList.contains("reward-tile")) {
       focusedTileId = el.dataset.id;
       renderDetail(el.dataset.id);
-      el.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+      if (!window.MTX_POINTER?.isHoverPick?.()) el.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });   // hover selects without scrolling
       updateScrollbar();
     }
   }

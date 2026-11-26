@@ -147,6 +147,7 @@
 
   // keep the focused row inside the scrolling list
   function reveal(row) {
+    if (window.MTX_POINTER?.isHoverPick?.()) return;   // a mouse hover selects without scrolling the list (pointer-input.js)
     const list = api.bind("lbRows");
     if (!list || !row || !list.contains(row)) return;
     const top = row.offsetTop - list.offsetTop, bottom = top + row.offsetHeight;

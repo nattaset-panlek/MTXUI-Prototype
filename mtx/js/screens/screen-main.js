@@ -126,7 +126,23 @@
   }
   //#endregion
 
+  // Quick Fight pager clicks (moved from app.js): a dot picks that mode, a ‹ › glyph steps. Returns true when taken.
+  function onClick(e) {
+    const dot = e.target.closest(".mode-card__pager i");
+    if (dot) {
+      setQuickMode(dot.dataset.page !== undefined ? +dot.dataset.page : 0);
+      const card = document.querySelector('#s-main [data-id="quick"]');
+      if (card && api.getFocused() !== card) api.setFocus(card);
+      return true;
+    }
+    const glyph = e.target.closest(".mode-card__pager .glyph");
+    if (!glyph) return false;
+    if (glyph.dataset.btn === "lt") prevQuickMode(); else nextQuickMode();
+    return true;
+  }
+
   window.MTX_SCREENS.main = {
+    onClick,
     bindApi,
     init,
     enter,

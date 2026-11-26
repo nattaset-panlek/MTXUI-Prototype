@@ -11,11 +11,16 @@
    Mouse mode starts on, turns off on a real key press or pad input, and back on when the mouse moves.
    body.input-mouse mirrors it. Hint clicks send synthetic keys and do not count as keys.
 
-   window.MTX_POINTER = { isMouse(), setKeys(), modeOf(screenEl), noPreselect(screenEl), clearsOnEmptyClick(screenEl) }
+   Overlays that keep their own index focus (Tournament hub, Settings) use hoverPick(root, selector, onPick, { when }):
+   onPick(el) runs when a real mouse move lands on a new matching item (never on a still cursor or a re-render under it).
+   A hover selects but never scrolls: while it runs isHoverPick() is true and the screens skip their scroll-into-view.
+
+   window.MTX_POINTER = { isMouse(), setKeys(), modeOf(screenEl), noPreselect(screenEl), clearsOnEmptyClick(screenEl), hoverPick(...) }
    app.js calls noPreselect() in show(), setKeys() for pad input, clearsOnEmptyClick() in the stage click. */
 (function () {
   //#region [Variables/Fields]
   let mouse = true;
+  let picking = false;   // true while a hover is setting the focus: lists keep their scroll (isHoverPick)
   //#endregion
 
   //#region [Private Methods]
@@ -40,12 +45,24 @@
     const el = e.target.closest?.("[data-nav]");
     if (!el || !screen.contains(el) || el.offsetParent === null) return;
     const core = api();
-    if (core && core.getFocused?.() !== el) core.setFocus(el);
+    if (core && core.getFocused?.() !== el) { picking = true; try { core.setFocus(el); } finally { picking = false; } }
   }
   //#endregion
 
   //#region [Public Methods]
+  function hoverPick(root, selector, onPick, { when } = {}) {
+    root.addEventListener("pointermove", e => {
+      if (e.pointerType !== "mouse" || !(e.movementX || e.movementY)) return;
+      if (/(cmt-on|layout-editing|nav-editing|text-editing)/.test(document.body.className)) return;
+      if (when && !when()) return;
+      const el = e.target.closest?.(selector);
+      if (el && root.contains(el)) { picking = true; try { onPick(el, e); } finally { picking = false; } }
+    }, { passive: true });
+  }
+
   window.MTX_POINTER = {
+    hoverPick,
+    isHoverPick: () => picking,   // focus code checks this to skip its scroll-into-view
     isMouse: () => mouse,
     setKeys: () => setMouse(false),
     modeOf,

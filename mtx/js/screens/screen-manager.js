@@ -1080,7 +1080,7 @@
   window.MTX_SCREENS.collection = {
     enter() { if (overlay) closeOverlay(); renderCollection(); },
     // the grid scrolls (Random Event has 21 cards): keep the focused card in view
-    focus(el) { el?.closest?.("#collectionGroups") && el.scrollIntoView({ block: "nearest" }); },
+    focus(el) { if (!window.MTX_POINTER?.isHoverPick?.()) el?.closest?.("#collectionGroups") && el.scrollIntoView({ block: "nearest" }); },
     actions: Object.assign({}, screenModule.actions, { colPrevTab: () => stepColTab(-1), colNextTab: () => stepColTab(1), compareCard, openScenario })
   };
   window.MTX_SCREENS.simulation = screenModule;

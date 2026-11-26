@@ -421,11 +421,9 @@
     root = document.createElement("div"); root.id = "tournament"; root.className = "tr"; root.hidden = true;
     root.setAttribute("role", "dialog"); root.setAttribute("aria-label", "Tournament");
     document.getElementById("stage").appendChild(root);
-    // mouse: hover selects a hub card, a click on the selected card opens it
-    // (only a real mouse move selects: a re-render under a resting cursor must not steal the WASD focus)
-    let mx = -1, my = -1;
-    root.addEventListener("mousemove", e => { if (window.MTX_UI?.dialog?.isOpen?.() || window.MTX_UI?.modal?.isOpen?.()) return; if (e.clientX === mx && e.clientY === my) return; mx = e.clientX; my = e.clientY;
-      const c = e.target.closest("[data-tr-card]"); if (c && S.view === "hub" && S.f !== +c.dataset.trCard) { hubFocus(+c.dataset.trCard); rumble(20, .1); } });
+    // mouse: hover selects a hub card (components/pointer-input.js: real moves only), a click on the selected card opens it
+    window.MTX_POINTER?.hoverPick(root, "[data-tr-card]", c => { if (S.view === "hub" && S.f !== +c.dataset.trCard) { hubFocus(+c.dataset.trCard); rumble(20, .1); } },
+      { when: () => !window.MTX_UI?.dialog?.isOpen?.() && !window.MTX_UI?.modal?.isOpen?.() });
     addEventListener("keydown", e => VK().vkKey(e), true);
     root.addEventListener("click", e => { const f = S.view === "opentime" && e.target.closest("[data-dt]"); if (!f) return; S.tff = +f.dataset.dt; const st = e.target.closest("[data-dt-step]"); if (st) dtStep(S.tff, +st.dataset.dtStep); else render(); });
     root.addEventListener("click", e => { if (S.view !== "settings") return; const f = S.set.form;

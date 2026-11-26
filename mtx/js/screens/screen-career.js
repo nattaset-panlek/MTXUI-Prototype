@@ -138,7 +138,18 @@
   }
   //#endregion
 
+  // mode-card pager clicks (moved from app.js): a dot picks that page, a ‹ › glyph steps. Returns true when taken.
+  function onClick(e) {
+    const dot = e.target.closest(".mode-card__pager i");
+    if (dot) { setModePage(+dot.dataset.page || 0); return true; }
+    const glyph = e.target.closest(".mode-card__pager .glyph");
+    if (!glyph) return false;
+    stepMode(glyph.dataset.btn === "lt" ? -1 : 1);
+    return true;
+  }
+
   window.MTX_SCREENS.career = {
+    onClick,
     bindApi,
     init,
     enter,

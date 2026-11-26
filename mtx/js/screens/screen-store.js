@@ -180,13 +180,13 @@
       applyMode("rewards");
       render();
       const first = api.$(`#s-store .item-card[data-id="${firstOf("rewards")}"]`);
-      if (first) { api.setFocus(first); focus(first); }
+      if (first) api.setFocus(first);   // setFocus runs focus() (the detail) itself
     });
     const host = api.bind("storeList");
     host?.addEventListener("click", e => {
       const card = e.target.closest(".item-card");
       if (!card || isPack(DB.get(card.dataset.id))) return;
-      api.setFocus(card);
+      if (api.getFocused() !== card) api.setFocus(card);   // app.js pointerdown usually focused it already
       startHold(card);
     });
   }
@@ -212,7 +212,7 @@
     applyMode(m);
     render();
     const first = api.$(`#s-store .item-card[data-id="${firstOf(m)}"]`);
-    if (first) { api.setFocus(first); focus(first); }
+    if (first) api.setFocus(first);   // setFocus runs focus() (the detail) itself
     api.rumble(50, 0.2);
   }
   // tab change = instant screen swap, no enter / leave motion (user 2026-11-26); same switch the video wipe uses
@@ -263,6 +263,7 @@
   }
 
   const packScreen = {
+    ownsClick: () => canHold(),
     bindApi() {},
     init() {},
     enter() { renderPack(); },
@@ -360,6 +361,7 @@
   function focus(el) {
     if (!el || !el.classList.contains("item-card")) return;
     renderDetail(DB.get(el.dataset.id));
+    if (window.MTX_POINTER?.isHoverPick?.()) return;   // a mouse hover selects without scrolling the list (pointer-input.js)
     const list = api.bind("storeList"), view = list?.parentElement;
     if (!list || !view) return;
     // .st-list is the offset parent; a card in a section's first row also brings its section title into view
@@ -541,6 +543,7 @@
   //#endregion
 
   window.MTX_SCREENS.store = {
+    ownsClick: () => canHold(),   // app.js stage click: a holdable item card runs its own click (startHold)
     bindApi,
     init,
     enter,

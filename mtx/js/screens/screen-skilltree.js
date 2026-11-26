@@ -858,7 +858,31 @@
 
   //#endregion
 
+  // Stage click while the Node Detail card is open (moved from app.js): returns true when the click was taken.
+  // Loadout over the tree handles its own card.
+  function onClick(e) {
+    const S = window.MTX_SCREENS.skilltree;
+    if (!S.isDetailOpen?.() || window.MTX_LOADOUT?.isOpen?.()) return false;
+    if (S.isVideoBlocking?.()) {
+      if (e.target.closest("[data-nd-video-close]") || !e.target.closest(".nd-video__panel")) S.closeVideo?.();
+      return true;
+    }
+    if (e.target.closest('[data-bind="sdPrimary"]')) {
+      if (S.isHoldToUnlockReady?.()) window.MTX?.api?.toast?.(`Hold ${window.MTX_UI?.keyLabel?.("a") || "A"} for 1.75s to unlock`);
+      else S.detailPrimary?.();
+      return true;
+    }
+    const lvTab = e.target.closest(".skill-detail [data-lv-tab]");
+    if (lvTab) { S.setViewLevel?.(+lvTab.dataset.lvTab); return true; }
+    const bump = e.target.closest(".skill-detail .nd__bump");
+    if (bump) { S.detailLevel?.(bump.dataset.btn === "lt" ? -1 : 1); return true; }
+    if (e.target.closest(".skill-detail .nd__video")) { S.detailVideo?.(); return true; }
+    if (!e.target.closest(".skill-detail") && !e.target.closest(".tnode")) S.closeDetail?.();
+    return true;
+  }
+
   window.MTX_SCREENS.skilltree = {
+    onClick,
     bindApi,
     init,
     enter,

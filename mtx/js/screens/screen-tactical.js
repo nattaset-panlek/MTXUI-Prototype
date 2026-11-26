@@ -243,7 +243,7 @@
     const btn = api.bind("selectBtn", api.screens.tactical);
     if (!btn || btn.dataset.holdBound) return;
     btn.dataset.holdBound = "1";
-    btn.addEventListener("mousedown", e => { if (e.button === 0) { api.setFocus(btn); startHold(); } });
+    btn.addEventListener("mousedown", e => { if (e.button === 0) { if (api.getFocused() !== btn) api.setFocus(btn); startHold(); } });
     ["mouseup", "mouseleave"].forEach(ev => btn.addEventListener(ev, () => cancelHold(ev === "mouseup")));
   }
 

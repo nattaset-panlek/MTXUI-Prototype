@@ -546,56 +546,9 @@
     if (editing || layoutEditing) return;
     if (window.MTX_SHADER?.isOpen?.() || window.MTX_UI?.wipe?.isPlaying?.()) return;
     if (!started) { setDevice("kb"); startGame(); logIn("Click"); return; }
-    const scrSkill = window.MTX_SCREENS?.skilltree;
-    if (cur === "skilltree" && scrSkill?.isDetailOpen?.() && !window.MTX_LOADOUT?.isOpen?.()) {   // Loadout over the tree handles its own card
-      if (scrSkill.isVideoBlocking?.()) {
-        if (e.target.closest("[data-nd-video-close]") || !e.target.closest(".nd-video__panel")) { logIn("Click"); scrSkill.closeVideo?.(); }
-        return;
-      }
-      if (e.target.closest('[data-bind="sdPrimary"]')) {
-        logIn("Click");
-        if (scrSkill.isHoldToUnlockReady?.()) {
-          const glyph = GLYPHS[device]?.a || "A";
-          toast(`Hold ${glyph} for 1.75s to unlock`);
-          return;
-        }
-        scrSkill.detailPrimary?.();
-        return;
-      }
-      const lvTab = e.target.closest(".skill-detail [data-lv-tab]");
-      if (lvTab) { logIn("Click"); scrSkill.setViewLevel?.(+lvTab.dataset.lvTab); return; }
-      const bump = e.target.closest(".skill-detail .nd__bump");
-      if (bump) { logIn("Click"); scrSkill.detailLevel?.(bump.dataset.btn === "lt" ? -1 : 1); return; }
-      if (e.target.closest(".skill-detail .nd__video")) { logIn("Click"); scrSkill.detailVideo?.(); return; }
-      if (!e.target.closest(".skill-detail") && !e.target.closest(".tnode")) scrSkill.closeDetail?.();
-      return;
-    }
-    if (cur === "main") {
-      const scrMain = window.MTX_SCREENS?.main;
-      const dot = e.target.closest(".mode-card__pager i");
-      if (dot && scrMain) {
-        logIn("Click");
-        const page = dot.dataset.page !== undefined ? +dot.dataset.page : 0;
-        scrMain.setQuickMode?.(page);
-        const card = $('[data-id="quick"]', screens.main);
-        if (card && focused !== card) setFocus(card);
-        return;
-      }
-      const glyph = e.target.closest(".mode-card__pager .glyph");
-      if (glyph && scrMain) {
-        logIn("Click");
-        if (glyph.dataset.btn === "lt") scrMain.prevQuickMode?.();
-        else scrMain.nextQuickMode?.();
-        return;
-      }
-    }
-    if (cur === "career") {
-      const scrCareer = window.MTX_SCREENS?.career;
-      const dot = e.target.closest(".mode-card__pager i");
-      if (dot && scrCareer) { logIn("Click"); scrCareer.setModePage?.(+dot.dataset.page || 0); return; }
-      const glyph = e.target.closest(".mode-card__pager .glyph");
-      if (glyph && scrCareer) { logIn("Click"); glyph.dataset.btn === "lt" ? scrCareer.prevMode?.() : scrCareer.nextMode?.(); return; }
-    }
+    // a screen handles its own clicks first (Skill tree detail card, Main / Ultimate Fight mode-card pagers):
+    // onClick(e) returns true when it took the click
+    if (window.MTX_SCREENS?.[cur]?.onClick?.(e)) { logIn("Click"); return; }
     const el = e.target.closest("[data-nav]");
     // click on empty space (user 2026-11-26): data-pointer="none" screens drop the selection and its focus ring
     if (!el && window.MTX_POINTER?.clearsOnEmptyClick(screens[cur]) && screens[cur].contains(e.target)) { setFocus(null); return; }
@@ -603,7 +556,7 @@
     if (navHeld) { navHeld = false; return; }   // that press was a hold, handled on pointerdown / up
     setDevice("kb"); logIn("Click");
     if (focused !== el) setFocus(el);
-    if ((cur === "store" || cur === "pack") && window.MTX_SCREENS?.store?.canHold?.()) return;   // the item card handles its own click
+    if (window.MTX_SCREENS?.[cur]?.ownsClick?.(el)) return;   // the screen runs that click itself (Store / Pack item card hold)
     confirm();   // one click acts
   });
   // Clickable key hints: a hint (hint bar, social bar button, lobby CTA) presses its key, so it does what its label says.
