@@ -8665,8 +8665,12 @@ body.input-mouse #s-mastery .tab-card:hover .tab-card__art::after { opacity: .2 
 
 /* Store / Rewards background = Figma screen__bg 980:96285 exported as one image (gym photo with exposure +0.08 and
    saturation -37%, black scrim 35%, Scath Texture overlay), so colour, softness and texture match exactly */
-#s-store > .screen__bg, #s-rewards > .screen__bg { background: #05070b url(../assets/img/store-bg.webp) 0 0/1920px 1080px no-repeat }
-#s-store > .screen__bg > *, #s-rewards > .screen__bg > * { display: none !important }
+/* Style Hub (mastery) and Management use the Store background too (user 2026-11-27) */
+#s-store > .screen__bg, #s-rewards > .screen__bg, #s-mastery > .screen__bg, #s-management > .screen__bg {
+  /* blue tint (user 2026-11-27: "too grey, want blue"): a blue colour layer keeps the image brightness, changes only hue / saturation */
+  background: linear-gradient(rgb(28 78 190 / .15), rgb(28 78 190 / .15)), #05070b url(../assets/img/store-bg.webp) 0 0/1920px 1080px no-repeat;
+  background-blend-mode: color, normal }
+#s-store > .screen__bg > *, #s-rewards > .screen__bg > *, #s-mastery > .screen__bg > *, #s-management > .screen__bg > * { display: none !important }
 
 /* rarity chip on a light colour (Normal grey, Standard lime, Legendary gold, tags): black text, user 2026-11-26 */
 #s-store .rw-meta__rarity.is-light, #s-rewards .rw-meta__rarity.is-light { color: #000 }
